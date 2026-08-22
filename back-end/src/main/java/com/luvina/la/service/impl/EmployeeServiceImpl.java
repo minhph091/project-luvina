@@ -1,0 +1,208 @@
+package com.luvina.la.service.impl;
+
+/**
+ * Copyright(C) 2026 Luvina
+ * EmployeeServiceImpl.java, 21/08/2026 Phạm Văn Minh
+ */
+
+import com.luvina.la.config.Constants;
+import com.luvina.la.payload.response.EmployeeResponse;
+import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.MessageResponse;
+import com.luvina.la.repository.EmployeeNativeRepository;
+import com.luvina.la.service.EmployeeService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+/**
+ * Lớp triển khai các dịch vụ liên quan đến nhân viên.
+ *
+ * @author Phạm Văn Minh
+ */
+@Service
+public class EmployeeServiceImpl implements EmployeeService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
+
+    private final EmployeeNativeRepository employeeNativeRepository;
+
+    /**
+     * Khởi tạo EmployeeServiceImpl.
+     *
+     * @param employeeNativeRepository Repository native query cho nhân viên.
+     */
+    public EmployeeServiceImpl(EmployeeNativeRepository employeeNativeRepository) {
+        this.employeeNativeRepository = employeeNativeRepository;
+    }
+
+    /**
+     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp và phân trang theo tài liệu thiết kế API.
+     *
+     * @param employeeName         Tên nhân viên để lọc (tùy chọn).
+     * @param departmentId         ID phòng ban để lọc (tùy chọn).
+     * @param ordEmployeeName      Chiều sắp xếp theo tên nhân viên (ASC/DESC).
+     * @param ordCertificationName Chiều sắp xếp theo tên chứng chỉ (ASC/DESC).
+     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
+     * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
+     * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
+     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     */
+    @Override
+    public GetEmployeesResponse getEmployees(
+            String employeeName,
+            String departmentId,
+            String ordEmployeeName,
+            String ordCertificationName,
+            String ordEndDate,
+            String offsetStr,
+            String limitStr) {
+        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offsetStr, limitStr, null);
+    }
+
+    /**
+     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp, phân trang và cột ưu tiên.
+     *
+     * @param employeeName         Tên nhân viên để lọc (tùy chọn).
+     * @param departmentId         ID phòng ban để lọc (tùy chọn).
+     * @param ordEmployeeName      Chiều sắp xếp theo tên nhân viên (ASC/DESC).
+     * @param ordCertificationName Chiều sắp xếp theo tên chứng chỉ (ASC/DESC).
+     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
+     * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
+     * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
+     * @param sortBy               Cột đang được người dùng ưu tiên sắp xếp hàng đầu.
+     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     */
+    @Override
+    public GetEmployeesResponse getEmployees(
+            String employeeName,
+            String departmentId,
+            String ordEmployeeName,
+            String ordCertificationName,
+            String ordEndDate,
+            String offsetStr,
+            String limitStr,
+            String sortBy) {
+
+        // 1. Validate parameter
+        // 1.1 Validate ord_employee_name, ord_certification_name, ord_end_date
+        if (!isValidOrderParam(ordEmployeeName)
+                || !isValidOrderParam(ordCertificationName)
+                || !isValidOrderParam(ordEndDate)) {
+            GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+            errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+            errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER021, new ArrayList<>()));
+            return errorResponse;
+        }
+
+        // 1.2 Validate offset
+        int offsetVal = Constants.DEFAULT_OFFSET;
+        if (offsetStr != null && !offsetStr.trim().isEmpty()) {
+            try {
+                int parsedOffset = Integer.parseInt(offsetStr.trim());
+                if (parsedOffset < 0) {
+                    GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+                    errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+                    errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_OFFSET)));
+                    return errorResponse;
+                }
+                offsetVal = parsedOffset;
+            } catch (NumberFormatException ex) {
+                GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+                errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+                errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_OFFSET)));
+                return errorResponse;
+            }
+        }
+
+        // 1.3 Validate limit
+        int limitVal = Constants.DEFAULT_LIMIT;
+        if (limitStr != null && !limitStr.trim().isEmpty()) {
+            try {
+                int parsedLimit = Integer.parseInt(limitStr.trim());
+                if (parsedLimit <= 0) {
+                    GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+                    errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+                    errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_LIMIT)));
+                    return errorResponse;
+                }
+                limitVal = parsedLimit;
+            } catch (NumberFormatException ex) {
+                GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+                errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+                errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_LIMIT)));
+                return errorResponse;
+            }
+        }
+
+        // Parse departmentId
+        Long deptIdVal = null;
+        if (departmentId != null && !departmentId.trim().isEmpty()) {
+            try {
+                deptIdVal = Long.parseLong(departmentId.trim());
+            } catch (NumberFormatException ex) {
+                log.warn("Invalid departmentId format: {}", departmentId);
+            }
+        }
+
+        // Chuẩn hóa tên nhân viên
+        String nameFilter = (employeeName == null || employeeName.trim().isEmpty())
+                ? null : employeeName.trim();
+
+        try {
+            // 2.1 Thực hiện lấy tổng số nhân viên từ database
+            Long totalRecords = employeeNativeRepository.countEmployees(nameFilter, deptIdVal);
+
+            // Nếu tổng số bản ghi là 0 thì trả về kết quả rỗng
+            if (totalRecords == null || totalRecords == 0L) {
+                GetEmployeesResponse emptyResponse = new GetEmployeesResponse();
+                emptyResponse.setCode(Constants.RESPONSE_CODE_SUCCESS);
+                emptyResponse.setTotalRecords(0L);
+                emptyResponse.setEmployees(new ArrayList<>());
+                return emptyResponse;
+            }
+
+            // 2.2 Thực hiện get danh sách nhân viên từ database
+            List<EmployeeResponse> employees = employeeNativeRepository.findEmployees(
+                    nameFilter,
+                    deptIdVal,
+                    limitVal,
+                    offsetVal,
+                    ordEmployeeName,
+                    ordCertificationName,
+                    ordEndDate,
+                    sortBy);
+
+            // 3. Tạo dữ liệu response thành công
+            GetEmployeesResponse response = new GetEmployeesResponse();
+            response.setCode(Constants.RESPONSE_CODE_SUCCESS);
+            response.setTotalRecords(totalRecords);
+            response.setEmployees(employees);
+            return response;
+
+        } catch (Exception ex) {
+            log.error("Error occurred while getting employee list: ", ex);
+            GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+            errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
+            errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()));
+            return errorResponse;
+        }
+    }
+
+    /**
+     * Kiểm tra tính hợp lệ của tham số sắp xếp (chỉ chấp nhận rỗng, "ASC" hoặc "DESC").
+     *
+     * @param orderParam Tham số order cần kiểm tra.
+     * @return true nếu hợp lệ, false nếu không hợp lệ.
+     */
+    private boolean isValidOrderParam(String orderParam) {
+        if (orderParam == null || orderParam.trim().isEmpty()) {
+            return true;
+        }
+        String trimmed = orderParam.trim();
+        return Constants.ORDER_ASC.equalsIgnoreCase(trimmed) || Constants.ORDER_DESC.equalsIgnoreCase(trimmed);
+    }
+}
