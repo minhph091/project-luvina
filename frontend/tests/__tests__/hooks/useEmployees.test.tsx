@@ -133,21 +133,21 @@ describe('useEmployees Hook', () => {
     });
 
     expect(hookResult.current.sort.employeeNameOrder).toBe('DESC');
-    expect(hookResult.current.sortIcon('employeeNameOrder')).toBe(' ▽');
+    expect(hookResult.current.sortIcon('employeeNameOrder')).toBe(' ▼ △');
 
     await act(async () => {
       hookResult.current.handleSort('certificationNameOrder');
     });
 
     expect(hookResult.current.sort.certificationNameOrder).toBe('DESC');
-    expect(hookResult.current.sortIcon('certificationNameOrder')).toBe(' ▽');
+    expect(hookResult.current.sortIcon('certificationNameOrder')).toBe(' ▼ △');
 
     await act(async () => {
       hookResult.current.handleSort('endDateOrder');
     });
 
     expect(hookResult.current.sort.endDateOrder).toBe('DESC');
-    expect(hookResult.current.sortIcon('endDateOrder')).toBe(' ▽');
+    expect(hookResult.current.sortIcon('endDateOrder')).toBe(' ▼ △');
   });
 
   it('handles error when fetch fails', async () => {

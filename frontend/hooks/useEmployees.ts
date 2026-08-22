@@ -158,7 +158,7 @@ export function useEmployees(): UseEmployeesReturn {
    * @returns Chuỗi ký hiệu mũi tên
    */
   const sortIcon = (column: keyof SortState): string => {
-    return sort[column] === SORT_ORDERS.ASC ? ' ▲' : ' ▽';
+    return sort[column] === SORT_ORDERS.ASC ? ' ▲ ▽' : ' ▼ △';
   };
 
   /**

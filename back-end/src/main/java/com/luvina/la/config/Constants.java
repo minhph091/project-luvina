@@ -44,6 +44,9 @@ public class Constants {
             "employeeEmail"
     };
 
+    // Roles
+    public static final String ROLE_ADMIN = "ADMIN";
+
     // Response Code
     public static final int RESPONSE_CODE_SUCCESS = 200;
     public static final int RESPONSE_CODE_ERROR = 500;

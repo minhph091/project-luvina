@@ -1005,7 +1005,7 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
           style="cursor: pointer;"
         >
           氏名
-           ▲
+           ▲ ▽
         </div>
         <div>
           生年月日
@@ -1024,14 +1024,14 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
           style="cursor: pointer;"
         >
           日本語能力
-           ▲
+           ▲ ▽
         </div>
         <div
           id="col-sort-enddate"
           style="cursor: pointer;"
         >
           失効日
-           ▲
+           ▲ ▽
         </div>
         <div>
           点数

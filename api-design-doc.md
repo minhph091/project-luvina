@@ -41,7 +41,7 @@
 
 ### 3.1. Khái quát
 
-Lấy thông tin nhân viên và phòng ban cùng thông tin chứng chỉ tiếng Nhật (nếu có) của nhân viên theo điều kiện tìm kiếm để hiển thị màn hình list.
+Lấy thông tin nhân viên (ngoại trừ tài khoản có role ADMIN) và phòng ban cùng thông tin chứng chỉ tiếng Nhật (nếu có) của nhân viên theo điều kiện tìm kiếm để hiển thị màn hình list.
 
 ### 3.2. Request
 
@@ -203,6 +203,12 @@ Lấy thông tin nhân viên và phòng ban cùng thông tin chứng chỉ tiế
 
 **③ Điều kiện lấy**
 
+- Điều kiện mặc định: Loại trừ người dùng có role admin:
+
+| No. | Tên bảng  | Tên trường     | Điều kiện (giá trị, tên hạng mục màn hình) |
+|-----|-----------|----------------|--------------------------------------------|
+| 1   | employees | employee_role  | != 'ADMIN'                                 |
+
 - Nếu tồn tại parameter `[department_id]` và không rỗng → Thêm điều kiện search theo phòng ban:
 
 | No. | Tên bảng  | Tên trường     | Điều kiện (giá trị, tên hạng mục màn hình) |
@@ -262,6 +268,12 @@ Lấy thông tin nhân viên và phòng ban cùng thông tin chứng chỉ tiế
 | 3   | employees_certifications | certification_id  | certification_id  | certifications           | LEFT JOIN          |
 
 **③ Điều kiện lấy**
+
+- Điều kiện mặc định: Loại trừ người dùng có role admin:
+
+| No. | Tên bảng  | Tên trường     | Điều kiện (giá trị, tên hạng mục màn hình) |
+|-----|-----------|----------------|--------------------------------------------|
+| 1   | employees | employee_role  | != 'ADMIN'                                 |
 
 - Nếu tồn tại parameter `[department_id]` và không rỗng → Thêm điều kiện search theo phòng ban:
 

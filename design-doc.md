@@ -27,6 +27,7 @@
 
 - Màn hình list nhân viên
 - URL vào là http(s)://ip_address/user/list
+- Không hiển thị người dùng có role admin (ADMIN) trên danh sách nhân viên
 - Có các chức năng chính
 - Search: search all và điều kiện (có sort)
 - Add: Link đến màn hình add mới ADM004
@@ -362,6 +363,7 @@
 - TH API trả về lỗi hiện thị message lỗi: "部門を取得できません"
 - TH API thành công, lấy list department từ reponse trả về (xem TK API), binding list department vào dropdownlít (có phần tử rỗng ở đầu)
   `- Gọi API list employees (tham chiếu tài liệu TK API)
+- Danh sách nhân viên chỉ hiển thị user thông thường, không bao gồm các tài khoản có role admin (ADMIN)
 - TH API trả về lỗi hiện thị message lỗi: "従業員を取得できません"
 - TH API thành công, lấy list employee từ reponse trả về (xem TK API), binding list employee vào bảng nhân viên
 

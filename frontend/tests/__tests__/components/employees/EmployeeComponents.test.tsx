@@ -66,7 +66,7 @@ describe('Employee Sub-Components Tests', () => {
 
     it('renders employee rows and handles sorting', () => {
       const handleSort = jest.fn();
-      const getSortIcon = jest.fn(() => ' ▲');
+      const getSortIcon = jest.fn(() => ' ▲ ▽');
       const formatDate = jest.fn((d) => (d ? d.replace(/-/g, '/') : ''));
 
       render(

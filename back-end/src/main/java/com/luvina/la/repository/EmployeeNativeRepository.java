@@ -40,13 +40,13 @@ public class EmployeeNativeRepository {
      * Lấy danh sách nhân viên theo điều kiện với limit và offset.
      * Mỗi nhân viên chỉ lấy 1 chứng chỉ ưu tiên (level cao nhất).
      *
-     * @param employeeName           Tên nhân viên để lọc (null nếu không lọc).
-     * @param departmentId           ID phòng ban để lọc (null nếu không lọc).
-     * @param limit                  Số bản ghi tối đa cần lấy.
-     * @param offset                 Vị trí bắt đầu lấy bản ghi.
-     * @param ordEmployeeName        Chiều sắp xếp theo tên (ASC/DESC).
-     * @param ordCertificationName   Chiều sắp xếp theo chứng chỉ (ASC/DESC).
-     * @param ordEndDate             Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
+     * @param employeeName         Tên nhân viên để lọc (null nếu không lọc).
+     * @param departmentId         ID phòng ban để lọc (null nếu không lọc).
+     * @param limit                Số bản ghi tối đa cần lấy.
+     * @param offset               Vị trí bắt đầu lấy bản ghi.
+     * @param ordEmployeeName      Chiều sắp xếp theo tên (ASC/DESC).
+     * @param ordCertificationName Chiều sắp xếp theo chứng chỉ (ASC/DESC).
+     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
      * @return Danh sách EmployeeResponse theo trang.
      */
     @SuppressWarnings("unchecked")
@@ -58,21 +58,23 @@ public class EmployeeNativeRepository {
             String ordEmployeeName,
             String ordCertificationName,
             String ordEndDate) {
-        return findEmployees(employeeName, departmentId, limit, offset, ordEmployeeName, ordCertificationName, ordEndDate, null);
+        return findEmployees(employeeName, departmentId, limit, offset, ordEmployeeName, ordCertificationName,
+                ordEndDate, null);
     }
 
     /**
-     * Lấy danh sách nhân viên theo điều kiện với limit, offset và độ ưu tiên sắp xếp cột.
+     * Lấy danh sách nhân viên theo điều kiện với limit, offset và độ ưu tiên sắp
+     * xếp cột.
      * Mỗi nhân viên chỉ lấy 1 chứng chỉ ưu tiên (level cao nhất).
      *
-     * @param employeeName           Tên nhân viên để lọc (null nếu không lọc).
-     * @param departmentId           ID phòng ban để lọc (null nếu không lọc).
-     * @param limit                  Số bản ghi tối đa cần lấy.
-     * @param offset                 Vị trí bắt đầu lấy bản ghi.
-     * @param ordEmployeeName        Chiều sắp xếp theo tên (ASC/DESC).
-     * @param ordCertificationName   Chiều sắp xếp theo chứng chỉ (ASC/DESC).
-     * @param ordEndDate             Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
-     * @param sortBy                 Cột đang được ưu tiên sắp xếp hàng đầu.
+     * @param employeeName         Tên nhân viên để lọc (null nếu không lọc).
+     * @param departmentId         ID phòng ban để lọc (null nếu không lọc).
+     * @param limit                Số bản ghi tối đa cần lấy.
+     * @param offset               Vị trí bắt đầu lấy bản ghi.
+     * @param ordEmployeeName      Chiều sắp xếp theo tên (ASC/DESC).
+     * @param ordCertificationName Chiều sắp xếp theo chứng chỉ (ASC/DESC).
+     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
+     * @param sortBy               Cột đang được ưu tiên sắp xếp hàng đầu.
      * @return Danh sách EmployeeResponse theo trang.
      */
     @SuppressWarnings("unchecked")
@@ -124,7 +126,8 @@ public class EmployeeNativeRepository {
 
     /**
      * Xây dựng câu SQL SELECT với JOIN các bảng cần thiết.
-     * Dùng window function ROW_NUMBER() để chỉ chọn 1 chứng chỉ tốt nhất (cấp độ cao nhất) cho mỗi nhân viên.
+     * Dùng window function ROW_NUMBER() để chỉ chọn 1 chứng chỉ tốt nhất (cấp độ
+     * cao nhất) cho mỗi nhân viên.
      *
      * @param employeeName Tên nhân viên để lọc.
      * @param departmentId ID phòng ban để lọc.
@@ -168,6 +171,7 @@ public class EmployeeNativeRepository {
 
     /**
      * Thêm điều kiện lọc vào câu SQL nếu có.
+     * Mặc định loại trừ người dùng có role ADMIN.
      *
      * @param sql          StringBuilder đang xây dựng.
      * @param employeeName Tên nhân viên cần lọc.
@@ -177,6 +181,8 @@ public class EmployeeNativeRepository {
             StringBuilder sql,
             String employeeName,
             Long departmentId) {
+
+        sql.append("AND e.employee_role != '").append(Constants.ROLE_ADMIN).append("' ");
 
         if (employeeName != null && !employeeName.trim().isEmpty()) {
             sql.append("AND e.employee_name LIKE :employeeName ");
@@ -190,11 +196,11 @@ public class EmployeeNativeRepository {
      * Thêm mệnh đề ORDER BY vào câu SQL dựa trên các tham số sort và cột ưu tiên.
      * Nếu không có tham số order nào, sắp xếp mặc định theo employee_id ASC.
      *
-     * @param sql                    StringBuilder đang xây dựng.
-     * @param ordEmployeeName        Chiều sort tên nhân viên (ASC/DESC).
-     * @param ordCertificationName   Chiều sort tên chứng chỉ (ASC/DESC).
-     * @param ordEndDate             Chiều sort ngày hết hạn (ASC/DESC).
-     * @param sortBy                 Cột đang được ưu tiên hàng đầu.
+     * @param sql                  StringBuilder đang xây dựng.
+     * @param ordEmployeeName      Chiều sort tên nhân viên (ASC/DESC).
+     * @param ordCertificationName Chiều sort tên chứng chỉ (ASC/DESC).
+     * @param ordEndDate           Chiều sort ngày hết hạn (ASC/DESC).
+     * @param sortBy               Cột đang được ưu tiên hàng đầu.
      */
     private void appendOrderBy(
             StringBuilder sql,
@@ -205,28 +211,40 @@ public class EmployeeNativeRepository {
 
         List<String> orderClauses = new ArrayList<>();
 
-        String nameOrder = isValidOrder(ordEmployeeName) ? ("e.employee_name " + ordEmployeeName.trim().toUpperCase()) : null;
-        String certOrder = isValidOrder(ordCertificationName) ? ("ec_top.certification_name " + ordCertificationName.trim().toUpperCase()) : null;
+        String nameOrder = isValidOrder(ordEmployeeName) ? ("e.employee_name " + ordEmployeeName.trim().toUpperCase())
+                : null;
+        String certOrder = isValidOrder(ordCertificationName)
+                ? ("ec_top.certification_name " + ordCertificationName.trim().toUpperCase())
+                : null;
         String endOrder = isValidOrder(ordEndDate) ? ("ec_top.end_date " + ordEndDate.trim().toUpperCase()) : null;
 
         String normalizedSortBy = sortBy != null ? sortBy.trim().toLowerCase() : "";
 
         if ((normalizedSortBy.contains("cert") || normalizedSortBy.contains("nihongo")) && certOrder != null) {
             orderClauses.add(certOrder);
-            if (endOrder != null) orderClauses.add(endOrder);
-            if (nameOrder != null) orderClauses.add(nameOrder);
+            if (nameOrder != null)
+                orderClauses.add(nameOrder);
+            if (endOrder != null)
+                orderClauses.add(endOrder);
         } else if ((normalizedSortBy.contains("end") || normalizedSortBy.contains("shikkou")) && endOrder != null) {
             orderClauses.add(endOrder);
-            if (certOrder != null) orderClauses.add(certOrder);
-            if (nameOrder != null) orderClauses.add(nameOrder);
+            if (nameOrder != null)
+                orderClauses.add(nameOrder);
+            if (certOrder != null)
+                orderClauses.add(certOrder);
         } else if (normalizedSortBy.contains("name") && nameOrder != null) {
             orderClauses.add(nameOrder);
-            if (certOrder != null) orderClauses.add(certOrder);
-            if (endOrder != null) orderClauses.add(endOrder);
+            if (certOrder != null)
+                orderClauses.add(certOrder);
+            if (endOrder != null)
+                orderClauses.add(endOrder);
         } else {
-            if (nameOrder != null) orderClauses.add(nameOrder);
-            if (certOrder != null) orderClauses.add(certOrder);
-            if (endOrder != null) orderClauses.add(endOrder);
+            if (nameOrder != null)
+                orderClauses.add(nameOrder);
+            if (certOrder != null)
+                orderClauses.add(certOrder);
+            if (endOrder != null)
+                orderClauses.add(endOrder);
         }
 
         if (orderClauses.isEmpty()) {
@@ -284,7 +302,8 @@ public class EmployeeNativeRepository {
     }
 
     /**
-     * Chuyển đổi danh sách Object[] từ native query sang danh sách EmployeeResponse.
+     * Chuyển đổi danh sách Object[] từ native query sang danh sách
+     * EmployeeResponse.
      *
      * @param rows Danh sách hàng kết quả từ native query.
      * @return Danh sách EmployeeResponse.
@@ -295,13 +314,15 @@ public class EmployeeNativeRepository {
             Long employeeId = row[0] != null ? ((Number) row[0]).longValue() : null;
             String employeeName = (String) row[1];
             LocalDate employeeBirthDate = row[2] != null
-                    ? ((java.sql.Date) row[2]).toLocalDate() : null;
+                    ? ((java.sql.Date) row[2]).toLocalDate()
+                    : null;
             String departmentName = (String) row[3];
             String employeeEmail = (String) row[4];
             String employeeTelephone = (String) row[5];
             String certificationName = (String) row[6];
             LocalDate endDate = row[7] != null
-                    ? ((java.sql.Date) row[7]).toLocalDate() : null;
+                    ? ((java.sql.Date) row[7]).toLocalDate()
+                    : null;
             BigDecimal score = row[8] != null ? (BigDecimal) row[8] : null;
 
             result.add(new EmployeeResponse(
