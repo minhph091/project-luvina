@@ -11,8 +11,8 @@ import com.luvina.la.payload.response.GetEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.EmployeeService;
+import com.luvina.la.validator.EmployeeValidator;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +29,19 @@ public class EmployeeServiceImpl implements EmployeeService {
     private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private final EmployeeNativeRepository employeeNativeRepository;
+    private final EmployeeValidator employeeValidator;
 
     /**
      * Khởi tạo EmployeeServiceImpl.
      *
      * @param employeeNativeRepository Repository native query cho nhân viên.
+     * @param employeeValidator        Validator kiểm tra tính hợp lệ của tham số nhân viên.
      */
-    public EmployeeServiceImpl(EmployeeNativeRepository employeeNativeRepository) {
+    public EmployeeServiceImpl(
+            EmployeeNativeRepository employeeNativeRepository,
+            EmployeeValidator employeeValidator) {
         this.employeeNativeRepository = employeeNativeRepository;
+        this.employeeValidator = employeeValidator;
     }
 
     /**
@@ -88,54 +93,25 @@ public class EmployeeServiceImpl implements EmployeeService {
             String sortBy) {
 
         // 1. Validate parameter
-        // 1.1 Validate ord_employee_name, ord_certification_name, ord_end_date
-        if (!isValidOrderParam(ordEmployeeName)
-                || !isValidOrderParam(ordCertificationName)
-                || !isValidOrderParam(ordEndDate)) {
+        MessageResponse validationError = employeeValidator.validateGetEmployeesParams(
+                ordEmployeeName, ordCertificationName, ordEndDate, offsetStr, limitStr);
+        if (validationError != null) {
             GetEmployeesResponse errorResponse = new GetEmployeesResponse();
             errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
-            errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER021, new ArrayList<>()));
+            errorResponse.setMessage(validationError);
             return errorResponse;
         }
 
-        // 1.2 Validate offset
+        // Parse offset
         int offsetVal = Constants.DEFAULT_OFFSET;
         if (offsetStr != null && !offsetStr.trim().isEmpty()) {
-            try {
-                int parsedOffset = Integer.parseInt(offsetStr.trim());
-                if (parsedOffset < 0) {
-                    GetEmployeesResponse errorResponse = new GetEmployeesResponse();
-                    errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
-                    errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_OFFSET)));
-                    return errorResponse;
-                }
-                offsetVal = parsedOffset;
-            } catch (NumberFormatException ex) {
-                GetEmployeesResponse errorResponse = new GetEmployeesResponse();
-                errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
-                errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_OFFSET)));
-                return errorResponse;
-            }
+            offsetVal = Integer.parseInt(offsetStr.trim());
         }
 
-        // 1.3 Validate limit
+        // Parse limit
         int limitVal = Constants.DEFAULT_LIMIT;
         if (limitStr != null && !limitStr.trim().isEmpty()) {
-            try {
-                int parsedLimit = Integer.parseInt(limitStr.trim());
-                if (parsedLimit <= 0) {
-                    GetEmployeesResponse errorResponse = new GetEmployeesResponse();
-                    errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
-                    errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_LIMIT)));
-                    return errorResponse;
-                }
-                limitVal = parsedLimit;
-            } catch (NumberFormatException ex) {
-                GetEmployeesResponse errorResponse = new GetEmployeesResponse();
-                errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
-                errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_LIMIT)));
-                return errorResponse;
-            }
+            limitVal = Integer.parseInt(limitStr.trim());
         }
 
         // Parse departmentId
@@ -190,19 +166,5 @@ public class EmployeeServiceImpl implements EmployeeService {
             errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()));
             return errorResponse;
         }
-    }
-
-    /**
-     * Kiểm tra tính hợp lệ của tham số sắp xếp (chỉ chấp nhận rỗng, "ASC" hoặc "DESC").
-     *
-     * @param orderParam Tham số order cần kiểm tra.
-     * @return true nếu hợp lệ, false nếu không hợp lệ.
-     */
-    private boolean isValidOrderParam(String orderParam) {
-        if (orderParam == null || orderParam.trim().isEmpty()) {
-            return true;
-        }
-        String trimmed = orderParam.trim();
-        return Constants.ORDER_ASC.equalsIgnoreCase(trimmed) || Constants.ORDER_DESC.equalsIgnoreCase(trimmed);
     }
 }

@@ -9,6 +9,7 @@ import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.GetEmployeesResponse;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.impl.EmployeeServiceImpl;
+import com.luvina.la.validator.EmployeeValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,11 +38,14 @@ public class EmployeeServiceTest {
     @Mock
     private EmployeeNativeRepository employeeNativeRepository;
 
+    private EmployeeValidator employeeValidator;
+
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeServiceImpl(employeeNativeRepository);
+        employeeValidator = new EmployeeValidator();
+        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator);
     }
 
     @Test
