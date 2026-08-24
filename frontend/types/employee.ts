@@ -38,7 +38,6 @@ export interface EmployeeItem {
 export interface GetEmployeesApiResponse {
   code: number;
   totalRecords?: number;
-  totalRecord?: number;
   employees: EmployeeItem[];
 }
 

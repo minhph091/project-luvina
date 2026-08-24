@@ -96,7 +96,7 @@ export function useEmployees(): UseEmployeesReturn {
           sortBy: sortByColumn || activeSortColumn,
         });
         setEmployees(responseData.employees || []);
-        setTotalRecords(responseData.totalRecords ?? responseData.totalRecord ?? 0);
+        setTotalRecords(responseData.totalRecords ?? 0);
       } catch {
         setErrorMessage(ERROR_MESSAGES.FETCH_EMPLOYEES_FAILED);
         setEmployees([]);

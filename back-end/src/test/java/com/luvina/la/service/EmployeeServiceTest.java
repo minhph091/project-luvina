@@ -75,7 +75,6 @@ public class EmployeeServiceTest {
         assertNotNull(response);
         assertEquals(200, response.getCode());
         assertEquals(1L, response.getTotalRecords());
-        assertEquals(1L, response.getTotalRecord());
         assertEquals(1, response.getEmployees().size());
         assertEquals("Nguyen Van A", response.getEmployees().get(0).getEmployeeName());
 

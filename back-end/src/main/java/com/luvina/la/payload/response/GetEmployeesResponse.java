@@ -73,24 +73,6 @@ public class GetEmployeesResponse {
     }
 
     /**
-     * Getter tương thích ngược cho totalRecord.
-     *
-     * @return Tổng số nhân viên thỏa điều kiện.
-     */
-    public Long getTotalRecord() {
-        return totalRecords;
-    }
-
-    /**
-     * Setter tương thích ngược cho totalRecord.
-     *
-     * @param totalRecord Tổng số bản ghi cần thiết lập.
-     */
-    public void setTotalRecord(Long totalRecord) {
-        this.totalRecords = totalRecord;
-    }
-
-    /**
      * Lấy danh sách nhân viên.
      *
      * @return Danh sách nhân viên theo trang.
