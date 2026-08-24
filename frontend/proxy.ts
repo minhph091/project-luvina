@@ -1,3 +1,9 @@
+/**
+ * Copyright(C) 2026 Luvina
+ * proxy.ts - Route Proxy and Protection Middleware
+ * 21/08/2026 Pham Van Minh
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 
 export function proxy(request: NextRequest) {

@@ -32,11 +32,11 @@ public class DepartmentController {
     }
 
     /**
-     * Lấy danh sách tất cả phòng ban.
+     * Lấy danh sách tất cả phòng ban theo tài liệu thiết kế API (GET /department).
      *
      * @return Response chứa mã kết quả và danh sách phòng ban.
      */
-    @GetMapping("/departments")
+    @GetMapping("/department")
     public GetDepartmentsResponse getDepartments() {
         return departmentService.getDepartments();
     }

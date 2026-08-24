@@ -29,7 +29,7 @@ exports[`Layout Component Snapshots renders Header unchanged 1`] = `
       >
         <a
           class="navbar-brand"
-          href="/employees/list"
+          href="/employees/adm002"
         >
           <img
             alt="logo"
@@ -55,7 +55,7 @@ exports[`Layout Component Snapshots renders Header unchanged 1`] = `
             class="nav-item"
           >
             <a
-              href="/employees/list"
+              href="/employees/adm002"
             >
               トップ
             </a>

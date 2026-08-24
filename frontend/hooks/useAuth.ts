@@ -21,6 +21,7 @@ export const useAuth = (): void => {
   useEffect(() => {
     const token = getToken();
     if (!token || isTokenExpired(token?.accessToken)) {
+      console.log('Token expired or not found, redirecting to login');
       router.push(APP_ROUTES.LOGIN);
     }
   }, [router]);

@@ -9,7 +9,7 @@ describe('Employees API Service', () => {
     jest.clearAllMocks();
   });
 
-  it('calls GET /employees with proper query parameters', async () => {
+  it('calls GET /employee with proper query parameters', async () => {
     const mockResponseData = {
       code: 200,
       totalRecords: 1,
@@ -39,7 +39,7 @@ describe('Employees API Service', () => {
       endDateOrder: 'ASC',
     });
 
-    expect(mockedApiClient.get).toHaveBeenCalledWith('/employees', {
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/employee', {
       params: {
         employeeName: 'Nguyen',
         departmentId: 1,

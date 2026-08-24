@@ -1,7 +1,7 @@
 /**
  * Copyright(C) 2026 Luvina
  * employee.ts - Type Definitions for Employee Domain
- * 21/08/2026 Antigravity
+ * 21/08/2026 Pham Van Minh
  */
 
 import { DepartmentItem } from './department';
@@ -33,7 +33,7 @@ export interface EmployeeItem {
 }
 
 /**
- * Phản hồi từ API GET /employees.
+ * Phản hồi từ API GET /employee.
  */
 export interface GetEmployeesApiResponse {
   code: number;
@@ -42,7 +42,7 @@ export interface GetEmployeesApiResponse {
 }
 
 /**
- * Tham số truyền vào API GET /employees.
+ * Tham số truyền vào API GET /employee.
  */
 export interface GetEmployeesParams {
   employeeName?: string;

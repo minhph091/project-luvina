@@ -70,7 +70,7 @@ export function useEmployees(): UseEmployeesReturn {
   const totalPages = Math.ceil(totalRecords / DEFAULT_PAGE_SIZE);
 
   /**
-   * Gọi API GET /employees để lấy danh sách nhân viên.
+   * Gọi API GET /employee để lấy danh sách nhân viên.
    */
   const fetchEmployees = useCallback(
     async (

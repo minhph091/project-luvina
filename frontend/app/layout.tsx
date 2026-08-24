@@ -3,7 +3,7 @@
 /**
  * Copyright(C) 2026 Luvina
  * layout.tsx - Root Application Layout
- * 21/08/2026 Antigravity
+ * 21/08/2026 Pham Van Minh
  */
 
 import React from 'react';

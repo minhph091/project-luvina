@@ -1,7 +1,7 @@
 /**
  * Copyright(C) 2026 Luvina
  * department.ts - Type Definitions for Department
- * 21/08/2026 Antigravity
+ * 21/08/2026 Pham Van Minh
  */
 
 /**

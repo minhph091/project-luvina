@@ -9,7 +9,7 @@ describe('Departments API Service', () => {
     jest.clearAllMocks();
   });
 
-  it('calls GET /departments and returns response data', async () => {
+  it('calls GET /department and returns response data', async () => {
     const mockResponseData = {
       code: 200,
       departments: [
@@ -20,7 +20,7 @@ describe('Departments API Service', () => {
 
     const result = await getDepartments();
 
-    expect(mockedApiClient.get).toHaveBeenCalledWith('/departments');
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/department');
     expect(result).toEqual(mockResponseData);
   });
 });

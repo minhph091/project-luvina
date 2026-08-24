@@ -39,10 +39,10 @@ describe('Authentication Hooks', () => {
   });
 
   describe('useGuest', () => {
-    it('should redirect to /employees/list if a token is found', () => {
+    it('should redirect to /employees/adm002 if a token is found', () => {
       mockedGetToken.mockReturnValue({ accessToken: 'fake-token', tokenType: 'Bearer' });
       renderHook(() => useGuest());
-      expect(mockPush).toHaveBeenCalledWith('/employees/list');
+      expect(mockPush).toHaveBeenCalledWith('/employees/adm002');
     });
 
     it('should not redirect if no token is found', () => {
@@ -75,7 +75,7 @@ describe('Authentication Hooks', () => {
         password: 'password123',
       });
       expect(mockedStoreToken).toHaveBeenCalledWith('fake-token', 'Bearer');
-      expect(mockPush).toHaveBeenCalledWith('/employees/list');
+      expect(mockPush).toHaveBeenCalledWith('/employees/adm002');
       expect(result.current.loginErrorMessage).toBeNull();
     });
 

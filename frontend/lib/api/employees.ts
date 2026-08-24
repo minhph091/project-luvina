@@ -12,7 +12,7 @@ import {
 } from '@/types/employee';
 
 /**
- * Gọi API GET /employees để lấy danh sách nhân viên theo tiêu chí tìm kiếm, phân trang và sắp xếp.
+ * Gọi API GET /employee để lấy danh sách nhân viên theo tiêu chí tìm kiếm, phân trang và sắp xếp.
  *
  * @param params Tham số tìm kiếm, phân trang và sắp xếp.
  * @returns Promise chứa dữ liệu danh sách nhân viên và tổng số bản ghi từ backend.
@@ -64,7 +64,7 @@ export async function getEmployees(
     queryParams.departmentId = departmentId;
   }
 
-  const response = await apiClient.get<GetEmployeesApiResponse>('/employees', {
+  const response = await apiClient.get<GetEmployeesApiResponse>('/employee', {
     params: queryParams,
   });
 

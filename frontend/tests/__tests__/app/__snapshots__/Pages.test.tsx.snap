@@ -1070,7 +1070,7 @@ exports[`Page Snapshots renders RootLayout unchanged 1`] = `
           >
             <a
               class="navbar-brand"
-              href="/employees/list"
+              href="/employees/adm002"
             >
               <img
                 alt="logo"
@@ -1096,7 +1096,7 @@ exports[`Page Snapshots renders RootLayout unchanged 1`] = `
                 class="nav-item"
               >
                 <a
-                  href="/employees/list"
+                  href="/employees/adm002"
                 >
                   トップ
                 </a>

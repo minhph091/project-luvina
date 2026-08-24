@@ -49,7 +49,7 @@ public class EmployeeController {
      * @param ordEndDate             Chiều sắp xếp theo ngày hết hạn (snake_case theo thiết kế).
      * @return Response chứa mã kết quả, tổng số bản ghi và danh sách nhân viên.
      */
-    @GetMapping({"/employee", "/employees"})
+    @GetMapping("/employee")
     public GetEmployeesResponse getEmployees(
             @RequestParam(required = false, name = "employeeName") String employeeName,
             @RequestParam(required = false, name = "employee_name") String employeeNameSnake,

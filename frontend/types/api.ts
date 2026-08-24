@@ -1,4 +1,9 @@
-// types/api.ts
+/**
+ * Copyright(C) 2026 Luvina
+ * api.ts - Type Definitions for Common API Responses & Errors
+ * 21/08/2026 Pham Van Minh
+ */
+
 export interface ApiError {
   message: string;
   status: number;

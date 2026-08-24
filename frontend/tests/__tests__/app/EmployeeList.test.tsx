@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import EmployeeListPage from '@/app/(protected)/employees/list/page';
+import EmployeeListPage from '@/app/(protected)/employees/adm002/page';
 import { getEmployees } from '@/lib/api/employees';
 import { getDepartments } from '@/lib/api/departments';
 

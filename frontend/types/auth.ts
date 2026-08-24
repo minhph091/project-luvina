@@ -1,7 +1,7 @@
 /**
  * Copyright(C) 2026 Luvina
  * auth.ts - Type Definitions for Authentication
- * 21/08/2026 Antigravity
+ * 21/08/2026 Pham Van Minh
  */
 
 /**

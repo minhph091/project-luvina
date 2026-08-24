@@ -8,12 +8,12 @@ import { apiClient } from './client';
 import { DepartmentItem, GetDepartmentsApiResponse } from '@/types/department';
 
 /**
- * Gọi API GET /departments để lấy toàn bộ danh sách phòng ban.
+ * Gọi API GET /department để lấy toàn bộ danh sách phòng ban.
  *
  * @returns Promise chứa danh sách phòng ban từ backend.
  */
 export async function getDepartments(): Promise<GetDepartmentsApiResponse> {
-  const response = await apiClient.get<GetDepartmentsApiResponse>('/departments');
+  const response = await apiClient.get<GetDepartmentsApiResponse>('/department');
   return response.data;
 }
 
