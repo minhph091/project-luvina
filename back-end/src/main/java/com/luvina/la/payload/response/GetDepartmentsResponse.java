@@ -4,13 +4,13 @@ import java.util.List;
 
 /**
  * Copyright(C) 2026 Luvina
- * GetDepartmentsResponse.java, 18/08/2026 Hoàng Ngọc Lâm
+ * GetDepartmentsResponse.java, 18/08/2026 Phạm Văn Minh
  */
 
 /**
  * Chứa kết quả trả về của API lấy danh sách phòng ban.
  *
- * @author Hoàng Ngọc Lâm
+ * @author Phạm Văn Minh
  */
 public class GetDepartmentsResponse {
 

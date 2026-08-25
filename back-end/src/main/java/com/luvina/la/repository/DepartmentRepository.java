@@ -6,13 +6,13 @@ import com.luvina.la.entity.DepartmentEntity;
 
 /**
  * Copyright(C) 2026 Luvina
- * DepartmentRepository.java, 18/08/2026 Hoàng Ngọc Lâm
+ * DepartmentRepository.java, 18/08/2026 Phạm Văn Minh
  */
 
 /**
  * Repository xử lý truy vấn dữ liệu phòng ban.
  *
- * @author Hoàng Ngọc Lâm
+ * @author Phạm Văn Minh
  */
 public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Long> {
 

@@ -2,13 +2,13 @@ package com.luvina.la.payload.response;
 
 /**
  * Copyright(C) 2026 Luvina
- * DepartmentResponse.java, 18/08/2026 Hoàng Ngọc Lâm
+ * DepartmentResponse.java, 18/08/2026 Phạm Văn Minh
  */
 
 /**
  * Chứa thông tin phòng ban được trả về trong response của API.
  *
- * @author Hoàng Ngọc Lâm
+ * @author Phạm Văn Minh
  */
 public class DepartmentResponse {
 
