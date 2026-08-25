@@ -5,22 +5,23 @@ package com.luvina.la.service;
  * EmployeeServiceTest.java, 21/08/2026 Phạm Văn Minh
  */
 
-import com.luvina.la.payload.response.EmployeeResponse;
+import com.luvina.la.dto.EmployeeDTO;
+import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.response.GetEmployeesResponse;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.impl.EmployeeServiceImpl;
 import com.luvina.la.validator.EmployeeValidator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test cho EmployeeService.
+ * Unit test cho EmployeeService sử dụng EmployeeDTO và EmployeeMapper.
  *
  * @author Phạm Văn Minh
  */
@@ -39,32 +40,33 @@ public class EmployeeServiceTest {
     private EmployeeNativeRepository employeeNativeRepository;
 
     private EmployeeValidator employeeValidator;
-
+    private EmployeeMapper employeeMapper;
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
         employeeValidator = new EmployeeValidator();
-        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator);
+        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
+        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator, employeeMapper);
     }
 
     @Test
     @DisplayName("Test getEmployees thành công với tham số mặc định")
     void testGetEmployeesDefault() {
-        EmployeeResponse emp = new EmployeeResponse(
-                1L,
-                "Nguyen Van A",
-                LocalDate.of(1990, 1, 1),
-                "Phòng IT",
-                "a@luvina.net",
-                "0123456789",
-                "N1",
-                LocalDate.of(2025, 12, 31),
-                new BigDecimal("150")
-        );
+        EmployeeDTO empDto = EmployeeDTO.builder()
+                .employeeId(1L)
+                .employeeName("Nguyen Van A")
+                .employeeBirthDate(LocalDate.of(1990, 1, 1))
+                .departmentName("Phòng IT")
+                .employeeEmail("a@luvina.net")
+                .employeeTelephone("0123456789")
+                .certificationName("N1")
+                .endDate(LocalDate.of(2025, 12, 31))
+                .score(new BigDecimal("150"))
+                .build();
 
         when(employeeNativeRepository.findEmployees(isNull(), isNull(), eq(5), eq(0), isNull(), isNull(), isNull(), isNull()))
-                .thenReturn(List.of(emp));
+                .thenReturn(List.of(empDto));
         when(employeeNativeRepository.countEmployees(isNull(), isNull()))
                 .thenReturn(1L);
 
@@ -77,6 +79,8 @@ public class EmployeeServiceTest {
         assertEquals(1L, response.getTotalRecords());
         assertEquals(1, response.getEmployees().size());
         assertEquals("Nguyen Van A", response.getEmployees().get(0).getEmployeeName());
+        assertEquals("Phòng IT", response.getEmployees().get(0).getDepartmentName());
+        assertEquals("N1", response.getEmployees().get(0).getCertificationName());
 
         verify(employeeNativeRepository).findEmployees(isNull(), isNull(), eq(5), eq(0), isNull(), isNull(), isNull(), isNull());
         verify(employeeNativeRepository).countEmployees(isNull(), isNull());
@@ -85,22 +89,19 @@ public class EmployeeServiceTest {
     @Test
     @DisplayName("Test getEmployees thành công với bộ lọc và phân trang tùy chỉnh")
     void testGetEmployeesWithFilter() {
-        EmployeeResponse emp = new EmployeeResponse(
-                2L,
-                "Van A",
-                LocalDate.of(1995, 5, 20),
-                "Phòng Dev",
-                "vana@luvina.net",
-                "0987654321",
-                null,
-                null,
-                null
-        );
+        EmployeeDTO empDto = EmployeeDTO.builder()
+                .employeeId(2L)
+                .employeeName("Van A")
+                .employeeBirthDate(LocalDate.of(1995, 5, 20))
+                .departmentName("Phòng Dev")
+                .employeeEmail("vana@luvina.net")
+                .employeeTelephone("0987654321")
+                .build();
 
         when(employeeNativeRepository.countEmployees(eq("Van A"), eq(2L)))
                 .thenReturn(1L);
         when(employeeNativeRepository.findEmployees(eq("Van A"), eq(2L), eq(10), eq(20), eq("DESC"), eq("ASC"), eq("DESC"), isNull()))
-                .thenReturn(List.of(emp));
+                .thenReturn(List.of(empDto));
 
         GetEmployeesResponse response = employeeService.getEmployees(
                 "  Van A  ", "2", "DESC", "ASC", "DESC", "20", "10"
@@ -111,6 +112,7 @@ public class EmployeeServiceTest {
         assertEquals(1L, response.getTotalRecords());
         assertEquals(1, response.getEmployees().size());
         assertEquals("Van A", response.getEmployees().get(0).getEmployeeName());
+        assertEquals("Phòng Dev", response.getEmployees().get(0).getDepartmentName());
 
         verify(employeeNativeRepository).countEmployees(eq("Van A"), eq(2L));
         verify(employeeNativeRepository).findEmployees(eq("Van A"), eq(2L), eq(10), eq(20), eq("DESC"), eq("ASC"), eq("DESC"), isNull());

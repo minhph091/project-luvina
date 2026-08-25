@@ -39,18 +39,21 @@ public class AuthController {
     final UserDetailsServiceImpl userDetailsService;
     final EmployeeEntityRepository employeeEntityRepository;
     final PasswordEncoder passwordEncoder;
+    final com.luvina.la.mapper.EmployeeMapper employeeMapper;
 
     AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
             UserDetailsServiceImpl userDetailsService,
             EmployeeEntityRepository employeeEntityRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            com.luvina.la.mapper.EmployeeMapper employeeMapper) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
         this.employeeEntityRepository = employeeEntityRepository;
         this.passwordEncoder = passwordEncoder;
+        this.employeeMapper = employeeMapper;
     }
 
     /**
@@ -117,37 +120,35 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Tạo mới EmployeeEntity
-        EmployeeEntity employee = new EmployeeEntity();
-        employee.setEmployeeLoginId(username);
+        // Tạo mới EmployeeEntity thông qua MapStruct Mapper
+        EmployeeEntity employee = employeeMapper.toEntity(request);
         employee.setEmployeeLoginPassword(passwordEncoder.encode(request.getPassword().trim()));
 
         // Tên nhân viên (mặc định lấy theo username nếu không truyền)
-        String empName = (request.getEmployeeName() != null && !request.getEmployeeName().trim().isEmpty())
-                ? request.getEmployeeName().trim()
-                : username;
-        employee.setEmployeeName(empName);
+        if (employee.getEmployeeName() == null || employee.getEmployeeName().trim().isEmpty()) {
+            employee.setEmployeeName(username);
+        } else {
+            employee.setEmployeeName(employee.getEmployeeName().trim());
+        }
 
         // Email (mặc định username + @luvina.net nếu không truyền)
-        String empEmail = (request.getEmployeeEmail() != null && !request.getEmployeeEmail().trim().isEmpty())
-                ? request.getEmployeeEmail().trim()
-                : username + "@luvina.net";
-        employee.setEmployeeEmail(empEmail);
+        if (employee.getEmployeeEmail() == null || employee.getEmployeeEmail().trim().isEmpty()) {
+            employee.setEmployeeEmail(username + "@luvina.net");
+        } else {
+            employee.setEmployeeEmail(employee.getEmployeeEmail().trim());
+        }
 
         // Phòng ban (mặc định 1 nếu không truyền)
-        Long deptId = request.getDepartmentId() != null ? request.getDepartmentId() : 1L;
-        employee.setDepartmentId(deptId);
-
-        // Các thông tin bổ sung nếu có
-        employee.setEmployeeNameKana(request.getEmployeeNameKana());
-        employee.setEmployeeBirthDate(request.getEmployeeBirthDate());
-        employee.setEmployeeTelephone(request.getEmployeeTelephone());
+        if (employee.getDepartmentId() == null) {
+            employee.setDepartmentId(1L);
+        }
 
         // Vai trò (mặc định USER nếu không truyền)
-        String role = (request.getEmployeeRole() != null && !request.getEmployeeRole().trim().isEmpty())
-                ? request.getEmployeeRole().trim().toUpperCase()
-                : "USER";
-        employee.setEmployeeRole(role);
+        if (employee.getEmployeeRole() == null || employee.getEmployeeRole().trim().isEmpty()) {
+            employee.setEmployeeRole("USER");
+        } else {
+            employee.setEmployeeRole(employee.getEmployeeRole().trim().toUpperCase());
+        }
 
         // Lưu vào cơ sở dữ liệu
         EmployeeEntity saved = employeeEntityRepository.save(employee);

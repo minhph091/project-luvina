@@ -6,6 +6,8 @@ package com.luvina.la.service.impl;
  */
 
 import com.luvina.la.config.Constants;
+import com.luvina.la.dto.EmployeeDTO;
+import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.GetEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Lớp triển khai các dịch vụ liên quan đến nhân viên.
+ * Sử dụng EmployeeDTO làm tầng dữ liệu trung gian cho nghiệp vụ.
  *
  * @author Phạm Văn Minh
  */
@@ -30,18 +33,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeNativeRepository employeeNativeRepository;
     private final EmployeeValidator employeeValidator;
+    private final EmployeeMapper employeeMapper;
 
     /**
      * Khởi tạo EmployeeServiceImpl.
      *
      * @param employeeNativeRepository Repository native query cho nhân viên.
      * @param employeeValidator        Validator kiểm tra tính hợp lệ của tham số nhân viên.
+     * @param employeeMapper           Mapper chuyển đổi giữa DTO và Response Payload.
      */
     public EmployeeServiceImpl(
             EmployeeNativeRepository employeeNativeRepository,
-            EmployeeValidator employeeValidator) {
+            EmployeeValidator employeeValidator,
+            EmployeeMapper employeeMapper) {
         this.employeeNativeRepository = employeeNativeRepository;
         this.employeeValidator = employeeValidator;
+        this.employeeMapper = employeeMapper;
     }
 
     /**
@@ -141,8 +148,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 return emptyResponse;
             }
 
-            // 2.2 Thực hiện get danh sách nhân viên từ database
-            List<EmployeeResponse> employees = employeeNativeRepository.findEmployees(
+            // 2.2 Thực hiện get danh sách DTO nhân viên từ database
+            List<EmployeeDTO> employeeDTOs = employeeNativeRepository.findEmployees(
                     nameFilter,
                     deptIdVal,
                     limitVal,
@@ -152,11 +159,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                     ordEndDate,
                     sortBy);
 
+            // 2.3 Chuyển đổi DTO sang Response Payload thông qua Mapper
+            List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeDTOs);
+
             // 3. Tạo dữ liệu response thành công
             GetEmployeesResponse response = new GetEmployeesResponse();
             response.setCode(Constants.RESPONSE_CODE_SUCCESS);
             response.setTotalRecords(totalRecords);
-            response.setEmployees(employees);
+            response.setEmployees(employeeResponses);
             return response;
 
         } catch (Exception ex) {

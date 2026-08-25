@@ -6,7 +6,7 @@ package com.luvina.la.repository;
  */
 
 import com.luvina.la.config.Constants;
-import com.luvina.la.payload.response.EmployeeResponse;
+import com.luvina.la.dto.EmployeeDTO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -47,10 +47,10 @@ public class EmployeeNativeRepository {
      * @param ordEmployeeName      Chiều sắp xếp theo tên (ASC/DESC).
      * @param ordCertificationName Chiều sắp xếp theo chứng chỉ (ASC/DESC).
      * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
-     * @return Danh sách EmployeeResponse theo trang.
+     * @return Danh sách EmployeeDTO theo trang.
      */
     @SuppressWarnings("unchecked")
-    public List<EmployeeResponse> findEmployees(
+    public List<EmployeeDTO> findEmployees(
             String employeeName,
             Long departmentId,
             int limit,
@@ -75,10 +75,10 @@ public class EmployeeNativeRepository {
      * @param ordCertificationName Chiều sắp xếp theo chứng chỉ (ASC/DESC).
      * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
      * @param sortBy               Cột đang được ưu tiên sắp xếp hàng đầu.
-     * @return Danh sách EmployeeResponse theo trang.
+     * @return Danh sách EmployeeDTO theo trang.
      */
     @SuppressWarnings("unchecked")
-    public List<EmployeeResponse> findEmployees(
+    public List<EmployeeDTO> findEmployees(
             String employeeName,
             Long departmentId,
             int limit,
@@ -98,7 +98,7 @@ public class EmployeeNativeRepository {
         query.setMaxResults(limit > 0 ? limit : Constants.DEFAULT_LIMIT);
 
         List<Object[]> rows = query.getResultList();
-        return mapToEmployeeResponse(rows);
+        return mapToEmployeeDTO(rows);
     }
 
     /**
@@ -303,13 +303,13 @@ public class EmployeeNativeRepository {
 
     /**
      * Chuyển đổi danh sách Object[] từ native query sang danh sách
-     * EmployeeResponse.
+     * EmployeeDTO.
      *
      * @param rows Danh sách hàng kết quả từ native query.
-     * @return Danh sách EmployeeResponse.
+     * @return Danh sách EmployeeDTO.
      */
-    private List<EmployeeResponse> mapToEmployeeResponse(List<Object[]> rows) {
-        List<EmployeeResponse> result = new ArrayList<>();
+    private List<EmployeeDTO> mapToEmployeeDTO(List<Object[]> rows) {
+        List<EmployeeDTO> result = new ArrayList<>();
         for (Object[] row : rows) {
             Long employeeId = row[0] != null ? ((Number) row[0]).longValue() : null;
             String employeeName = (String) row[1];
@@ -325,16 +325,17 @@ public class EmployeeNativeRepository {
                     : null;
             BigDecimal score = row[8] != null ? (BigDecimal) row[8] : null;
 
-            result.add(new EmployeeResponse(
-                    employeeId,
-                    employeeName,
-                    employeeBirthDate,
-                    departmentName,
-                    employeeEmail,
-                    employeeTelephone,
-                    certificationName,
-                    endDate,
-                    score));
+            result.add(EmployeeDTO.builder()
+                    .employeeId(employeeId)
+                    .employeeName(employeeName)
+                    .employeeBirthDate(employeeBirthDate)
+                    .departmentName(departmentName)
+                    .employeeEmail(employeeEmail)
+                    .employeeTelephone(employeeTelephone)
+                    .certificationName(certificationName)
+                    .endDate(endDate)
+                    .score(score)
+                    .build());
         }
         return result;
     }
