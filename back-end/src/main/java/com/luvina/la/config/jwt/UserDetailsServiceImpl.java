@@ -1,7 +1,7 @@
 package com.luvina.la.config.jwt;
 
-import com.luvina.la.entity.Employee;
-import com.luvina.la.repository.EmployeeRepository;
+import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.repository.EmployeeEntityRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    final EmployeeRepository userRepository;
-    UserDetailsServiceImpl(EmployeeRepository userRepository) {
+    final EmployeeEntityRepository userRepository;
+    UserDetailsServiceImpl(EmployeeEntityRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Employee> entity = this.userRepository.findByEmployeeLoginId(username);
+        Optional<EmployeeEntity> entity = this.userRepository.findByEmployeeLoginId(username);
         Collection<GrantedAuthority> roles;
 
         if (entity.isPresent()) {

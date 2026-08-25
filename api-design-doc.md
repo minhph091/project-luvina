@@ -355,3 +355,261 @@ Lấy thông tin nhân viên (ngoại trừ tài khoản có role ADMIN) và ph�
 |     |               |                     |
 
 
+# Thiết kế API: Get Employee
+
+| Mục | Giá trị |
+|-----|---------|
+| **Tên system** | Manager User |
+| **Loại system** | Thiết kế API |
+| **Hạng mục** | Get employee |
+| **Người tạo** | ThanhPD |
+| **Ngày tạo** | 2023-01-04 |
+| **Người update** | ThanhPD |
+| **Ngày update** | 2023-01-04 |
+| **Version** | 0.1 |
+
+---
+
+## 1. Lịch sử thay đổi
+
+| Date | Người update | Version | Nội dung thay đổi | Ngày phê chuẩn | Người phê chuẩn |
+|------|--------------|---------|-------------------|----------------|-----------------|
+| 2023-01-04 | ThanhPD | 0.1 | Tạo mới tài liệu | | |
+
+---
+
+## 2. Khái quát
+
+### 2.1. Mô tả
+Lấy thông tin chi tiết nhân viên theo `employeeId`.
+
+### 2.2. Request
+
+#### Request URL
+
+| No. | Service  | API name     | Method HTTP | Note |
+|-----|----------|--------------|-------------|------|
+| 1   | employee | Get employee | GET         |      |
+
+**Sample**
+```
+GET /employee/1
+```
+
+#### Request Parameter
+
+| No. | Parameter  | Bắt buộc | Kiểu   | Default | Mô tả                              |
+|-----|------------|----------|--------|---------|------------------------------------|
+| 1   | employeeId | ○        | number |         | ID của employee cần lấy thông tin |
+
+### 2.3. Response
+
+#### Response thành công
+
+| No. | Key                  | Kiểu    | Mô tả                                      |
+|-----|----------------------|---------|--------------------------------------------|
+| 1   | code                 | number  | Mã kết quả (200)                           |
+| 2   | employeeId           | number  | ID nhân viên                               |
+| 3   | employeeName         | string  | Tên nhân viên                              |
+| 4   | employeeBirthDate    | date    | Ngày sinh                                  |
+| 5   | departmentId         | string  | ID phòng ban                               |
+| 6   | departmentName       | string  | Tên phòng ban                              |
+| 7   | employeeEmail        | string  | Email                                      |
+| 8   | employeeTelephone    | string  | Số điện thoại                              |
+| 9   | employeeNameKana     | string  | Tên kana                                   |
+| 10  | employeeLoginId      | string  | Login ID                                   |
+| 11  | certifications       | array   | Mảng chứng chỉ tiếng Nhật                  |
+|     | └ certificationId    | number  | ID chứng chỉ                               |
+|     | └ certificationName  | string  | Tên chứng chỉ                              |
+|     | └ startDate          | date    | Ngày bắt đầu hiệu lực                      |
+|     | └ endDate            | date    | Ngày kết thúc hiệu lực                     |
+|     | └ score              | decimal | Điểm số                                    |
+
+**Sample**
+```json
+{
+  "code": "200",
+  "employeeId": "1",
+  "employeeName": "Nguyễn Văn A",
+  "employeeBirthDate": "1983/01/02",
+  "departmentId": "1",
+  "departmentName": "Phòng DEVN",
+  "employeeEmail": "nguyenvana@luvina.net",
+  "employeeTelephone": "01234567",
+  "employeeNameKana": "名カナ",
+  "employeeLoginId": "nguyenvana",
+  "certifications": [
+    {
+      "certificationId": "1",
+      "certificationName": "chứng chỉ tiếng Nhật cấp 1",
+      "startDate": "2023/01/01",
+      "endDate": "2024/01/01",
+      "score": "180"
+    },
+    {
+      "certificationId": "2",
+      "certificationName": "chứng chỉ tiếng Nhật cấp 2",
+      "startDate": "2023/02/01",
+      "endDate": "2024/02/01",
+      "score": "90"
+    }
+  ]
+}
+```
+
+#### Response lỗi
+
+| No. | Key     | Kiểu   | Mô tả        |
+|-----|---------|--------|--------------|
+| 1   | code    | number | Mã kết quả (500) |
+| 2   | message | object | Nội dung lỗi |
+
+**Sample**
+```json
+{
+  "code": "500",
+  "message": {
+    "code": "ER013",
+    "params": []
+  }
+}
+```
+
+---
+
+## 3. Flow xử lý
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> Validate[1. Validate parameter]
+
+    Validate --> CheckParam{employeeId<br/>có tồn tại?}
+    CheckParam -->|Không| Err001[Trả lỗi ER001<br/>params: "ＩＤ"]
+    CheckParam -->|Có| CheckDB{employeeId tồn tại<br/>trong bảng employees?}
+
+    CheckDB -->|Không| Err013[Trả lỗi ER013<br/>params: "ＩＤ"]
+    CheckDB -->|Có| GetEmp[2. Lấy thông tin nhân viên<br/>employees + departments]
+
+    GetEmp --> GetCert[3. Lấy danh sách chứng chỉ<br/>certifications + employees_certifications]
+    GetCert --> Success[4. Tạo response thành công<br/>code = 200]
+
+    Err001 --> Error[4. Tạo response lỗi<br/>code = 500]
+    Err013 --> Error
+
+    Success --> End([Kết thúc])
+    Error --> End
+```
+
+---
+
+## 4. Chi tiết xử lý
+
+### 4.1. Xử lý common
+Không có.
+
+### 4.2. Xử lý chi tiết
+
+#### Bước 1. Validate parameter
+
+**1.1. Validate `employeeId`**
+
+| Điều kiện | Mã lỗi | Params | Hành động |
+|-----------|--------|--------|-----------|
+| Parameter không tồn tại | ER001 | `"ＩＤ"` | Chuyển sang Bước 4 (response lỗi) |
+| Không tồn tại trong bảng `employees.employee_id` | ER013 | `"ＩＤ"` | Chuyển sang Bước 4 (response lỗi) |
+
+#### Bước 2. Lấy thông tin chi tiết nhân viên
+
+**2.1. Danh sách bảng sử dụng**
+
+| No | Tên bảng logic       | Bảng vật lý  | Create | Refer | Update | Xóa |
+|----|----------------------|--------------|--------|-------|--------|-----|
+| 1  | Thông tin nhân viên  | employees    |        | ○     |        |     |
+| 2  | Thông tin bộ phận    | departments  |        | ○     |        |     |
+
+**2.2. Các trường lấy ra**
+
+| No | Bảng        | Trường                |
+|----|-------------|-----------------------|
+| 1  | employees   | employee_id           |
+| 2  | employees   | employee_name         |
+| 3  | employees   | employee_birth_date   |
+| 4  | employees   | employee_email        |
+| 5  | employees   | employee_telephone    |
+| 6  | employees   | employee_name_kana    |
+| 7  | employees   | employee_login_id     |
+| 8  | departments | department_id         |
+| 9  | departments | department_name       |
+
+**2.3. Điều kiện kết hợp**
+
+| No | Bảng nguồn | Trường nguồn  | Bảng đích   | Trường đích   | Loại join  |
+|----|------------|---------------|-------------|---------------|------------|
+| 1  | employees  | department_id | departments | department_id | INNER JOIN |
+
+#### Bước 3. Lấy thông tin chứng chỉ tiếng Nhật
+
+**3.1. Danh sách bảng sử dụng**
+
+| No | Tên bảng logic                          | Bảng vật lý              | Create | Refer | Update | Xóa |
+|----|-----------------------------------------|--------------------------|--------|-------|--------|-----|
+| 1  | Thông tin chứng chỉ tiếng Nhật          | certifications           |        | ○     |        |     |
+| 2  | Thông tin nhân viên – chứng chỉ tiếng Nhật | employees_certifications |        | ○     |        |     |
+
+**3.2. Các trường lấy ra**
+
+| No | Bảng                     | Trường             |
+|----|--------------------------|--------------------|
+| 1  | certifications           | certification_id   |
+| 2  | certifications           | certification_name |
+| 3  | employees_certifications | start_date         |
+| 4  | employees_certifications | end_date           |
+| 5  | employees_certifications | score              |
+
+**3.3. Điều kiện kết hợp**
+
+| No | Bảng nguồn               | Trường nguồn     | Bảng đích      | Trường đích      | Loại join  |
+|----|--------------------------|------------------|----------------|------------------|------------|
+| 1  | employees_certifications | certification_id | certifications | certification_id | INNER JOIN |
+
+**3.4. Sort**
+
+| No | Bảng           | Trường              | Thứ tự |
+|----|----------------|---------------------|--------|
+| 1  | certifications | certification_level | ASC    |
+
+**3.5. WHERE**
+
+| No | Bảng                     | Trường      | Điều kiện                                      |
+|----|--------------------------|-------------|------------------------------------------------|
+| 1  | employees_certifications | employee_id | = `employeeId` từ request parameter            |
+
+#### Bước 4. Tạo dữ liệu response
+
+**Trường hợp thành công (không có lỗi)**
+
+| No. | Key                  | Giá trị                              |
+|-----|----------------------|--------------------------------------|
+| 1   | code                 | `200`                                |
+| 2   | employeeId           | Lấy từ Bước 2                        |
+| 3   | employeeName         | Lấy từ Bước 2                        |
+| 4   | employeeBirthDate    | Lấy từ Bước 2                        |
+| 5   | departmentId         | Lấy từ Bước 2                        |
+| 6   | departmentName       | Lấy từ Bước 2                        |
+| 7   | employeeEmail        | Lấy từ Bước 2                        |
+| 8   | employeeTelephone    | Lấy từ Bước 2                        |
+| 9   | employeeNameKana     | Lấy từ Bước 2                        |
+| 10  | employeeLoginId      | Lấy từ Bước 2                        |
+| 11  | certifications       | Lấy từ Bước 3 (mảng)                 |
+|     | └ certificationId    |                                      |
+|     | └ certificationName  |                                      |
+|     | └ startDate          |                                      |
+|     | └ endDate            |                                      |
+|     | └ score              |                                      |
+
+**Trường hợp có lỗi**
+
+| No. | Key     | Giá trị                                          |
+|-----|---------|--------------------------------------------------|
+| 1   | code    | `500`                                            |
+| 2   | message | `{ "code": "<mã lỗi>", "params": [...] }`        |

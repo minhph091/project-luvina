@@ -9,7 +9,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants';
+import { APP_ROUTES, BUTTON_LABELS, SYSTEM_MESSAGES } from '@/constants';
 
 export default function EmployeeCompletePage() {
   useAuth();
@@ -22,9 +22,11 @@ export default function EmployeeCompletePage() {
   return (
     <div className="box-shadow">
       <div className="notification-box">
-        <h1 className="msg-title">ユーザの登録が完了しました。 or ユーザの更新が完了しました。 or ユーザの削除が完了しました。</h1>
+        <h1 className="msg-title">
+          {`${SYSTEM_MESSAGES.MSG001_USER_ADD_COMPLETE} or ${SYSTEM_MESSAGES.MSG002_USER_UPDATE_COMPLETE} or ${SYSTEM_MESSAGES.MSG003_USER_DELETE_COMPLETE}`}
+        </h1>
         <div className="notification-box-btn">
-          <button type="button" onClick={handleNavigateToList} className="btn btn-primary btn-sm">OK</button>
+          <button type="button" onClick={handleNavigateToList} className="btn btn-primary btn-sm">{BUTTON_LABELS.OK}</button>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { DepartmentItem } from '@/types/department';
+import { BUTTON_LABELS, COMMON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 
 interface EmployeeSearchFormProps {
   searchName: string;
@@ -36,14 +37,14 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
   return (
     <div className="search-memb">
       <h1 className="title">
-        会員名称で会員を検索します。検索条件無しの場合は全て表示されます。
+        {PAGE_TITLES.SEARCH_MEMBERS_DESCRIPTION}
       </h1>
       <form className="c-form" onSubmit={onSearchSubmit}>
         <ul className="d-flex">
           {/* Nhập tên nhân viên */}
           <li className="form-group row">
             <label className="col-form-label">
-              氏名:
+              {FIELD_LABELS.NAME_COLON}
             </label>
             <div className="col-sm">
               <input
@@ -59,7 +60,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
           {/* Chọn phòng ban (Group) */}
           <li className="form-group row">
             <label className="col-form-label">
-              グループ:
+              {FIELD_LABELS.GROUP_COLON}
             </label>
             <div className="col-sm">
               <select
@@ -71,7 +72,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
                   )
                 }
               >
-                <option value="">全て</option>
+                <option value="">{COMMON_LABELS.ALL}</option>
                 {departments.map((department) => (
                   <option key={department.departmentId} value={department.departmentId}>
                     {department.departmentName}
@@ -90,7 +91,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
                 className="btn btn-primary btn-sm"
                 disabled={loading}
               >
-                検索
+                {BUTTON_LABELS.SEARCH}
               </button>
               <button
                 id="btn-add"
@@ -98,7 +99,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
                 onClick={onNavigateToAdd}
                 className="btn btn-secondary btn-sm"
               >
-                新規追加
+                {BUTTON_LABELS.ADD_NEW}
               </button>
             </div>
           </li>

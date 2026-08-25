@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormValues } from '@/lib/validation/auth';
 import { useLogin } from '@/hooks/useAuth';
+import { BUTTON_LABELS, FIELD_LABELS } from '@/constants';
 
 export default function LoginForm() {
   const { handleLogin, loading, loginErrorMessage } = useLogin();
@@ -47,7 +48,7 @@ export default function LoginForm() {
         <input
           className="input100"
           type="text"
-          placeholder="アカウント名:"
+          placeholder={FIELD_LABELS.ACCOUNT_NAME_COLON}
           {...register('username')}
         />
         <span className="focus-input100"></span>
@@ -65,7 +66,7 @@ export default function LoginForm() {
         <input
           className="input100"
           type="password"
-          placeholder="パスワード:"
+          placeholder={FIELD_LABELS.PASSWORD_COLON}
           {...register('password')}
         />
         <span className="focus-input100"></span>
@@ -81,7 +82,7 @@ export default function LoginForm() {
 
       <div className="container-login100-form-btn">
         <button type="submit" className="login100-form-btn" disabled={loading}>
-          {loading ? 'ログイン中...' : 'ログイン'}
+          {loading ? BUTTON_LABELS.LOGGING_IN : BUTTON_LABELS.LOGIN}
         </button>
       </div>
     </form>

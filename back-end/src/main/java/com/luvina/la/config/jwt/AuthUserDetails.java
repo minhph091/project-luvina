@@ -1,6 +1,6 @@
 package com.luvina.la.config.jwt;
 
-import com.luvina.la.entity.Employee;
+import com.luvina.la.entity.EmployeeEntity;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @AllArgsConstructor
 public class AuthUserDetails implements UserDetails {
 
-    Employee employee;
+    EmployeeEntity employee;
     private Collection<GrantedAuthority> authorities;
 
     public Collection<? extends GrantedAuthority> getAuthorities() {

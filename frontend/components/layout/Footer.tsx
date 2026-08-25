@@ -5,12 +5,13 @@
  */
 
 import React from 'react';
+import { COMMON_LABELS } from '@/constants';
 
 const Footer: React.FC = () => {
   return (
     <footer className="footer">
       <div className="content-main">
-        <p>Copyright © 2026 ルビナソフトウエア株式会社. All rights reserved.</p>
+        <p>{COMMON_LABELS.COPYRIGHT}</p>
       </div>
     </footer>
   );

@@ -9,7 +9,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { EmployeeItem, SortState } from '@/types/employee';
-import { APP_ROUTES, ERROR_MESSAGES } from '@/constants';
+import { APP_ROUTES, COMMON_LABELS, ERROR_MESSAGES, FIELD_LABELS } from '@/constants';
 
 interface EmployeeTableProps {
   employees: EmployeeItem[];
@@ -34,33 +34,33 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
       <div className="css-grid-table box-shadow">
         {/* Header bảng với các cột có thể sort */}
         <div className="css-grid-table-header">
-          <div>ID</div>
+          <div>{FIELD_LABELS.ID}</div>
           <div
             id="col-sort-name"
             style={{ cursor: 'pointer' }}
             onClick={() => onSort('employeeNameOrder')}
           >
-            氏名{getSortIcon('employeeNameOrder')}
+            {FIELD_LABELS.NAME}{getSortIcon('employeeNameOrder')}
           </div>
-          <div>生年月日</div>
-          <div>グループ</div>
-          <div>メールアドレス</div>
-          <div>電話番号</div>
+          <div>{FIELD_LABELS.BIRTHDAY}</div>
+          <div>{FIELD_LABELS.GROUP}</div>
+          <div>{FIELD_LABELS.EMAIL}</div>
+          <div>{FIELD_LABELS.TEL}</div>
           <div
             id="col-sort-cert"
             style={{ cursor: 'pointer' }}
             onClick={() => onSort('certificationNameOrder')}
           >
-            日本語能力{getSortIcon('certificationNameOrder')}
+            {FIELD_LABELS.JAPANESE_LEVEL}{getSortIcon('certificationNameOrder')}
           </div>
           <div
             id="col-sort-enddate"
             style={{ cursor: 'pointer' }}
             onClick={() => onSort('endDateOrder')}
           >
-            失効日{getSortIcon('endDateOrder')}
+            {FIELD_LABELS.END_DATE}{getSortIcon('endDateOrder')}
           </div>
-          <div>点数</div>
+          <div>{FIELD_LABELS.SCORE}</div>
         </div>
 
         {/* Body bảng */}
@@ -75,7 +75,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                 color: '#888',
               }}
             >
-              読み込み中...
+              {COMMON_LABELS.LOADING}
             </div>
           ) : employees.length === 0 ? (
             /* Trạng thái không có bản ghi phù hợp */

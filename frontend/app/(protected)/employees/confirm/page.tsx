@@ -9,7 +9,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants';
+import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 
 export default function EmployeeConfirmPage() {
   useAuth();
@@ -28,58 +28,58 @@ export default function EmployeeConfirmPage() {
       <form className="c-form box-shadow">
         <ul className="show-data">
           <li className="title">
-            <p>情報確認</p>
-            <p>入力された情報をＯＫボタンクリックでＤＢへ保存してください</p>
+            <p>{PAGE_TITLES.INFO_CONFIRM}</p>
+            <p>{PAGE_TITLES.CONFIRM_DESCRIPTION}</p>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">アカウント名</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.ACCOUNT_NAME}</label>
             <div className="col-sm col-sm-10">ntmhuong</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">グループ</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.GROUP}</label>
             <div className="col-sm col-sm-10">Nhóm 1</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">氏名</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.NAME}</label>
             <div className="col-sm col-sm-10">Nguyễn Thị Mai Hương</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">カタカナ氏名</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.KATAKANA_NAME}</label>
             <div className="col-sm col-sm-10">名カナ</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">生年月日</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.BIRTHDAY}</label>
             <div className="col-sm col-sm-10">1983/07/08</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">メールアドレス</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.EMAIL}</label>
             <div className="col-sm col-sm-10">メールアドレス</div>
           </li>
           <li className="form-group row d-flex  bor-none">
-            <label className="col-form-label col-sm-2">電話番号</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.TEL}</label>
             <div className="col-sm col-sm-10">0914326386</div>
           </li>
-          <li className="title mt-12"><a href="#!">日本語能力</a></li>
+          <li className="title mt-12"><a href="#!">{FIELD_LABELS.JAPANESE_LEVEL}</a></li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">資格</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
             <div className="col-sm col-sm-10">Trình độ tiếng nhật cấp 1</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">資格交付日</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
             <div className="col-sm col-sm-10">2010/07/08</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">失効日</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
             <div className="col-sm col-sm-10">2010/07/08</div>
           </li>
           <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">点数</label>
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
             <div className="col-sm col-sm-10">290</div>
           </li>
           <li className="form-group row d-flex">
             <div className="btn-group col-sm col-sm-10 ml">
-              <button type="button" onClick={handleConfirmSubmit} className="btn btn-primary btn-sm">OK</button>
-              <button type="button" onClick={handleNavigateToEdit} className="btn btn-secondary btn-sm">戻る</button>
+              <button type="button" onClick={handleConfirmSubmit} className="btn btn-primary btn-sm">{BUTTON_LABELS.OK}</button>
+              <button type="button" onClick={handleNavigateToEdit} className="btn btn-secondary btn-sm">{BUTTON_LABELS.BACK}</button>
             </div>
           </li>
         </ul>

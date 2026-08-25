@@ -50,3 +50,5 @@ export const SORT_ORDERS = {
   ASC: 'ASC',
   DESC: 'DESC',
 } as const;
+
+export * from './labels';

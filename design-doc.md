@@ -13,10 +13,23 @@
 | Date | Người thay đổi | Version | Nội dung thay đổi |
 |------|----------------|---------|-------------------|
 | 2023-06-01 | LongLD | 0.1 | Tạo mới |
+| 2026-08-25 | Phạm Văn Minh | 0.2 | Quy chuẩn thiết kế UI: Toàn bộ nhãn (Labels), tiêu đề (Titles), nút bấm (Buttons) và thông điệp sử dụng thường xuyên phải được định nghĩa dưới dạng Constants để tái sử dụng |
 
 ---
 
 ## 2. Layout MH (Bố cục màn hình)
+
+### ■ Quy chuẩn thiết kế Common UI & Label Constants
+
+Để đảm bảo tính nhất quán, tính đóng gói và khả năng tái sử dụng (reusability) trên toàn bộ hệ thống giao diện Frontend:
+- **Tập trung hóa Constants:** Tất cả các label, tiêu đề mục, placeholder, nhãn nút bấm thao tác và các chuỗi text cố định hiển thị thường xuyên giữa các màn hình (ADM001 ~ ADM006, Layout Header/Footer) **bắt buộc phải được định nghĩa tập trung dưới dạng Constants** (tại thư mục `constants/labels.ts` hoặc tương đương).
+- **Tuyệt đối không hardcode:** Không sử dụng trực tiếp chuỗi ký tự cứng (hardcoded string literals) trong các Component hoặc Page.
+- **Phân nhóm Constant tiêu chuẩn:**
+  - `BUTTON_LABELS`: Nhãn các nút thao tác (`検索` - Tìm kiếm, `新規追加` - Thêm mới, `編集` - Sửa, `削除` - Xóa, `戻る` - Quay lại, `確認` - Xác nhận, `OK`, `ログイン` - Đăng nhập, `ログアウト` - Đăng xuất, `トップ` - Trang chủ,...).
+  - `FIELD_LABELS`: Tên trường form & tiêu đề cột bảng (`ID`, `アカウント名` - Account, `グループ` - Group/Department, `氏名` - Fullname, `カタカナ氏名` - Katakana, `生年月日` - Birthday, `メールアドレス` - Email, `電話番号` - Tel, `日本語能力` - Trình độ tiếng Nhật, `資格` - Chứng chỉ, `資格交付日` - Ngày cấp, `失効日` - Ngày hết hạn, `点数` - Điểm số, `パスワード` - Password, `パスワード（確認）` - Xác nhận Password).
+  - `COMMON_LABELS`: Nhãn thông dụng & bản quyền (`全て` - Tất cả, `選択してください` - Vui lòng chọn, `読み込み中...` - Đang tải, thông tin Copyright).
+  - `PAGE_TITLES`: Tiêu đề màn hình và khối thông tin (`情報確認` - Xác nhận thông tin, `会員情報編集` - Chỉnh sửa thông tin, thông báo kết quả hoàn thành,...).
+
 
 ### ■ Login (ADM001)
 
