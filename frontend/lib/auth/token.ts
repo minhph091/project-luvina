@@ -6,6 +6,7 @@
 
 import { STORAGE_KEYS } from '@/constants';
 import { AuthToken } from '@/types/auth';
+import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
 
 /**
  * Lưu access token và token type vào sessionStorage.
@@ -39,6 +40,7 @@ export function getToken(): AuthToken | null {
 export function removeToken(): void {
   sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
   sessionStorage.removeItem(STORAGE_KEYS.TOKEN_TYPE);
+  clearEmployeeSearchState();
 }
 
 /**

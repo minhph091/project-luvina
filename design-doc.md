@@ -14,6 +14,7 @@
 |------|----------------|---------|-------------------|
 | 2023-06-01 | LongLD | 0.1 | Tạo mới |
 | 2026-08-25 | Phạm Văn Minh | 0.2 | Quy chuẩn thiết kế UI: Toàn bộ nhãn (Labels), tiêu đề (Titles), nút bấm (Buttons) và thông điệp sử dụng thường xuyên phải được định nghĩa dưới dạng Constants để tái sử dụng |
+| 2026-08-25 | Phạm Văn Minh | 0.3 | Quy chuẩn bảo lưu trạng thái: Làm rõ cơ chế lưu trữ (sessionStorage), bảo lưu điều kiện Tìm kiếm (Search), Sắp xếp (Sort) và Phân trang (Page) khi quay lại màn hình danh sách nhân viên ADM002 |
 
 ---
 
@@ -29,6 +30,24 @@
   - `FIELD_LABELS`: Tên trường form & tiêu đề cột bảng (`ID`, `アカウント名` - Account, `グループ` - Group/Department, `氏名` - Fullname, `カタカナ氏名` - Katakana, `生年月日` - Birthday, `メールアドレス` - Email, `電話番号` - Tel, `日本語能力` - Trình độ tiếng Nhật, `資格` - Chứng chỉ, `資格交付日` - Ngày cấp, `失効日` - Ngày hết hạn, `点数` - Điểm số, `パスワード` - Password, `パスワード（確認）` - Xác nhận Password).
   - `COMMON_LABELS`: Nhãn thông dụng & bản quyền (`全て` - Tất cả, `選択してください` - Vui lòng chọn, `読み込み中...` - Đang tải, thông tin Copyright).
   - `PAGE_TITLES`: Tiêu đề màn hình và khối thông tin (`情報確認` - Xác nhận thông tin, `会員情報編集` - Chỉnh sửa thông tin, thông báo kết quả hoàn thành,...).
+
+### ■ Quy chuẩn lưu trữ và bảo lưu trạng thái Search, Sort & Phân trang (State Persistence)
+
+Để đảm bảo trải nghiệm người dùng liền mạch khi thao tác giữa các màn hình danh sách, chi tiết và thêm/sửa nhân viên:
+- **Cơ chế lưu trữ trạng thái:** Sử dụng `sessionStorage` (Key: `employee_search_state`) để lưu trữ toàn bộ trạng thái hiện tại của danh sách nhân viên ADM002:
+  - `searchName`: Tên nhân viên đang nhập trong ô tìm kiếm.
+  - `searchDepartmentId`: Phòng ban đang chọn trong dropdown tìm kiếm.
+  - `appliedName`: Tên nhân viên đang được áp dụng lọc kết quả.
+  - `appliedDepartmentId`: Phòng ban đang được áp dụng lọc kết quả.
+  - `sort`: Trạng thái chiều sắp xếp (`ASC`/`DESC`) của 3 cột `氏名`, `日本語能力`, `失効日`.
+  - `activeSortColumn`: Cột đang được chọn sắp xếp.
+  - `currentPage`: Trang hiện tại đang xem (1, 2, 3,...).
+- **Nguyên tắc bảo lưu (Restore State):**
+  - Khi người dùng điều hướng từ ADM002 sang xem chi tiết **ADM003** hoặc thêm mới/chỉnh sửa **ADM004**, rồi click nút **Quay lại / Cancel** (`戻る` / Cancel) để trở về **ADM002**: Hệ thống **bắt buộc phải khôi phục chính xác toàn bộ điều kiện Search, Sort và số trang hiện tại** như trước khi rời khỏi màn hình.
+  - Tự động gọi API `GET /employee` với đầy đủ các tham số đã được khôi phục để hiển thị đúng danh sách dữ liệu tương ứng.
+- **Nguyên tắc làm mới / Xóa trạng thái (Reset State):**
+  - Sau khi hoàn thành thao tác Thêm mới / Cập nhật / Xóa nhân viên tại màn hình Hoàn tất **ADM006**, khi người dùng click nút **OK** để về lại ADM002: Hệ thống thực hiện xóa trạng thái đã lưu trong `sessionStorage`, đưa danh sách về **Page 1** với điều kiện khởi tạo mặc định ban đầu.
+  - Khi người dùng **Đăng xuất (Logout)** hoặc phiên làm việc / Access Token hết hạn: Hệ thống tự động xóa toàn bộ trạng thái lưu trong `sessionStorage`.
 
 
 ### ■ Login (ADM001)
@@ -366,16 +385,19 @@
 
 ### 3.1 Hiển thị ban đầu
 
-  `- Khởi tạo điều kiện search ban đầu:
-- Hạng mục fullname giá trị rỗng
-- Hạng mục department là rỗng
-- Page hiện tại = 1
-- Hạng mục sort: 氏名, 日本語能力, 失効日 tất cả đều là ASC
+  `- Khởi tạo điều kiện search và hiển thị:
+- Kiểm tra xem trong `sessionStorage` có lưu trạng thái (`employee_search_state`) trước đó hay không:
+  + **TH có lưu trạng thái (từ MH khác quay về):** Khôi phục toàn bộ điều kiện tìm kiếm (`fullname`, `department`), điều kiện sắp xếp (`sort`) và trang hiện tại (`currentPage`) từ `sessionStorage`.
+  + **TH không có lưu trạng thái (mới đăng nhập hoặc sau khi hoàn tất thêm/sửa/xóa):** Khởi tạo mặc định:
+    * Hạng mục fullname giá trị rỗng
+    * Hạng mục department là rỗng
+    * Page hiện tại = 1
+    * Hạng mục sort: 氏名, 日本語能力, 失効日 tất cả đều là ASC
 - Số record tối đa hiển thị trong page luôn luôn là 20
   `- Gọi API list departments (tham chiếu tài liệu TK API)
 - TH API trả về lỗi hiện thị message lỗi: "部門を取得できません"
-- TH API thành công, lấy list department từ reponse trả về (xem TK API), binding list department vào dropdownlít (có phần tử rỗng ở đầu)
-  `- Gọi API list employees (tham chiếu tài liệu TK API)
+- TH API thành công, lấy list department từ reponse trả về (xem TK API), binding list department vào dropdownlist (có phần tử rỗng ở đầu)
+  `- Gọi API list employees (tham chiếu tài liệu TK API) với tham số theo điều kiện khởi tạo hoặc khôi phục từ `sessionStorage`
 - Danh sách nhân viên chỉ hiển thị user thông thường, không bao gồm các tài khoản có role admin (ADMIN)
 - TH API trả về lỗi hiện thị message lỗi: "従業員を取得できません"
 - TH API thành công, lấy list employee từ reponse trả về (xem TK API), binding list employee vào bảng nhân viên
@@ -391,30 +413,34 @@
 
   `- Reset page hiện tại = 1
   `- Giữ nguyên điều kiện sort
-  `- Get giá trị fullname ở textbox, department ở dropdownlist cùng với giá trị page, sort ở trên đưa vào tham số để gọi API get employee (tham khảo tài liệu thiết kế API)
+  `- Get giá trị fullname ở textbox, department ở dropdownlist cùng với giá trị page = 1, sort đưa vào tham số để gọi API get employee
 - (nếu user ko nhập fullname, hoặc chọn department rỗng mà click search thì ko cần đưa giá trị fullname, department vào tham số để search)
+  `- Lưu toàn bộ trạng thái tìm kiếm, phân trang và sắp xếp mới vào `sessionStorage`
   `- Cách gọi và binding tham khảo phần 3.1 và 3.2
 
 ### 3.4 Action Sort
 
-  `- Khi user click vào cột nào có biểu tượng sort thì đảo ngược giá trị sort hiện tại, các cột khác giữa nguyên (tham khảo sheet Định nghĩa hạng mục)
+  `- Khi user click vào cột nào có biểu tượng sort thì đảo ngược giá trị sort hiện tại, các cột khác giữ nguyên (tham khảo sheet Định nghĩa hạng mục)
   `- Giữ nguyên điều kiện tìm kiếm
   `- Reset page hiện tại = 1
+  `- Lưu trạng thái sort và filter mới vào `sessionStorage`
   `- Gọi API list employees với tham số như trên
   `- Cách gọi và binding tham khảo phần 3.1 và 3.2
 
 ### 3.5 Action Paging
 
-  `- Khi user click vào page nào thì thực hiện gọi lại API giữ nguyên điều kiện search và sort
+  `- Khi user click vào page nào thì cập nhật page hiện tại, giữ nguyên điều kiện search và sort
+  `- Lưu trạng thái page mới vào `sessionStorage`
+  `- Thực hiện gọi lại API list employees với đầy đủ điều kiện search, sort và page mới
   `- Cách gọi và binding tham khảo phần 3.1 và 3.2
 
 ### 3.6 Action Add
 
-  `- User click vào button Add, di chuyển sang màn hình edit\add ADM004
+  `- User click vào button Add, di chuyển sang màn hình edit\add ADM004 (trạng thái search/sort/page của ADM002 đã được lưu trong `sessionStorage`)
 
 ### 3.7 Action view chi tiết
 
-  `- User click vào link ở cột ID nhân viên, redirect sang màn hình view chi tiết ADM003 kèm ID tương ứng (ko để ID trên URL mà truyền qua router)
+  `- User click vào link ở cột ID nhân viên, redirect sang màn hình view chi tiết ADM003 kèm ID tương ứng qua router (trạng thái search/sort/page của ADM002 đã được lưu trong `sessionStorage`)
 
 ### 4. Màn hình view chi tiết nhân viên
 
@@ -427,7 +453,7 @@
 
 ### 4.2 Action Cancel
 
-  `- User click vào button Cancel di chuyển về MH list ADM002, page như trước khi di chuyển
+  `- User click vào button Cancel / Back (`戻る`) di chuyển về MH list ADM002, hệ thống tự động khôi phục toàn bộ điều kiện Search, Sort và số Page như trước khi di chuyển từ `sessionStorage`
 
 ### 4.3 Action Edit
 
@@ -447,15 +473,15 @@
   `- Kiểm tra xem trong router xem có ID hợp lệ ko
 - Nếu tồn tại ID trong router thì xác định MH là edit
 - Nếu không tồn tại ID trong router là MH add
-  `- Gọi các API list departments, list cerfiticates  để binding data vào các dropdown list (có phần tử rỗng ở đầu)
-- TH API trả về lỗi thì thông báo lỗi lên MH (ngay phía dưới phần Header), ngược lại binding data reponse của các API vào dropdown list (chi tiết data xem tài liệu TK API)
+  `- Gọi các API list departments, list cerfiticates để binding data vào các dropdown list (có phần tử rỗng ở đầu)
+- TH API trả về lỗi thì thông báo lỗi lên MH (ngay phía dưới phần Header), ngược lại binding data response của các API vào dropdown list (chi tiết data xem tài liệu TK API)
   `- Kiểm tra xem có phải là từ MH confirm quay về hay không? (check qua router có data ko)
-- TH không phải từ MH confirm quay về về
+- TH không phải từ MH confirm quay về:
   `- Nếu là mode edit:
 - gọi API get employee tương ứng với ID
 - Nếu API trả về lỗi hoặc ko tồn tại employee data di chuyển sang MH system error
 - Nếu API trả về 200 thì binding data employee từ response trả về vào các hạng mục nhập (Cách mapping xem định nghĩa hạng mục)
-  `- Nêú la mode add:
+  `- Nếu là mode add:
 - Để rỗng các hạng mục nhập trên MH
 - TH từ MH confirm quay về:
 - Lấy data từ MH confirm trả lại, binding lên các hạng mục nhập
@@ -465,9 +491,9 @@
 - Các hạng mục nhập có yêu cầu validate thì thực hiện validate ngay khi user tương tác
 - Khi hạng mục lỗi, message lỗi hiển thị ngay dưới hạng mục, tô màu đỏ, khi ko có lỗi thì clear message lỗi
 - Chú ý các validate đặc biệt
-- Validate ngày hiệu lưc/hết hạn của chứng chỉ:
+- Validate ngày hiệu lực/hết hạn của chứng chỉ:
 - Validate từng hạng mục theo như sheet Định nghĩa hạng mục
-- Khi 2 ngày tháng đã hợp lệ thì validate sao cho ngày hết hạn phải lớn hơn ngày hiệu lực, nếu có lỗi hightlight hạng mục ngày hết hạn, và message lỗi nằm dưới ngày hết hạn
+- Khi 2 ngày tháng đã hợp lệ thì validate sao cho ngày hết hạn phải lớn hơn ngày hiệu lực, nếu có lỗi highlight hạng mục ngày hết hạn, và message lỗi nằm dưới ngày hết hạn
 - Validate phần password, re-password
 - Khi add y/c bắt buộc nhập, khi edit hiển thị ban đầu ko hiển thị ko yêu cầu nhập
 - TH nhập cả 2: hạng mục password validate max-length, hạng mục repassword chỉ validate trùng lặp khi hạng mục password nhập đúng
@@ -476,17 +502,17 @@
 - Xử lý phần chứng chỉ tiếng nhật cho cả add/edit
 - Các hạng mục ngày hiệu lực, ngày hết hạn, số điểm chỉ enable khi có chọn dropdown loại chứng chỉ khác rỗng
 - Khi dropdown tên loại chứng chỉ thay đổi từ có giá trị về rỗng
-- Disable 3 hạng mục trên, và clear hết data, hightlight, message lỗi nếu có của 3 hạng mục, xóa bỏ kí hiệu bắt buộc nhập
+- Disable 3 hạng mục trên, và clear hết data, highlight, message lỗi nếu có của 3 hạng mục, xóa bỏ kí hiệu bắt buộc nhập
 - Khi dropdown tên loại chứng chỉ thay đổi từ giá trị rỗng về có giá trị
-- Enable 3 hang mục trên
-- Đỗi với edit: set giá trị ban đầu cho 3 hạng mục (từ API) nếu có giá trị, và hiển thị kí hiệu bắt buộc nhập
+- Enable 3 hạng mục trên
+- Đối với edit: set giá trị ban đầu cho 3 hạng mục (từ API) nếu có giá trị, và hiển thị kí hiệu bắt buộc nhập
 - Đối với add: cứ để rỗng và hiển thị kí hiệu bắt buộc nhập
 
 ### 5.3 Action Cancel
 
-- Khi user click cancel
-- TH add mới: Di chuyển về MH list ADM002, page như trước khi di chuyển
-- TH edit: Di chuyển về MH view chi tiết (gửi kèm ID qua router)
+- Khi user click cancel / back (`戻る`)
+- TH add mới: Di chuyển về MH list ADM002, hệ thống tự động khôi phục toàn bộ điều kiện Search, Sort và số Page như trước khi di chuyển từ `sessionStorage`
+- TH edit: Di chuyển về MH view chi tiết ADM003 (gửi kèm ID qua router)
 
 ### 5.4 Action Confirm
 
@@ -507,8 +533,8 @@
 ### 6.2 Action update
 
 - Khi user click button OK
-- Gọi API add nếu là MH confim Add hoặc update nếu là MH confirm edit data nhân viên (tham chiếu tài liệu TK API)
-- Nếu API trả về lỗi  hiển thị thông báo lỗi ở vùng Thông báo lỗi
+- Gọi API add nếu là MH confirm Add hoặc update nếu là MH confirm edit data nhân viên (tham chiếu tài liệu TK API)
+- Nếu API trả về lỗi hiển thị thông báo lỗi ở vùng Thông báo lỗi
 - Nếu API trả về thành công di chuyển sang MH complete ADM006
 
 ### 6.3 Action Cancel
@@ -527,7 +553,8 @@
 
 ### 7.2. Action OK
 
-- Di chuyển về MH list ADM002, page 1
+- Xóa trạng thái tìm kiếm đã lưu trong `sessionStorage` (`employee_search_state`)
+- Di chuyển về MH list ADM002, hiển thị Page 1 với điều kiện khởi tạo mặc định ban đầu
 
 ---
 

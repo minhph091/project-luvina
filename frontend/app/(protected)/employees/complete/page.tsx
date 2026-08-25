@@ -10,12 +10,14 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, BUTTON_LABELS, SYSTEM_MESSAGES } from '@/constants';
+import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
 
 export default function EmployeeCompletePage() {
   useAuth();
   const router = useRouter();
 
   const handleNavigateToList = () => {
+    clearEmployeeSearchState();
     router.push(APP_ROUTES.EMPLOYEE_LIST);
   };
 

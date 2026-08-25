@@ -1,6 +1,6 @@
 /**
  * Copyright(C) 2026 Luvina
- * labels.ts - Định nghĩa tập trung Label & Message Constants theo Tài liệu Thiết kế
+ * labels.ts - Định nghĩa tập trung Label & Message Constants
  * 25/08/2026 Phạm Văn Minh
  */
 

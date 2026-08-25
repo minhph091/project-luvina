@@ -15,6 +15,7 @@ export const DEFAULT_PAGE_SIZE = 20;
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   TOKEN_TYPE: 'token_type',
+  EMPLOYEE_SEARCH_STATE: 'employee_search_state',
 } as const;
 
 /**

@@ -8,6 +8,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { getEmployees } from '@/lib/api/employees';
 import { EmployeeItem, SortState } from '@/types/employee';
 import { DEFAULT_PAGE_SIZE, ERROR_MESSAGES, SORT_ORDERS } from '@/constants';
+import {
+  getEmployeeSearchState,
+  saveEmployeeSearchState,
+} from '@/lib/storage/employeeSearchState';
 
 interface UseEmployeesReturn {
   employees: EmployeeItem[];
@@ -37,10 +41,14 @@ interface UseEmployeesReturn {
 
 /**
  * Custom hook quản lý toàn bộ state, tìm kiếm, phân trang, sắp xếp và gọi API danh sách nhân viên.
+ * Hỗ trợ lưu trữ và khôi phục trạng thái từ sessionStorage khi điều hướng qua lại các màn hình.
  *
  * @returns Object chứa dữ liệu và các handler xử lý logic cho màn hình danh sách nhân viên.
  */
 export function useEmployees(): UseEmployeesReturn {
+  // ── Khởi tạo trạng thái từ sessionStorage nếu có ─────────────────
+  const savedState = typeof window !== 'undefined' ? getEmployeeSearchState() : null;
+
   // ── Trạng thái dữ liệu ──────────────────────────────────────────
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
   const [totalRecords, setTotalRecords] = useState<number>(0);
@@ -48,23 +56,31 @@ export function useEmployees(): UseEmployeesReturn {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // ── Trạng thái phân trang ────────────────────────────────────────
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(savedState?.currentPage ?? 1);
 
   // ── Trạng thái sắp xếp ──────────────────────────────────────────
-  const [sort, setSort] = useState<SortState>({
-    employeeNameOrder: SORT_ORDERS.ASC,
-    certificationNameOrder: SORT_ORDERS.ASC,
-    endDateOrder: SORT_ORDERS.ASC,
-  });
-  const [activeSortColumn, setActiveSortColumn] = useState<keyof SortState>('employeeNameOrder');
+  const [sort, setSort] = useState<SortState>(
+    savedState?.sort ?? {
+      employeeNameOrder: SORT_ORDERS.ASC,
+      certificationNameOrder: SORT_ORDERS.ASC,
+      endDateOrder: SORT_ORDERS.ASC,
+    }
+  );
+  const [activeSortColumn, setActiveSortColumn] = useState<keyof SortState>(
+    savedState?.activeSortColumn ?? 'employeeNameOrder'
+  );
 
   // ── Trạng thái tìm kiếm (dữ liệu đang nhập trong form) ───────────
-  const [searchName, setSearchName] = useState<string>('');
-  const [searchDepartmentId, setSearchDepartmentId] = useState<number | undefined>(undefined);
+  const [searchName, setSearchName] = useState<string>(savedState?.searchName ?? '');
+  const [searchDepartmentId, setSearchDepartmentId] = useState<number | undefined>(
+    savedState?.searchDepartmentId
+  );
 
   // ── Giá trị tìm kiếm đang được áp dụng ───────────────────────────
-  const [appliedName, setAppliedName] = useState<string>('');
-  const [appliedDepartmentId, setAppliedDepartmentId] = useState<number | undefined>(undefined);
+  const [appliedName, setAppliedName] = useState<string>(savedState?.appliedName ?? '');
+  const [appliedDepartmentId, setAppliedDepartmentId] = useState<number | undefined>(
+    savedState?.appliedDepartmentId
+  );
 
   // ── Tính tổng số trang ───────────────────────────────────────────
   const totalPages = Math.ceil(totalRecords / DEFAULT_PAGE_SIZE);
@@ -108,9 +124,20 @@ export function useEmployees(): UseEmployeesReturn {
     [activeSortColumn]
   );
 
-  // Tải danh sách nhân viên lần đầu khi hook được mount
+  // Tải danh sách nhân viên lần đầu khi hook được mount (khôi phục từ savedState nếu có)
   useEffect(() => {
-    fetchEmployees(1, '', undefined, sort, 'employeeNameOrder');
+    const currentSavedState = getEmployeeSearchState();
+    if (currentSavedState) {
+      fetchEmployees(
+        currentSavedState.currentPage,
+        currentSavedState.appliedName,
+        currentSavedState.appliedDepartmentId,
+        currentSavedState.sort,
+        currentSavedState.activeSortColumn
+      );
+    } else {
+      fetchEmployees(1, '', undefined, sort, 'employeeNameOrder');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -121,6 +148,15 @@ export function useEmployees(): UseEmployeesReturn {
     setAppliedName(searchName);
     setAppliedDepartmentId(searchDepartmentId);
     setCurrentPage(1);
+    saveEmployeeSearchState({
+      currentPage: 1,
+      searchName,
+      searchDepartmentId,
+      appliedName: searchName,
+      appliedDepartmentId: searchDepartmentId,
+      sort,
+      activeSortColumn,
+    });
     fetchEmployees(1, searchName, searchDepartmentId, sort, activeSortColumn);
   };
 
@@ -132,6 +168,15 @@ export function useEmployees(): UseEmployeesReturn {
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+    saveEmployeeSearchState({
+      currentPage: page,
+      searchName,
+      searchDepartmentId,
+      appliedName,
+      appliedDepartmentId,
+      sort,
+      activeSortColumn,
+    });
     fetchEmployees(page, appliedName, appliedDepartmentId, sort, activeSortColumn);
   };
 
@@ -148,6 +193,15 @@ export function useEmployees(): UseEmployeesReturn {
     };
     setSort(newSortState);
     setCurrentPage(1);
+    saveEmployeeSearchState({
+      currentPage: 1,
+      searchName,
+      searchDepartmentId,
+      appliedName,
+      appliedDepartmentId,
+      sort: newSortState,
+      activeSortColumn: column,
+    });
     fetchEmployees(1, appliedName, appliedDepartmentId, newSortState, column);
   };
 
