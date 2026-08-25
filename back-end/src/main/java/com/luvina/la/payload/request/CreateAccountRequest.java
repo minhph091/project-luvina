@@ -6,7 +6,10 @@ package com.luvina.la.payload.request;
  */
 
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Request payload cho API tạo tài khoản test (Public).
@@ -14,6 +17,9 @@ import lombok.Data;
  * @author Phạm Văn Minh
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CreateAccountRequest {
 
     /**
