@@ -7,6 +7,7 @@ package com.luvina.la.controller;
 
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.service.EmployeeService;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,77 +34,95 @@ public class EmployeeController {
     /**
      * Lấy danh sách nhân viên có phân trang, tìm kiếm và sắp xếp theo tài liệu thiết kế API (GET /employee).
      *
-     * @param employeeName           Tên nhân viên cần lọc (camelCase).
-     * @param employeeNameSnake      Tên nhân viên cần lọc (snake_case theo thiết kế).
-     * @param departmentId           ID phòng ban cần lọc (camelCase).
-     * @param departmentIdSnake      ID phòng ban cần lọc (snake_case theo thiết kế).
-     * @param limit                  Số bản ghi trên mỗi trang.
-     * @param offset                 Vị trí bắt đầu lấy bản ghi.
-     * @param pageNo                 Số trang hiện tại (tùy chọn hỗ trợ frontend).
-     * @param pageSize               Số bản ghi trên mỗi trang (tùy chọn hỗ trợ frontend).
-     * @param employeeNameOrder      Chiều sắp xếp theo tên (camelCase).
-     * @param ordEmployeeName        Chiều sắp xếp theo tên (snake_case theo thiết kế).
-     * @param certificationNameOrder Chiều sắp xếp theo tên chứng chỉ (camelCase).
-     * @param ordCertificationName   Chiều sắp xếp theo tên chứng chỉ (snake_case theo thiết kế).
-     * @param endDateOrder           Chiều sắp xếp theo ngày hết hạn (camelCase).
-     * @param ordEndDate             Chiều sắp xếp theo ngày hết hạn (snake_case theo thiết kế).
+     * @param employeeName         Tên nhân viên cần lọc (employee_name theo thiết kế).
+     * @param departmentId         ID phòng ban cần lọc (department_id theo thiết kế).
+     * @param ordEmployeeName      Chiều sắp xếp theo tên (ord_employee_name: ASC/DESC theo thiết kế).
+     * @param ordCertificationName Chiều sắp xếp theo tên chứng chỉ (ord_certification_name: ASC/DESC theo thiết kế).
+     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ord_end_date: ASC/DESC theo thiết kế).
+     * @param offset               Vị trí bắt đầu lấy bản ghi (offset theo thiết kế).
+     * @param limit                Số bản ghi trên mỗi trang (limit theo thiết kế).
+     * @param request              HttpServletRequest để xác định thứ tự ưu tiên cột sắp xếp từ query string.
      * @return Response chứa mã kết quả, tổng số bản ghi và danh sách nhân viên.
      */
     @GetMapping("/employee")
     public ListEmployeesResponse getEmployees(
-            @RequestParam(required = false, name = "employeeName") String employeeName,
-            @RequestParam(required = false, name = "employee_name") String employeeNameSnake,
-            @RequestParam(required = false, name = "departmentId") String departmentId,
-            @RequestParam(required = false, name = "department_id") String departmentIdSnake,
-            @RequestParam(required = false, name = "limit") String limit,
-            @RequestParam(required = false, name = "offset") String offset,
-            @RequestParam(required = false, name = "pageNo") Integer pageNo,
-            @RequestParam(required = false, name = "pageSize") Integer pageSize,
-            @RequestParam(required = false, name = "employeeNameOrder") String employeeNameOrder,
+            @RequestParam(required = false, name = "employee_name") String employeeName,
+            @RequestParam(required = false, name = "department_id") String departmentId,
             @RequestParam(required = false, name = "ord_employee_name") String ordEmployeeName,
-            @RequestParam(required = false, name = "certificationNameOrder") String certificationNameOrder,
             @RequestParam(required = false, name = "ord_certification_name") String ordCertificationName,
-            @RequestParam(required = false, name = "endDateOrder") String endDateOrder,
             @RequestParam(required = false, name = "ord_end_date") String ordEndDate,
-            @RequestParam(required = false, name = "sortBy") String sortBy,
-            @RequestParam(required = false, name = "sort_by") String sortBySnake) {
+            @RequestParam(required = false, name = "offset") String offset,
+            @RequestParam(required = false, name = "limit") String limit,
+            HttpServletRequest request) {
 
-        // Ưu tiên tham số snake_case theo thiết kế API, fallback sang camelCase
-        String finalName = employeeNameSnake != null ? employeeNameSnake : employeeName;
-        String finalDeptId = departmentIdSnake != null ? departmentIdSnake : departmentId;
-        String finalOrdName = ordEmployeeName != null ? ordEmployeeName : employeeNameOrder;
-        String finalOrdCert = ordCertificationName != null ? ordCertificationName : certificationNameOrder;
-        String finalOrdEnd = ordEndDate != null ? ordEndDate : endDateOrder;
-        String finalSortBy = sortBySnake != null ? sortBySnake : sortBy;
-
-        // Xử lý limit / pageSize
-        String finalLimit = limit;
-        if ((finalLimit == null || finalLimit.trim().isEmpty()) && pageSize != null && pageSize > 0) {
-            finalLimit = String.valueOf(pageSize);
-        }
-
-        // Xử lý offset / pageNo
-        String finalOffset = offset;
-        if ((finalOffset == null || finalOffset.trim().isEmpty()) && pageNo != null && pageNo > 0) {
-            int calcLimit = 5;
-            if (finalLimit != null && !finalLimit.trim().isEmpty()) {
-                try {
-                    calcLimit = Integer.parseInt(finalLimit.trim());
-                } catch (NumberFormatException ignored) {
-                    calcLimit = 5;
-                }
-            }
-            finalOffset = String.valueOf((pageNo - 1) * calcLimit);
-        }
+        String sortBy = extractSortBy(request);
 
         return employeeService.getEmployees(
-                finalName,
-                finalDeptId,
-                finalOrdName,
-                finalOrdCert,
-                finalOrdEnd,
-                finalOffset,
-                finalLimit,
-                finalSortBy);
+                employeeName,
+                departmentId,
+                ordEmployeeName,
+                ordCertificationName,
+                ordEndDate,
+                offset,
+                limit,
+                sortBy);
+    }
+
+    /**
+     * Overload getEmployees phục vụ gọi trực tiếp hoặc kiểm thử không cần request context.
+     */
+    public ListEmployeesResponse getEmployees(
+            String employeeName,
+            String departmentId,
+            String ordEmployeeName,
+            String ordCertificationName,
+            String ordEndDate,
+            String offset,
+            String limit) {
+        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offset, limit, (HttpServletRequest) null);
+    }
+
+    /**
+     * Xác định cột ưu tiên sắp xếp hàng đầu từ thứ tự xuất hiện trong query string hoặc param sortBy.
+     *
+     * @param request HttpServletRequest
+     * @return Tên cột sắp xếp ưu tiên (certificationNameOrder, endDateOrder, employeeNameOrder) hoặc null.
+     */
+    private String extractSortBy(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        String sortByParam = request.getParameter("sortBy");
+        if (sortByParam != null && !sortByParam.trim().isEmpty()) {
+            return sortByParam.trim();
+        }
+
+        String qs = request.getQueryString();
+        if (qs == null || qs.trim().isEmpty()) {
+            return null;
+        }
+
+        int idxCert = qs.indexOf("ord_certification_name");
+        int idxEnd = qs.indexOf("ord_end_date");
+        int idxName = qs.indexOf("ord_employee_name");
+
+        int minIdx = Integer.MAX_VALUE;
+        String firstSort = null;
+
+        if (idxCert != -1 && idxCert < minIdx) {
+            minIdx = idxCert;
+            firstSort = "certificationNameOrder";
+        }
+        if (idxEnd != -1 && idxEnd < minIdx) {
+            minIdx = idxEnd;
+            firstSort = "endDateOrder";
+        }
+        if (idxName != -1 && idxName < minIdx) {
+            minIdx = idxName;
+            firstSort = "employeeNameOrder";
+        }
+
+        return firstSort;
     }
 }

@@ -58,13 +58,20 @@ export function useEmployees(): UseEmployeesReturn {
   // ── Trạng thái phân trang ────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState<number>(savedState?.currentPage ?? 1);
 
-  // ── Trạng thái sắp xếp ──────────────────────────────────────────
+  const defaultSort: SortState = {
+    employeeNameOrder: SORT_ORDERS.ASC,
+    certificationNameOrder: SORT_ORDERS.ASC,
+    endDateOrder: SORT_ORDERS.ASC,
+  };
+
   const [sort, setSort] = useState<SortState>(
-    savedState?.sort ?? {
-      employeeNameOrder: SORT_ORDERS.ASC,
-      certificationNameOrder: SORT_ORDERS.ASC,
-      endDateOrder: SORT_ORDERS.ASC,
-    }
+    savedState?.sort
+      ? {
+          employeeNameOrder: savedState.sort.employeeNameOrder || SORT_ORDERS.ASC,
+          certificationNameOrder: savedState.sort.certificationNameOrder || SORT_ORDERS.ASC,
+          endDateOrder: savedState.sort.endDateOrder || SORT_ORDERS.ASC,
+        }
+      : defaultSort
   );
   const [activeSortColumn, setActiveSortColumn] = useState<keyof SortState>(
     savedState?.activeSortColumn ?? 'employeeNameOrder'
@@ -128,15 +135,20 @@ export function useEmployees(): UseEmployeesReturn {
   useEffect(() => {
     const currentSavedState = getEmployeeSearchState();
     if (currentSavedState) {
+      const mergedSort: SortState = {
+        employeeNameOrder: currentSavedState.sort?.employeeNameOrder || SORT_ORDERS.ASC,
+        certificationNameOrder: currentSavedState.sort?.certificationNameOrder || SORT_ORDERS.ASC,
+        endDateOrder: currentSavedState.sort?.endDateOrder || SORT_ORDERS.ASC,
+      };
       fetchEmployees(
         currentSavedState.currentPage,
         currentSavedState.appliedName,
         currentSavedState.appliedDepartmentId,
-        currentSavedState.sort,
-        currentSavedState.activeSortColumn
+        mergedSort,
+        currentSavedState.activeSortColumn || 'employeeNameOrder'
       );
     } else {
-      fetchEmployees(1, '', undefined, sort, 'employeeNameOrder');
+      fetchEmployees(1, '', undefined, defaultSort, 'employeeNameOrder');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -212,7 +224,8 @@ export function useEmployees(): UseEmployeesReturn {
    * @returns Chuỗi ký hiệu mũi tên
    */
   const sortIcon = (column: keyof SortState): string => {
-    return sort[column] === SORT_ORDERS.ASC ? ' ▲ ▽' : ' ▼ △';
+    const order = sort[column] || SORT_ORDERS.ASC;
+    return order === SORT_ORDERS.ASC ? ' ▲ ▽' : ' ▼ △';
   };
 
   /**

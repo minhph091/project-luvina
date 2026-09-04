@@ -109,11 +109,10 @@ public class MapperTest {
     }
 
     @Test
-    @DisplayName("Test EmployeeMapper: toEntity từ CreateAccountRequest")
-    void testEmployeeMapperCreateAccountRequest() {
-        CreateAccountRequest req = CreateAccountRequest.builder()
-                .username("testuser")
-                .password("secret123")
+    @DisplayName("Test EmployeeMapper: toEntity từ EmployeeDTO")
+    void testEmployeeMapperToEntity() {
+        EmployeeDTO dto = EmployeeDTO.builder()
+                .employeeLoginId("testuser")
                 .employeeName("Test User")
                 .employeeEmail("testuser@luvina.net")
                 .departmentId(2L)
@@ -121,7 +120,7 @@ public class MapperTest {
                 .employeeTelephone("0987654321")
                 .build();
 
-        EmployeeEntity entity = employeeMapper.toEntity(req);
+        EmployeeEntity entity = employeeMapper.toEntity(dto);
 
         assertNotNull(entity);
         assertEquals("testuser", entity.getEmployeeLoginId());

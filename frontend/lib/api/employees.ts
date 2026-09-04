@@ -30,38 +30,64 @@ export async function getEmployees(
     employeeNameOrder = 'ASC',
     certificationNameOrder = 'ASC',
     endDateOrder = 'ASC',
-    sortBy,
+    sortBy = 'employeeNameOrder',
   } = params;
 
-  const queryParams: Record<string, string | number> = {
-    employeeNameOrder,
-    certificationNameOrder,
-    endDateOrder,
+  // Xử lý limit / pageSize
+  let finalLimit: number | undefined = undefined;
+  if (limit !== undefined && limit !== null) {
+    finalLimit = limit;
+  } else if (pageSize !== undefined && pageSize !== null) {
+    finalLimit = pageSize;
+  }
+
+  // Xử lý offset / pageNo
+  let finalOffset: number | undefined = undefined;
+  if (offset !== undefined && offset !== null) {
+    finalOffset = offset;
+  } else if (pageNo !== undefined && pageNo !== null) {
+    const calcLimit = finalLimit ?? 5;
+    finalOffset = (pageNo - 1) * calcLimit;
+  }
+
+  // Mặc định cả 3 trường sắp xếp theo đúng tài liệu thiết kế (design-doc & api-design-doc)
+  const sortParams: Record<string, string> = {
+    ord_employee_name: employeeNameOrder || 'ASC',
+    ord_certification_name: certificationNameOrder || 'ASC',
+    ord_end_date: endDateOrder || 'ASC',
   };
 
-  if (sortBy) {
-    queryParams.sortBy = sortBy;
-    queryParams.sort_by = sortBy;
+  const queryParams: Record<string, string | number> = {};
+
+  // Đưa trường đang được ưu tiên sort lên đầu danh sách tham số để backend nhận diện thứ tự
+  if (sortBy === 'certificationNameOrder' || sortBy === 'ord_certification_name') {
+    queryParams.ord_certification_name = sortParams.ord_certification_name;
+    queryParams.ord_employee_name = sortParams.ord_employee_name;
+    queryParams.ord_end_date = sortParams.ord_end_date;
+  } else if (sortBy === 'endDateOrder' || sortBy === 'ord_end_date') {
+    queryParams.ord_end_date = sortParams.ord_end_date;
+    queryParams.ord_employee_name = sortParams.ord_employee_name;
+    queryParams.ord_certification_name = sortParams.ord_certification_name;
+  } else {
+    queryParams.ord_employee_name = sortParams.ord_employee_name;
+    queryParams.ord_certification_name = sortParams.ord_certification_name;
+    queryParams.ord_end_date = sortParams.ord_end_date;
   }
 
-  if (limit !== undefined && limit !== null) {
-    queryParams.limit = limit;
-  } else if (pageSize !== undefined && pageSize !== null) {
-    queryParams.pageSize = pageSize;
+  if (finalOffset !== undefined) {
+    queryParams.offset = finalOffset;
   }
 
-  if (offset !== undefined && offset !== null) {
-    queryParams.offset = offset;
-  } else if (pageNo !== undefined && pageNo !== null) {
-    queryParams.pageNo = pageNo;
+  if (finalLimit !== undefined) {
+    queryParams.limit = finalLimit;
   }
 
   if (employeeName && employeeName.trim() !== '') {
-    queryParams.employeeName = employeeName.trim();
+    queryParams.employee_name = employeeName.trim();
   }
 
-  if (departmentId !== undefined && departmentId !== null) {
-    queryParams.departmentId = departmentId;
+  if (departmentId !== undefined && departmentId !== null && String(departmentId).trim() !== '') {
+    queryParams.department_id = String(departmentId);
   }
 
   const response = await apiClient.get<GetEmployeesApiResponse>('/employee', {

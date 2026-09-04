@@ -52,6 +52,8 @@ describe('useEmployees Hook', () => {
         pageNo: 1,
         pageSize: 20,
         employeeNameOrder: 'ASC',
+        certificationNameOrder: 'ASC',
+        endDateOrder: 'ASC',
       })
     );
   });

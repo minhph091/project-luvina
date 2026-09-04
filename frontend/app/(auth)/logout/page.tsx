@@ -9,6 +9,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { removeToken } from '@/lib/auth/token';
+import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
 import { APP_ROUTES } from '@/constants';
 
 export default function LogoutPage() {
@@ -16,6 +17,7 @@ export default function LogoutPage() {
 
   useEffect(() => {
     removeToken();
+    clearEmployeeSearchState();
     router.push(APP_ROUTES.LOGIN);
   }, [router]);
 

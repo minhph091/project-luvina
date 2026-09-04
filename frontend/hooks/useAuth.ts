@@ -10,6 +10,7 @@ import { getToken, isTokenExpired, storeToken, removeToken } from '@/lib/auth/to
 import { loginUser } from '@/lib/api/auth';
 import { LoginRequest } from '@/types/auth';
 import { APP_ROUTES, ERROR_MESSAGES } from '@/constants';
+import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
 
 /**
  * Hook bảo vệ các trang yêu cầu đăng nhập.
@@ -65,6 +66,7 @@ export const useLogin = (): UseLoginReturn => {
     try {
       const response = await loginUser(credentials);
       storeToken(response.accessToken, response.tokenType);
+      clearEmployeeSearchState();
       router.push(APP_ROUTES.EMPLOYEE_LIST);
       return true;
     } catch {
