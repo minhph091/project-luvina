@@ -5,30 +5,48 @@ package com.luvina.la.controller;
  * EmployeeController.java, 21/08/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.config.Constants;
+import com.luvina.la.dto.EmployeeListDTO;
+import com.luvina.la.exception.CustomValidationException;
+import com.luvina.la.mapper.EmployeeMapper;
+import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.ListEmployeesResponse;
+import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.service.EmployeeService;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller xử lý các request liên quan đến nhân viên.
+ * Nhận DTO từ Service và chuyển đổi sang Response Payload trả về client.
  *
  * @author Phạm Văn Minh
  */
 @RestController
 public class EmployeeController {
 
+    private static final Logger log = LoggerFactory.getLogger(EmployeeController.class);
+
     private final EmployeeService employeeService;
+    private final EmployeeMapper employeeMapper;
 
     /**
      * Khởi tạo EmployeeController.
      *
      * @param employeeService Service xử lý nghiệp vụ nhân viên.
+     * @param employeeMapper  Mapper chuyển đổi từ DTO sang Response Payload.
      */
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(
+            EmployeeService employeeService,
+            EmployeeMapper employeeMapper) {
         this.employeeService = employeeService;
+        this.employeeMapper = employeeMapper;
     }
 
     /**
@@ -57,15 +75,38 @@ public class EmployeeController {
 
         String sortBy = extractSortBy(request);
 
-        return employeeService.getEmployees(
-                employeeName,
-                departmentId,
-                ordEmployeeName,
-                ordCertificationName,
-                ordEndDate,
-                offset,
-                limit,
-                sortBy);
+        try {
+            EmployeeListDTO employeeListDTO = employeeService.getEmployees(
+                    employeeName,
+                    departmentId,
+                    ordEmployeeName,
+                    ordCertificationName,
+                    ordEndDate,
+                    offset,
+                    limit,
+                    sortBy);
+
+            List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeListDTO.getEmployees());
+
+            return ListEmployeesResponse.builder()
+                    .code(Constants.RESPONSE_CODE_SUCCESS)
+                    .totalRecords(employeeListDTO.getTotalRecords())
+                    .employees(employeeResponses)
+                    .build();
+
+        } catch (CustomValidationException ex) {
+            log.warn("Validation error in getEmployees: {}", ex.getMessageResponse());
+            return ListEmployeesResponse.builder()
+                    .code(Constants.RESPONSE_CODE_ERROR)
+                    .message(ex.getMessageResponse())
+                    .build();
+        } catch (Exception ex) {
+            log.error("Error occurred while getting employee list: ", ex);
+            return ListEmployeesResponse.builder()
+                    .code(Constants.RESPONSE_CODE_ERROR)
+                    .message(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()))
+                    .build();
+        }
     }
 
     /**

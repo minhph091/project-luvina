@@ -8,8 +8,6 @@ package com.luvina.la.service.impl;
 import com.luvina.la.dto.DepartmentDTO;
 import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.mapper.DepartmentMapper;
-import com.luvina.la.payload.response.DepartmentResponse;
-import com.luvina.la.payload.response.ListDepartmentsResponse;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.service.DepartmentService;
 import java.util.List;
@@ -17,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Implementation xử lý nghiệp vụ liên quan đến phòng ban.
- * Sử dụng DepartmentDTO làm tầng dữ liệu trung gian giữa Entity và Response.
+ * Trả về danh sách DepartmentDTO cho tầng Controller.
  *
  * @author Phạm Văn Minh
  */
@@ -31,7 +29,7 @@ public class DepartmentServiceImpl implements DepartmentService {
      * Khởi tạo DepartmentServiceImpl.
      *
      * @param departmentRepository Repository dùng để truy vấn dữ liệu phòng ban.
-     * @param departmentMapper     Mapper chuyển đổi giữa Entity, DTO và Response.
+     * @param departmentMapper     Mapper chuyển đổi giữa Entity và DTO.
      */
     public DepartmentServiceImpl(
             DepartmentRepository departmentRepository,
@@ -41,26 +39,16 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     /**
-     * Lấy danh sách tất cả phòng ban.
+     * Lấy danh sách tất cả phòng ban dạng DTO.
      *
-     * @return Response chứa mã kết quả và danh sách phòng ban.
+     * @return Danh sách DepartmentDTO.
      */
     @Override
-    public ListDepartmentsResponse getDepartments() {
+    public List<DepartmentDTO> getDepartments() {
         // 1. Lấy danh sách entity từ Repository
         List<DepartmentEntity> departmentEntities = departmentRepository.findAll();
 
-        // 2. Chuyển đổi Entity sang DTO cho tầng nghiệp vụ
-        List<DepartmentDTO> departmentDTOs = departmentMapper.toDtoList(departmentEntities);
-
-        // 3. Chuyển đổi DTO sang Response Payload
-        List<DepartmentResponse> departments = departmentMapper.toResponseList(departmentDTOs);
-
-        // 4. Đóng gói GetDepartmentsResponse
-        ListDepartmentsResponse response = new ListDepartmentsResponse();
-        response.setCode(200);
-        response.setDepartments(departments);
-
-        return response;
+        // 2. Chuyển đổi Entity sang DTO cho tầng nghiệp vụ và trả về
+        return departmentMapper.toDtoList(departmentEntities);
     }
 }

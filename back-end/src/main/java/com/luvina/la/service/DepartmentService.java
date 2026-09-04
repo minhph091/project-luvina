@@ -1,6 +1,7 @@
 package com.luvina.la.service;
 
-import com.luvina.la.payload.response.ListDepartmentsResponse;
+import com.luvina.la.dto.DepartmentDTO;
+import java.util.List;
 
 /**
  * Copyright(C) 2026 Luvina
@@ -15,9 +16,9 @@ import com.luvina.la.payload.response.ListDepartmentsResponse;
 public interface DepartmentService {
 
     /**
-     * Lấy danh sách tất cả phòng ban.
+     * Lấy danh sách tất cả phòng ban dạng DTO.
      *
-     * @return Response chứa mã kết quả và danh sách phòng ban.
+     * @return Danh sách DepartmentDTO.
      */
-    ListDepartmentsResponse getDepartments();
+    List<DepartmentDTO> getDepartments();
 }

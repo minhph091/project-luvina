@@ -6,8 +6,8 @@ package com.luvina.la.service;
  */
 
 import com.luvina.la.dto.EmployeeDTO;
-import com.luvina.la.mapper.EmployeeMapper;
-import com.luvina.la.payload.response.ListEmployeesResponse;
+import com.luvina.la.dto.EmployeeListDTO;
+import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.impl.EmployeeServiceImpl;
 import com.luvina.la.validator.EmployeeValidator;
@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test cho EmployeeService sử dụng EmployeeDTO và EmployeeMapper.
+ * Unit test cho EmployeeService sử dụng EmployeeDTO và EmployeeListDTO.
  *
  * @author Phạm Văn Minh
  */
@@ -40,14 +39,12 @@ public class EmployeeServiceTest {
     private EmployeeNativeRepository employeeNativeRepository;
 
     private EmployeeValidator employeeValidator;
-    private EmployeeMapper employeeMapper;
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
         employeeValidator = new EmployeeValidator();
-        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
-        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator, employeeMapper);
+        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator);
     }
 
     @Test
@@ -70,17 +67,16 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.countEmployees(isNull(), isNull()))
                 .thenReturn(1L);
 
-        ListEmployeesResponse response = employeeService.getEmployees(
+        EmployeeListDTO result = employeeService.getEmployees(
                 null, null, null, null, null, null, null
         );
 
-        assertNotNull(response);
-        assertEquals(200, response.getCode());
-        assertEquals(1L, response.getTotalRecords());
-        assertEquals(1, response.getEmployees().size());
-        assertEquals("Nguyen Van A", response.getEmployees().get(0).getEmployeeName());
-        assertEquals("Phòng IT", response.getEmployees().get(0).getDepartmentName());
-        assertEquals("N1", response.getEmployees().get(0).getCertificationName());
+        assertNotNull(result);
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getEmployees().size());
+        assertEquals("Nguyen Van A", result.getEmployees().get(0).getEmployeeName());
+        assertEquals("Phòng IT", result.getEmployees().get(0).getDepartmentName());
+        assertEquals("N1", result.getEmployees().get(0).getCertificationName());
 
         verify(employeeNativeRepository).findEmployees(isNull(), isNull(), eq(5), eq(0), isNull(), isNull(), isNull(), isNull());
         verify(employeeNativeRepository).countEmployees(isNull(), isNull());
@@ -103,16 +99,15 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(eq("Van A"), eq(2L), eq(10), eq(20), eq("DESC"), eq("ASC"), eq("DESC"), isNull()))
                 .thenReturn(List.of(empDto));
 
-        ListEmployeesResponse response = employeeService.getEmployees(
+        EmployeeListDTO result = employeeService.getEmployees(
                 "  Van A  ", "2", "DESC", "ASC", "DESC", "20", "10"
         );
 
-        assertNotNull(response);
-        assertEquals(200, response.getCode());
-        assertEquals(1L, response.getTotalRecords());
-        assertEquals(1, response.getEmployees().size());
-        assertEquals("Van A", response.getEmployees().get(0).getEmployeeName());
-        assertEquals("Phòng Dev", response.getEmployees().get(0).getDepartmentName());
+        assertNotNull(result);
+        assertEquals(1L, result.getTotalRecords());
+        assertEquals(1, result.getEmployees().size());
+        assertEquals("Van A", result.getEmployees().get(0).getEmployeeName());
+        assertEquals("Phòng Dev", result.getEmployees().get(0).getDepartmentName());
 
         verify(employeeNativeRepository).countEmployees(eq("Van A"), eq(2L));
         verify(employeeNativeRepository).findEmployees(eq("Van A"), eq(2L), eq(10), eq(20), eq("DESC"), eq("ASC"), eq("DESC"), isNull());
@@ -124,58 +119,51 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.countEmployees(eq("Nonexistent"), eq(1L)))
                 .thenReturn(0L);
 
-        ListEmployeesResponse response = employeeService.getEmployees(
+        EmployeeListDTO result = employeeService.getEmployees(
                 "Nonexistent", "1", null, null, null, "0", "5"
         );
 
-        assertNotNull(response);
-        assertEquals(200, response.getCode());
-        assertEquals(0L, response.getTotalRecords());
-        assertTrue(response.getEmployees().isEmpty());
+        assertNotNull(result);
+        assertEquals(0L, result.getTotalRecords());
+        assertTrue(result.getEmployees().isEmpty());
 
         verify(employeeNativeRepository).countEmployees(eq("Nonexistent"), eq(1L));
     }
 
     @Test
-    @DisplayName("Test getEmployees lỗi ER021 khi tham số ord không phải ASC hoặc DESC")
+    @DisplayName("Test getEmployees ném CustomValidationException khi tham số ord không phải ASC hoặc DESC")
     void testGetEmployeesInvalidOrder() {
-        ListEmployeesResponse response = employeeService.getEmployees(
-                null, null, "INVALID", null, null, "0", "5"
-        );
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.getEmployees(null, null, "INVALID", null, null, "0", "5");
+        });
 
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals("ER021", response.getMessage().getCode());
-        assertTrue(response.getMessage().getParams().isEmpty());
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER021", ex.getMessageResponse().getCode());
+        assertTrue(ex.getMessageResponse().getParams().isEmpty());
     }
 
     @Test
-    @DisplayName("Test getEmployees lỗi ER018 khi offset không phải số nguyên không âm")
+    @DisplayName("Test getEmployees ném CustomValidationException khi offset không phải số nguyên không âm")
     void testGetEmployeesInvalidOffset() {
-        ListEmployeesResponse response = employeeService.getEmployees(
-                null, null, "ASC", null, null, "-1", "5"
-        );
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.getEmployees(null, null, "ASC", null, null, "-1", "5");
+        });
 
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals("ER018", response.getMessage().getCode());
-        assertEquals(List.of("オフセット"), response.getMessage().getParams());
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER018", ex.getMessageResponse().getCode());
+        assertEquals(List.of("オフセット"), ex.getMessageResponse().getParams());
     }
 
     @Test
-    @DisplayName("Test getEmployees lỗi ER018 khi limit không phải số nguyên dương")
+    @DisplayName("Test getEmployees ném CustomValidationException khi limit không phải số nguyên dương")
     void testGetEmployeesInvalidLimit() {
-        ListEmployeesResponse response = employeeService.getEmployees(
-                null, null, "ASC", null, null, "0", "0"
-        );
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.getEmployees(null, null, "ASC", null, null, "0", "0");
+        });
 
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals("ER018", response.getMessage().getCode());
-        assertEquals(List.of("リミット"), response.getMessage().getParams());
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER018", ex.getMessageResponse().getCode());
+        assertEquals(List.of("リミット"), ex.getMessageResponse().getParams());
     }
 
     @Test
@@ -186,12 +174,12 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("certificationNameOrder")))
                 .thenReturn(Collections.emptyList());
 
-        ListEmployeesResponse response = employeeService.getEmployees(
+        EmployeeListDTO result = employeeService.getEmployees(
                 null, null, "ASC", "ASC", "DESC", "0", "5", "certificationNameOrder"
         );
 
-        assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertNotNull(result);
+        assertEquals(1L, result.getTotalRecords());
         verify(employeeNativeRepository).findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("certificationNameOrder"));
     }
 
@@ -203,12 +191,12 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("endDateOrder")))
                 .thenReturn(Collections.emptyList());
 
-        ListEmployeesResponse response = employeeService.getEmployees(
+        EmployeeListDTO result = employeeService.getEmployees(
                 null, null, "ASC", "ASC", "DESC", "0", "5", "endDateOrder"
         );
 
-        assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertNotNull(result);
+        assertEquals(1L, result.getTotalRecords());
         verify(employeeNativeRepository).findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("endDateOrder"));
     }
 }
