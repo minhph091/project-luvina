@@ -4,7 +4,6 @@ import com.luvina.la.config.jwt.AuthUserDetails;
 import com.luvina.la.config.jwt.JwtTokenProvider;
 import com.luvina.la.config.jwt.UserDetailsServiceImpl;
 import com.luvina.la.entity.EmployeeEntity;
-import com.luvina.la.payload.request.CreateAccountRequest;
 import com.luvina.la.payload.request.LoginRequest;
 import com.luvina.la.payload.response.LoginResponse;
 import com.luvina.la.repository.EmployeeEntityRepository;
@@ -85,84 +84,6 @@ public class AuthController {
             errors.put("code", "000");
         }
         return new LoginResponse(errors);
-    }
-
-    /**
-     * API tạo tài khoản test (Public endpoint).
-     * Dùng để nhanh chóng tạo user test đăng nhập và thao tác dữ liệu.
-     *
-     * @param request thông tin tài khoản cần tạo
-     * @return ResponseEntity chứa kết quả tạo tài khoản
-     */
-    @PostMapping({"/register", "/create-account"})
-    public ResponseEntity<Map<String, Object>> createAccount(@RequestBody CreateAccountRequest request) {
-        Map<String, Object> response = new HashMap<>();
-
-        // Validate cơ bản username & password
-        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
-            response.put("code", 400);
-            response.put("message", "Username không được để trống.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
-            response.put("code", 400);
-            response.put("message", "Password không được để trống.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        String username = request.getUsername().trim();
-
-        // Kiểm tra xem username đã tồn tại chưa
-        if (employeeEntityRepository.existsByEmployeeLoginId(username)) {
-            response.put("code", 400);
-            response.put("message", "Tên tài khoản '" + username + "' đã tồn tại.");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        // Tạo mới EmployeeEntity thông qua MapStruct Mapper
-        EmployeeEntity employee = employeeMapper.toEntity(request);
-        employee.setEmployeeLoginPassword(passwordEncoder.encode(request.getPassword().trim()));
-
-        // Tên nhân viên (mặc định lấy theo username nếu không truyền)
-        if (employee.getEmployeeName() == null || employee.getEmployeeName().trim().isEmpty()) {
-            employee.setEmployeeName(username);
-        } else {
-            employee.setEmployeeName(employee.getEmployeeName().trim());
-        }
-
-        // Email (mặc định username + @luvina.net nếu không truyền)
-        if (employee.getEmployeeEmail() == null || employee.getEmployeeEmail().trim().isEmpty()) {
-            employee.setEmployeeEmail(username + "@luvina.net");
-        } else {
-            employee.setEmployeeEmail(employee.getEmployeeEmail().trim());
-        }
-
-        // Phòng ban (mặc định 1 nếu không truyền)
-        if (employee.getDepartmentId() == null) {
-            employee.setDepartmentId(1L);
-        }
-
-        // Vai trò (mặc định USER nếu không truyền)
-        if (employee.getEmployeeRole() == null || employee.getEmployeeRole().trim().isEmpty()) {
-            employee.setEmployeeRole("USER");
-        } else {
-            employee.setEmployeeRole(employee.getEmployeeRole().trim().toUpperCase());
-        }
-
-        // Lưu vào cơ sở dữ liệu
-        EmployeeEntity saved = employeeEntityRepository.save(employee);
-
-        response.put("code", 200);
-        response.put("message", "Tạo tài khoản test thành công.");
-        response.put("employeeId", saved.getEmployeeId());
-        response.put("username", saved.getEmployeeLoginId());
-        response.put("employeeName", saved.getEmployeeName());
-        response.put("employeeEmail", saved.getEmployeeEmail());
-        response.put("departmentId", saved.getDepartmentId());
-        response.put("employeeRole", saved.getEmployeeRole());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

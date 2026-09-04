@@ -5,7 +5,7 @@ package com.luvina.la.controller;
  * EmployeeController.java, 21/08/2026 Phạm Văn Minh
  */
 
-import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.service.EmployeeService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,7 +50,7 @@ public class EmployeeController {
      * @return Response chứa mã kết quả, tổng số bản ghi và danh sách nhân viên.
      */
     @GetMapping("/employee")
-    public GetEmployeesResponse getEmployees(
+    public ListEmployeesResponse getEmployees(
             @RequestParam(required = false, name = "employeeName") String employeeName,
             @RequestParam(required = false, name = "employee_name") String employeeNameSnake,
             @RequestParam(required = false, name = "departmentId") String departmentId,

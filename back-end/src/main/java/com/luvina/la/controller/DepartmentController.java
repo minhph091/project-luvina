@@ -3,7 +3,7 @@ package com.luvina.la.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luvina.la.payload.response.GetDepartmentsResponse;
+import com.luvina.la.payload.response.ListDepartmentsResponse;
 import com.luvina.la.service.DepartmentService;
 
 /**
@@ -37,7 +37,7 @@ public class DepartmentController {
      * @return Response chứa mã kết quả và danh sách phòng ban.
      */
     @GetMapping("/department")
-    public GetDepartmentsResponse getDepartments() {
+    public ListDepartmentsResponse getDepartments() {
         return departmentService.getDepartments();
     }
 }

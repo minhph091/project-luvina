@@ -5,7 +5,7 @@ package com.luvina.la.controller;
  * EmployeeControllerTest.java, 21/08/2026 Phạm Văn Minh
  */
 
-import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.service.EmployeeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test getEmployees with standard limit and offset according to API design")
     void testGetEmployeesWithLimitAndOffset() {
-        GetEmployeesResponse mockResponse = new GetEmployeesResponse();
+        ListEmployeesResponse mockResponse = new ListEmployeesResponse();
         mockResponse.setCode(200);
         mockResponse.setTotalRecords(10L);
         mockResponse.setEmployees(Collections.emptyList());
@@ -48,7 +48,7 @@ public class EmployeeControllerTest {
                 eq("John"), eq("1"), eq("ASC"), eq("ASC"), eq("ASC"), eq("5"), eq("10"), isNull()
         )).thenReturn(mockResponse);
 
-        GetEmployeesResponse response = employeeController.getEmployees(
+        ListEmployeesResponse response = employeeController.getEmployees(
                 "John", null, "1", null, "10", "5", null, null,
                 "ASC", null, "ASC", null, "ASC", null, null, null
         );
@@ -65,7 +65,7 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test getEmployees with snake_case parameters according to API design")
     void testGetEmployeesWithSnakeCaseAndPage() {
-        GetEmployeesResponse mockResponse = new GetEmployeesResponse();
+        ListEmployeesResponse mockResponse = new ListEmployeesResponse();
         mockResponse.setCode(200);
         mockResponse.setTotalRecords(25L);
         mockResponse.setEmployees(Collections.emptyList());
@@ -75,7 +75,7 @@ public class EmployeeControllerTest {
                 eq("Doe"), eq("2"), eq("DESC"), eq("ASC"), eq("DESC"), eq("10"), eq("5"), isNull()
         )).thenReturn(mockResponse);
 
-        GetEmployeesResponse response = employeeController.getEmployees(
+        ListEmployeesResponse response = employeeController.getEmployees(
                 null, "Doe", null, "2", null, null, 3, 5,
                 null, "DESC", null, "ASC", null, "DESC", null, null
         );

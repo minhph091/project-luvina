@@ -7,7 +7,7 @@ package com.luvina.la.service;
 
 import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.mapper.EmployeeMapper;
-import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.impl.EmployeeServiceImpl;
 import com.luvina.la.validator.EmployeeValidator;
@@ -70,7 +70,7 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.countEmployees(isNull(), isNull()))
                 .thenReturn(1L);
 
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, null, null, null, null, null
         );
 
@@ -103,7 +103,7 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(eq("Van A"), eq(2L), eq(10), eq(20), eq("DESC"), eq("ASC"), eq("DESC"), isNull()))
                 .thenReturn(List.of(empDto));
 
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 "  Van A  ", "2", "DESC", "ASC", "DESC", "20", "10"
         );
 
@@ -124,7 +124,7 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.countEmployees(eq("Nonexistent"), eq(1L)))
                 .thenReturn(0L);
 
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 "Nonexistent", "1", null, null, null, "0", "5"
         );
 
@@ -139,7 +139,7 @@ public class EmployeeServiceTest {
     @Test
     @DisplayName("Test getEmployees lỗi ER021 khi tham số ord không phải ASC hoặc DESC")
     void testGetEmployeesInvalidOrder() {
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, "INVALID", null, null, "0", "5"
         );
 
@@ -153,7 +153,7 @@ public class EmployeeServiceTest {
     @Test
     @DisplayName("Test getEmployees lỗi ER018 khi offset không phải số nguyên không âm")
     void testGetEmployeesInvalidOffset() {
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, "ASC", null, null, "-1", "5"
         );
 
@@ -167,7 +167,7 @@ public class EmployeeServiceTest {
     @Test
     @DisplayName("Test getEmployees lỗi ER018 khi limit không phải số nguyên dương")
     void testGetEmployeesInvalidLimit() {
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, "ASC", null, null, "0", "0"
         );
 
@@ -186,7 +186,7 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("certificationNameOrder")))
                 .thenReturn(Collections.emptyList());
 
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, "ASC", "ASC", "DESC", "0", "5", "certificationNameOrder"
         );
 
@@ -203,7 +203,7 @@ public class EmployeeServiceTest {
         when(employeeNativeRepository.findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("endDateOrder")))
                 .thenReturn(Collections.emptyList());
 
-        GetEmployeesResponse response = employeeService.getEmployees(
+        ListEmployeesResponse response = employeeService.getEmployees(
                 null, null, "ASC", "ASC", "DESC", "0", "5", "endDateOrder"
         );
 

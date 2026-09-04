@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GetDepartmentsResponse {
+public class ListDepartmentsResponse {
 
     /**
      * Mã kết quả của API.

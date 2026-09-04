@@ -9,7 +9,7 @@ import com.luvina.la.dto.DepartmentDTO;
 import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.mapper.DepartmentMapper;
 import com.luvina.la.payload.response.DepartmentResponse;
-import com.luvina.la.payload.response.GetDepartmentsResponse;
+import com.luvina.la.payload.response.ListDepartmentsResponse;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.service.DepartmentService;
 import java.util.List;
@@ -46,7 +46,7 @@ public class DepartmentServiceImpl implements DepartmentService {
      * @return Response chứa mã kết quả và danh sách phòng ban.
      */
     @Override
-    public GetDepartmentsResponse getDepartments() {
+    public ListDepartmentsResponse getDepartments() {
         // 1. Lấy danh sách entity từ Repository
         List<DepartmentEntity> departmentEntities = departmentRepository.findAll();
 
@@ -57,7 +57,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         List<DepartmentResponse> departments = departmentMapper.toResponseList(departmentDTOs);
 
         // 4. Đóng gói GetDepartmentsResponse
-        GetDepartmentsResponse response = new GetDepartmentsResponse();
+        ListDepartmentsResponse response = new ListDepartmentsResponse();
         response.setCode(200);
         response.setDepartments(departments);
 

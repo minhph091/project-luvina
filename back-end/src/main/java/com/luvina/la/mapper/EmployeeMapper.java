@@ -7,7 +7,6 @@ package com.luvina.la.mapper;
 
 import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.entity.EmployeeEntity;
-import com.luvina.la.payload.request.CreateAccountRequest;
 import com.luvina.la.payload.response.EmployeeResponse;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -69,15 +68,7 @@ public interface EmployeeMapper {
      */
     EmployeeDTO toDto(EmployeeResponse response);
 
-    /**
-     * Chuyển đổi từ CreateAccountRequest sang EmployeeEntity.
-     * Lưu ý: Mật khẩu chưa mã hóa sẽ được xử lý riêng bằng PasswordEncoder.
-     *
-     * @param request Payload tạo tài khoản.
-     * @return Đối tượng EmployeeEntity đã được map các trường cơ bản.
-     */
-    @Mapping(target = "employeeId", ignore = true)
-    @Mapping(target = "employeeLoginId", source = "username")
-    @Mapping(target = "employeeLoginPassword", ignore = true)
-    EmployeeEntity toEntity(CreateAccountRequest request);
+
+
+
 }

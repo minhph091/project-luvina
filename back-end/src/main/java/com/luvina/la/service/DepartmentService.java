@@ -1,6 +1,6 @@
 package com.luvina.la.service;
 
-import com.luvina.la.payload.response.GetDepartmentsResponse;
+import com.luvina.la.payload.response.ListDepartmentsResponse;
 
 /**
  * Copyright(C) 2026 Luvina
@@ -19,5 +19,5 @@ public interface DepartmentService {
      *
      * @return Response chứa mã kết quả và danh sách phòng ban.
      */
-    GetDepartmentsResponse getDepartments();
+    ListDepartmentsResponse getDepartments();
 }

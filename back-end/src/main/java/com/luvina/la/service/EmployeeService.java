@@ -5,7 +5,7 @@ package com.luvina.la.service;
  * EmployeeService.java, 21/08/2026 Phạm Văn Minh
  */
 
-import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.ListEmployeesResponse;
 
 /**
  * Interface xử lý nghiệp vụ liên quan đến nhân viên.
@@ -24,9 +24,9 @@ public interface EmployeeService {
      * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
      * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
      * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
-     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     * @return ListEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
      */
-    GetEmployeesResponse getEmployees(
+    ListEmployeesResponse getEmployees(
             String employeeName,
             String departmentId,
             String ordEmployeeName,
@@ -46,9 +46,9 @@ public interface EmployeeService {
      * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
      * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
      * @param sortBy               Cột đang được người dùng ưu tiên sắp xếp hàng đầu.
-     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     * @return ListEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
      */
-    GetEmployeesResponse getEmployees(
+    ListEmployeesResponse getEmployees(
             String employeeName,
             String departmentId,
             String ordEmployeeName,

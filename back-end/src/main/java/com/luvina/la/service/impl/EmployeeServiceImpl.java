@@ -9,7 +9,7 @@ import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.response.EmployeeResponse;
-import com.luvina.la.payload.response.GetEmployeesResponse;
+import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.EmployeeNativeRepository;
 import com.luvina.la.service.EmployeeService;
@@ -61,10 +61,10 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
      * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
      * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
-     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     * @return ListEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
      */
     @Override
-    public GetEmployeesResponse getEmployees(
+    public ListEmployeesResponse getEmployees(
             String employeeName,
             String departmentId,
             String ordEmployeeName,
@@ -86,10 +86,10 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
      * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
      * @param sortBy               Cột đang được người dùng ưu tiên sắp xếp hàng đầu.
-     * @return GetEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
+     * @return ListEmployeesResponse chứa kết quả tìm kiếm hoặc thông tin lỗi theo thiết kế.
      */
     @Override
-    public GetEmployeesResponse getEmployees(
+    public ListEmployeesResponse getEmployees(
             String employeeName,
             String departmentId,
             String ordEmployeeName,
@@ -103,7 +103,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         MessageResponse validationError = employeeValidator.validateGetEmployeesParams(
                 ordEmployeeName, ordCertificationName, ordEndDate, offsetStr, limitStr);
         if (validationError != null) {
-            GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+            ListEmployeesResponse errorResponse = new ListEmployeesResponse();
             errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
             errorResponse.setMessage(validationError);
             return errorResponse;
@@ -141,7 +141,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             // Nếu tổng số bản ghi là 0 thì trả về kết quả rỗng
             if (totalRecords == null || totalRecords == 0L) {
-                GetEmployeesResponse emptyResponse = new GetEmployeesResponse();
+                ListEmployeesResponse emptyResponse = new ListEmployeesResponse();
                 emptyResponse.setCode(Constants.RESPONSE_CODE_SUCCESS);
                 emptyResponse.setTotalRecords(0L);
                 emptyResponse.setEmployees(new ArrayList<>());
@@ -163,7 +163,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeDTOs);
 
             // 3. Tạo dữ liệu response thành công
-            GetEmployeesResponse response = new GetEmployeesResponse();
+            ListEmployeesResponse response = new ListEmployeesResponse();
             response.setCode(Constants.RESPONSE_CODE_SUCCESS);
             response.setTotalRecords(totalRecords);
             response.setEmployees(employeeResponses);
@@ -171,7 +171,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         } catch (Exception ex) {
             log.error("Error occurred while getting employee list: ", ex);
-            GetEmployeesResponse errorResponse = new GetEmployeesResponse();
+            ListEmployeesResponse errorResponse = new ListEmployeesResponse();
             errorResponse.setCode(Constants.RESPONSE_CODE_ERROR);
             errorResponse.setMessage(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()));
             return errorResponse;

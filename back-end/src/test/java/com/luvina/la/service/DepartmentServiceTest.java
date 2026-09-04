@@ -7,13 +7,12 @@ package com.luvina.la.service;
 
 import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.mapper.DepartmentMapper;
-import com.luvina.la.payload.response.DepartmentResponse;
-import com.luvina.la.payload.response.GetDepartmentsResponse;
+import com.luvina.la.payload.response.ListDepartmentsResponse;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.service.impl.DepartmentServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,7 +51,7 @@ public class DepartmentServiceTest {
         DepartmentEntity d2 = new DepartmentEntity(2L, "Phát triển 2");
         when(departmentRepository.findAll()).thenReturn(Arrays.asList(d1, d2));
 
-        GetDepartmentsResponse response = departmentService.getDepartments();
+        ListDepartmentsResponse response = departmentService.getDepartments();
 
         assertNotNull(response);
         assertEquals(200, response.getCode());
@@ -69,7 +68,7 @@ public class DepartmentServiceTest {
     void testGetDepartmentsEmpty() {
         when(departmentRepository.findAll()).thenReturn(Collections.emptyList());
 
-        GetDepartmentsResponse response = departmentService.getDepartments();
+        ListDepartmentsResponse response = departmentService.getDepartments();
 
         assertNotNull(response);
         assertEquals(200, response.getCode());
