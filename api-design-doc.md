@@ -613,3 +613,163 @@ Không có.
 |-----|---------|--------------------------------------------------|
 | 1   | code    | `500`                                            |
 | 2   | message | `{ "code": "<mã lỗi>", "params": [...] }`        |
+
+
+
+# Thiết kế API – Get List Certifications
+
+| Thông tin | Giá trị |
+|-----------|---------|
+| Tên system | Manager User |
+| Loại system | Thiết kế API |
+| Người tạo | ThanhPD |
+| Ngày tạo | 2023-01-04 |
+| Người update | ThanhPD |
+| Ngày update | 2023-01-04 |
+| Version | 0.1 |
+| Hạng mục | Get List certifications |
+
+---
+
+## 1. Lịch sử thay đổi
+
+| Date | Người update | Version | Nội dung thay đổi | Ngày phê chuẩn | Người phê chuẩn |
+|------|--------------|---------|-------------------|----------------|-----------------|
+| 2023-01-04 | ThanhPD | 0.1 | Tạo mới tài liệu | | |
+
+---
+
+## 2. Khái quát
+
+Lấy thông tin danh sách chứng chỉ tiếng Nhật.
+
+### 2.1. Request
+
+#### Request URL
+
+| No. | Service | API name | Method HTTP | Note |
+|-----|---------|----------|-------------|------|
+| 1 | certifications | Get List certifications | GET | |
+
+#### Request Parameter
+
+| No. | Parameter | Bắt buộc | Kiểu | Giá trị default | Tên hạng mục | Note |
+|-----|-----------|----------|------|-----------------|--------------|------|
+| | | | | | | |
+
+**Sample**
+
+```
+GET /certifications
+```
+
+### 2.2. Response
+
+#### Trường hợp thành công
+
+| No. | json key name | Kiểu | Note |
+|-----|---------------|------|------|
+| 1 | code | number | |
+| 2 | certifications | array | Mảng chứa thông tin chứng chỉ tiếng Nhật |
+| 3 | └ certificationId | number | |
+| 4 | └ certificationName | string | |
+
+**Sample**
+
+```json
+{
+  "code": "200",
+  "certifications": [
+    {
+      "certificationId": "1",
+      "certificationName": "Trình độ tiếng Nhật cấp 1"
+    },
+    {
+      "certificationId": "2",
+      "certificationName": "Trình độ tiếng Nhật cấp 2"
+    }
+  ]
+}
+```
+
+#### Trường hợp lỗi
+
+| No. | json key name | Kiểu | Note |
+|-----|---------------|------|------|
+| 1 | code | number | |
+| 2 | message | object | Nội dung lỗi |
+
+**Sample**
+
+```json
+{
+  "code": "500",
+  "message": {
+    "code": "ER023",
+    "params": []
+  }
+}
+```
+
+---
+
+## 3. Flow xử lý
+
+*(Không có nội dung trong tài liệu gốc)*
+
+---
+
+## 4. Chi tiết xử lý
+
+### 4.1. Xử lý common
+
+`<Không có>`
+
+### 4.2. Xử lý chi tiết
+
+#### 4.2.1. Get thông tin chứng chỉ tiếng Nhật
+
+**Get tất cả chứng chỉ từ database**
+
+**Danh sách bảng sử dụng**
+
+| No | Tên bảng logic | ID bảng vật lý | Create | Refer | Update | Xóa |
+|----|----------------|----------------|--------|-------|--------|-----|
+| 1 | Thông tin chứng chỉ tiếng Nhật | certifications | | 〇 | | |
+
+**Table access**
+
+Hạng mục lấy (trường hợp get data hiển thị màn hình):
+
+| No | Tên bảng | Alias | Tên trường |
+|----|----------|-------|------------|
+| 1 | certifications | - | certification_id |
+| 2 | certifications | - | certification_name |
+
+#### 4.2.2. Tạo dữ liệu response cho API
+
+**Trường hợp không có lỗi**
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | 200 | |
+| 2 | certifications | Lấy giá trị từ bước Get | |
+| 3 | └ certificationId | | |
+| 4 | └ certificationName | | |
+
+**Trường hợp có lỗi**
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | 500 | |
+| 2 | message | `{ "code": "ER023", "params": [] }` | |
+
+Kết thúc xử lý.
+
+---
+
+## 5. Tham chiếu
+
+| No. | Mã tham chiếu | Tài liệu tham chiếu |
+|-----|---------------|---------------------|
+| | | |

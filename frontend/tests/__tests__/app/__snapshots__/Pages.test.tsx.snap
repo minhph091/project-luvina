@@ -455,28 +455,22 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
     class="row"
   >
     <form
-      class="c-form box-shadow was-validated"
+      class="c-form box-shadow"
+      id="employee-form"
+      novalidate=""
     >
       <ul>
         <li
           class="title"
         >
-          会員情報編集
-        </li>
-        <li
-          class="box-err"
-        >
-          <div
-            class="box-err-content"
-          >
-            Hiển thị lỗi chung lại đây
-          </div>
+          会員情報追加
         </li>
         <li
           class="form-group row d-flex"
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-login-id"
           >
             <i
               class="relative"
@@ -493,8 +487,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
+              class="form-control "
+              id="employee-login-id"
+              maxlength="50"
+              name="employeeLoginId"
               type="text"
+              value=""
             />
           </div>
         </li>
@@ -503,6 +501,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-department-id"
           >
             <i
               class="relative"
@@ -519,16 +518,14 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <select
-              class="form-control"
+              class="form-control "
+              id="employee-department-id"
+              name="departmentId"
             >
-              <option>
+              <option
+                value=""
+              >
                 選択してください
-              </option>
-              <option>
-                Nhóm 1
-              </option>
-              <option>
-                Nhóm 2
               </option>
             </select>
           </div>
@@ -538,6 +535,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-name"
           >
             <i
               class="relative"
@@ -554,8 +552,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
+              class="form-control "
+              id="employee-name"
+              maxlength="100"
+              name="employeeName"
               type="text"
+              value=""
             />
           </div>
         </li>
@@ -564,6 +566,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-name-kana"
           >
             <i
               class="relative"
@@ -580,15 +583,13 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
-              required=""
+              class="form-control "
+              id="employee-name-kana"
+              maxlength="100"
+              name="employeeNameKana"
               type="text"
+              value=""
             />
-            <div
-              class="invalid-feedback"
-            >
-              Example invalid form file feedback
-            </div>
           </div>
         </li>
         <li
@@ -596,6 +597,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-birth-date"
           >
             <i
               class="relative"
@@ -609,19 +611,20 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             </i>
           </label>
           <div
-            class="col-sm col-sm-10 d-flex"
+            class="col-sm col-sm-10"
           >
             <div
               class="datepicker-wrapper"
             >
               <div
-                class="react-datepicker-wrapper"
+                class="react-datepicker-wrapper w-100"
               >
                 <div
                   class="react-datepicker__input-container"
                 >
                   <input
-                    class=""
+                    class="form-control "
+                    id="employee-birth-date"
                     placeholder="yyyy/MM/dd"
                     type="text"
                     value=""
@@ -639,6 +642,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-email"
           >
             <i
               class="relative"
@@ -655,8 +659,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
+              class="form-control "
+              id="employee-email"
+              maxlength="100"
+              name="employeeEmail"
               type="text"
+              value=""
             />
           </div>
         </li>
@@ -665,6 +673,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-telephone"
           >
             <i
               class="relative"
@@ -681,8 +690,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
+              class="form-control "
+              id="employee-telephone"
+              maxlength="14"
+              name="employeeTelephone"
               type="text"
+              value=""
             />
           </div>
         </li>
@@ -691,6 +704,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-login-password"
           >
             <i
               class="relative"
@@ -707,8 +721,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
-              type="text"
+              class="form-control "
+              id="employee-login-password"
+              maxlength="50"
+              name="employeeLoginPassword"
+              type="password"
+              value=""
             />
           </div>
         </li>
@@ -717,19 +735,29 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-login-password-confirm"
           >
             <i
               class="relative"
             >
               パスワード（確認）:
+              <span
+                class="note-red"
+              >
+                *
+              </span>
             </i>
           </label>
           <div
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
-              type="text"
+              class="form-control "
+              id="employee-login-password-confirm"
+              maxlength="50"
+              name="employeeLoginPasswordConfirm"
+              type="password"
+              value=""
             />
           </div>
         </li>
@@ -747,6 +775,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-certification-id"
           >
             <i
               class="relative"
@@ -759,15 +788,13 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
           >
             <select
               class="form-control"
+              id="employee-certification-id"
+              name="certificationId"
             >
-              <option>
+              <option
+                value=""
+              >
                 選択してください
-              </option>
-              <option>
-                N 1
-              </option>
-              <option>
-                N 2
               </option>
             </select>
           </div>
@@ -777,32 +804,30 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-certification-start-date"
           >
             <i
               class="relative"
             >
               資格交付日:
-              <span
-                class="note-red"
-              >
-                *
-              </span>
             </i>
           </label>
           <div
-            class="col-sm col-sm-10 d-flex"
+            class="col-sm col-sm-10"
           >
             <div
               class="datepicker-wrapper"
             >
               <div
-                class="react-datepicker-wrapper"
+                class="react-datepicker-wrapper w-100"
               >
                 <div
                   class="react-datepicker__input-container"
                 >
                   <input
-                    class=""
+                    class="form-control "
+                    disabled=""
+                    id="employee-certification-start-date"
                     placeholder="yyyy/MM/dd"
                     type="text"
                     value=""
@@ -811,6 +836,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               </div>
               <span
                 class="glyphicon glyphicon-calendar"
+                style="cursor: not-allowed; opacity: 0.5;"
               />
             </div>
           </div>
@@ -820,32 +846,30 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-certification-end-date"
           >
             <i
               class="relative"
             >
               失効日:
-              <span
-                class="note-red"
-              >
-                *
-              </span>
             </i>
           </label>
           <div
-            class="col-sm col-sm-10 d-flex"
+            class="col-sm col-sm-10"
           >
             <div
               class="datepicker-wrapper"
             >
               <div
-                class="react-datepicker-wrapper"
+                class="react-datepicker-wrapper w-100"
               >
                 <div
                   class="react-datepicker__input-container"
                 >
                   <input
-                    class=""
+                    class="form-control "
+                    disabled=""
+                    id="employee-certification-end-date"
                     placeholder="yyyy/MM/dd"
                     type="text"
                     value=""
@@ -854,6 +878,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               </div>
               <span
                 class="glyphicon glyphicon-calendar"
+                style="cursor: not-allowed; opacity: 0.5;"
               />
             </div>
           </div>
@@ -863,6 +888,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
         >
           <label
             class="col-form-label col-sm-2"
+            for="employee-score"
           >
             <i
               class="relative"
@@ -874,8 +900,12 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             class="col-sm col-sm-10"
           >
             <input
-              class="form-control"
+              class="form-control "
+              disabled=""
+              id="employee-score"
+              name="score"
               type="text"
+              value=""
             />
           </div>
         </li>
@@ -887,12 +917,14 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
           >
             <button
               class="btn btn-primary btn-sm"
-              type="button"
+              id="btn-confirm"
+              type="submit"
             >
               確認
             </button>
             <button
               class="btn btn-secondary btn-sm"
+              id="btn-back"
               type="button"
             >
               戻る

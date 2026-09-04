@@ -74,6 +74,7 @@ export const COMMON_LABELS = {
 export const PAGE_TITLES = {
   SEARCH_MEMBERS_DESCRIPTION: '会員名称で会員を検索します。検索条件無しの場合は全て表示されます。',
   INFO_CONFIRM: '情報確認',
+  ADD_EMPLOYEE: '会員情報追加',
   EDIT_EMPLOYEE: '会員情報編集',
   CONFIRM_DESCRIPTION: '入力された情報をＯＫボタンクリックでＤＢへ保存してください',
 } as const;
@@ -87,4 +88,35 @@ export const SYSTEM_MESSAGES = {
   MSG003_USER_DELETE_COMPLETE: 'ユーザの削除が完了しました。',
   MSG004_DELETE_CONFIRM: '削除しますが、よろしいでしょうか。',
   MSG005_NO_DATA_FOUND: '検索条件に該当するユーザが見つかりません。',
+} as const;
+
+/**
+ * Mã lỗi và định dạng thông báo validation theo tài liệu thiết kế (VALIDATION_MESSAGES / ERROR_CODES)
+ */
+export const ERROR_CODES = {
+  ER001: 'ER001',
+  ER002: 'ER002',
+  ER005: 'ER005',
+  ER006: 'ER006',
+  ER007: 'ER007',
+  ER008: 'ER008',
+  ER012: 'ER012',
+  ER015: 'ER015',
+  ER017: 'ER017',
+  ER018: 'ER018',
+  ER019: 'ER019',
+} as const;
+
+export const VALIDATION_MESSAGES = {
+  ER001_REQUIRED_INPUT: (field: string) => `${field}を入力してください`,
+  ER002_REQUIRED_SELECT: (field: string) => `${field}を選択してください`,
+  ER005_INVALID_FORMAT: (field: string) => `${field}を半角英数で入力してください`,
+  ER006_MAX_LENGTH: (field: string, max: number) => `${field}は${max}桁以内で入力してください`,
+  ER007_LENGTH_RANGE: (field: string, min: number, max: number) => `${field}は${min}桁以上${max}桁以内で入力してください`,
+  ER008_KATAKANA: (field: string) => `${field}は半角カタカナで入力してください`,
+  ER012_DATE_AFTER: (fieldEnd: string, fieldStart: string) => `${fieldEnd}は${fieldStart}より後の日付を入力してください`,
+  ER015_SYSTEM_ERROR: 'システムエラーが発生しました',
+  ER017_PASSWORD_MISMATCH: 'パスワードが一致しません',
+  ER018_HALF_NUMBER: (field: string) => `${field}は半角数字で入力してください`,
+  ER019_HALF_ALPHANUMERIC: (field: string) => `${field}は半角英数で入力してください`,
 } as const;

@@ -10,12 +10,16 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
+import { setEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 
 export default function EmployeeDetailPage() {
   useAuth();
   const router = useRouter();
 
   const handleNavigateToEdit = () => {
+    // Lưu ID nhân viên cần chỉnh sửa vào sessionStorage và xóa dữ liệu form cũ
+    setEditEmployeeId(1); // placeholder ID hoặc ID từ employee detail
+    clearEmployeeFormData();
     router.push(APP_ROUTES.EMPLOYEE_EDIT);
   };
 

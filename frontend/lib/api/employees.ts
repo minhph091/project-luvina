@@ -9,6 +9,11 @@ import {
   EmployeeItem,
   GetEmployeesApiResponse,
   GetEmployeesParams,
+  EmployeeDetail,
+  GetEmployeeDetailApiResponse,
+  EmployeeFormData,
+  EmployeeFormErrors,
+  EmployeeFormMode,
 } from '@/types/employee';
 
 /**
@@ -97,4 +102,25 @@ export async function getEmployees(
   return response.data;
 }
 
-export type { EmployeeItem, GetEmployeesApiResponse, GetEmployeesParams };
+/**
+ * Gọi API GET /employee/:id để lấy thông tin chi tiết một nhân viên.
+ *
+ * @param id ID của nhân viên cần lấy thông tin.
+ * @returns Promise chứa dữ liệu chi tiết nhân viên từ backend.
+ */
+export async function getEmployeeById(id: number | string): Promise<GetEmployeeDetailApiResponse> {
+  const response = await apiClient.get<GetEmployeeDetailApiResponse>(`/employee/${id}`);
+  return response.data;
+}
+
+export type {
+  EmployeeItem,
+  GetEmployeesApiResponse,
+  GetEmployeesParams,
+  EmployeeDetail,
+  GetEmployeeDetailApiResponse,
+  EmployeeFormData,
+  EmployeeFormErrors,
+  EmployeeFormMode,
+};
+

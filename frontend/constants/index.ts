@@ -16,6 +16,8 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   TOKEN_TYPE: 'token_type',
   EMPLOYEE_SEARCH_STATE: 'employee_search_state',
+  EDIT_EMPLOYEE_ID: 'edit_employee_id',
+  EMPLOYEE_FORM_DATA: 'employee_form_data',
 } as const;
 
 /**

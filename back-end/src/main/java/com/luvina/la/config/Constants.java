@@ -55,6 +55,7 @@ public class Constants {
     public static final String ERROR_CODE_ER015 = "ER015";
     public static final String ERROR_CODE_ER018 = "ER018";
     public static final String ERROR_CODE_ER021 = "ER021";
+    public static final String ERROR_CODE_ER023 = "ER023";
 
     // Error Parameter Names
     public static final String PARAM_OFFSET = "オフセット";

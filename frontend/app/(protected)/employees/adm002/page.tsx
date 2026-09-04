@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { APP_ROUTES } from '@/constants';
+import { clearEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import EmployeeSearchForm from '@/components/employees/EmployeeSearchForm';
 import EmployeeTable from '@/components/employees/EmployeeTable';
 import EmployeePagination from '@/components/employees/EmployeePagination';
@@ -61,6 +62,8 @@ export default function EmployeeListPage() {
    * Điều hướng sang màn hình thêm mới nhân viên (ADM004).
    */
   const handleNavigateToAddEmployee = () => {
+    clearEditEmployeeId();
+    clearEmployeeFormData();
     router.push(APP_ROUTES.EMPLOYEE_EDIT);
   };
 

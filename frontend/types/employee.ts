@@ -59,3 +59,66 @@ export interface GetEmployeesParams {
 
 // Re-export DepartmentItem for convenience
 export type { DepartmentItem };
+
+/**
+ * Chế độ hoạt động của Form ADM004: Thêm mới (ADD) hoặc Chỉnh sửa (EDIT)
+ */
+export type EmployeeFormMode = 'ADD' | 'EDIT';
+
+/**
+ * Chi tiết thông tin nhân viên trả về từ API GET /employee/:id (khớp thiết kế ADM003 & ADM004)
+ */
+export interface EmployeeDetail {
+  employeeId: number;
+  employeeLoginId: string;
+  employeeName: string;
+  employeeNameKana: string;
+  employeeBirthDate: string;
+  departmentId: number;
+  departmentName?: string;
+  employeeEmail: string;
+  employeeTelephone: string;
+  certificationId?: number | null;
+  certificationName?: string | null;
+  certificationStartDate?: string | null;
+  certificationEndDate?: string | null;
+  score?: number | null;
+}
+
+/**
+ * Phản hồi từ API GET /employee/:id
+ */
+export interface GetEmployeeDetailApiResponse {
+  code: number;
+  employee?: EmployeeDetail;
+  message?: {
+    code?: string;
+    params?: string[];
+  };
+}
+
+/**
+ * Dữ liệu form nhập liệu nhân viên (ADM004) và hiển thị xác nhận (ADM005)
+ */
+export interface EmployeeFormData {
+  employeeId?: number;
+  employeeLoginId: string;
+  departmentId: number | '' | undefined;
+  employeeName: string;
+  employeeNameKana: string;
+  employeeBirthDate: string;
+  employeeEmail: string;
+  employeeTelephone: string;
+  employeeLoginPassword?: string;
+  employeeLoginPasswordConfirm?: string;
+  certificationId?: number | '' | null;
+  certificationStartDate?: string | null;
+  certificationEndDate?: string | null;
+  score?: number | string | null;
+}
+
+/**
+ * Chứa thông báo lỗi của từng trường form ADM004
+ */
+export type EmployeeFormErrors = Partial<Record<keyof EmployeeFormData, string>>;
+

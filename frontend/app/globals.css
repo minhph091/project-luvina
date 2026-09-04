@@ -824,6 +824,7 @@ cursor: pointer;
 
 .datepicker-wrapper {
   position: relative;
+  width: 220px;
 }
 
 .datepicker-wrapper .react-datepicker-wrapper {

@@ -5,10 +5,13 @@ package com.luvina.la.mapper;
  * MapperTest.java, 25/08/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.dto.CertificationDTO;
 import com.luvina.la.dto.DepartmentDTO;
 import com.luvina.la.dto.EmployeeDTO;
+import com.luvina.la.entity.CertificationEntity;
 import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.payload.response.CertificationResponse;
 import com.luvina.la.payload.response.DepartmentResponse;
 import com.luvina.la.payload.response.EmployeeResponse;
 import java.math.BigDecimal;
@@ -22,7 +25,7 @@ import org.mapstruct.factory.Mappers;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit test cho DepartmentMapper và EmployeeMapper với đầy đủ các tầng Entity, DTO và Payload.
+ * Unit test cho DepartmentMapper, EmployeeMapper và CertificationMapper với đầy đủ các tầng Entity, DTO và Payload.
  *
  * @author Phạm Văn Minh
  */
@@ -30,6 +33,7 @@ public class MapperTest {
 
     private final DepartmentMapper departmentMapper = Mappers.getMapper(DepartmentMapper.class);
     private final EmployeeMapper employeeMapper = Mappers.getMapper(EmployeeMapper.class);
+    private final CertificationMapper certificationMapper = Mappers.getMapper(CertificationMapper.class);
 
     @Test
     @DisplayName("Test DepartmentMapper: Entity <-> DTO và DTO <-> Response")
@@ -130,5 +134,43 @@ public class MapperTest {
         assertEquals(LocalDate.of(1995, 5, 10), entity.getEmployeeBirthDate());
         assertEquals("0987654321", entity.getEmployeeTelephone());
         assertNull(entity.getEmployeeLoginPassword()); // Password được mã hóa riêng
+    }
+
+    @Test
+    @DisplayName("Test CertificationMapper: Entity <-> DTO và DTO <-> Response")
+    void testCertificationMapperAll() {
+        CertificationEntity entity = new CertificationEntity(1L, "JLPT N1", 1);
+
+        // 1. Entity -> DTO
+        CertificationDTO dto = certificationMapper.toDto(entity);
+        assertNotNull(dto);
+        assertEquals(1L, dto.getCertificationId());
+        assertEquals("JLPT N1", dto.getCertificationName());
+        assertEquals(1, dto.getCertificationLevel());
+
+        // 2. DTO -> Entity
+        CertificationEntity mappedEntity = certificationMapper.toEntity(dto);
+        assertNotNull(mappedEntity);
+        assertEquals(1L, mappedEntity.getCertificationId());
+        assertEquals("JLPT N1", mappedEntity.getCertificationName());
+        assertEquals(1, mappedEntity.getCertificationLevel());
+
+        // 3. DTO -> Response
+        CertificationResponse response = certificationMapper.toResponse(dto);
+        assertNotNull(response);
+        assertEquals(1L, response.getCertificationId());
+        assertEquals("JLPT N1", response.getCertificationName());
+
+        // 4. List<DTO> -> List<Response>
+        List<CertificationResponse> responseList = certificationMapper.toResponseList(Arrays.asList(dto));
+        assertEquals(1, responseList.size());
+        assertEquals(1L, responseList.get(0).getCertificationId());
+        assertEquals("JLPT N1", responseList.get(0).getCertificationName());
+
+        // 5. Direct Entity -> Response
+        CertificationResponse directResponse = certificationMapper.toResponse(entity);
+        assertNotNull(directResponse);
+        assertEquals(1L, directResponse.getCertificationId());
+        assertEquals("JLPT N1", directResponse.getCertificationName());
     }
 }
