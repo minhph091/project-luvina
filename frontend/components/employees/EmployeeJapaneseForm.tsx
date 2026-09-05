@@ -20,7 +20,10 @@ interface EmployeeJapaneseFormProps {
   isCertSelected: boolean;
   startDateObj: Date | null;
   endDateObj: Date | null;
-  onFieldChange: (field: keyof EmployeeFormData, value: any) => void;
+  onFieldChange: (
+    fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
+    value?: any
+  ) => void;
   onDateChange: (
     field: 'certificationStartDate' | 'certificationEndDate',
     date: Date | null
@@ -63,12 +66,15 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
             name="certificationId"
             className="form-control"
             value={formData.certificationId ?? ''}
-            onChange={(e) =>
-              onFieldChange(
-                'certificationId',
-                e.target.value === '' ? '' : Number(e.target.value)
-              )
-            }
+            onChange={(e) => {
+              const rawVal = e.target.value;
+              const certId = rawVal === '' ? '' : Number(rawVal);
+              const selectedCert = certifications.find((c) => c.certificationId === certId);
+              onFieldChange({
+                certificationId: certId,
+                certificationName: selectedCert?.certificationName || '',
+              });
+            }}
             onBlur={() => onBlur('certificationId')}
           >
             <option value="">{COMMON_LABELS.SELECT_DEFAULT}</option>

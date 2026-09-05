@@ -26,7 +26,10 @@ interface EmployeeFormProps {
   endDateObj: Date | null;
   apiError: string | null;
   loading: boolean;
-  onFieldChange: (field: keyof EmployeeFormData, value: any) => void;
+  onFieldChange: (
+    fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
+    value?: any
+  ) => void;
   onDateChange: (
     field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',
     date: Date | null

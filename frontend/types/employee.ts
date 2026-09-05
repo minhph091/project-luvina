@@ -104,6 +104,7 @@ export interface EmployeeFormData {
   employeeId?: number;
   employeeLoginId: string;
   departmentId: number | '' | undefined;
+  departmentName?: string;
   employeeName: string;
   employeeNameKana: string;
   employeeBirthDate: string;
@@ -112,6 +113,7 @@ export interface EmployeeFormData {
   employeeLoginPassword?: string;
   employeeLoginPasswordConfirm?: string;
   certificationId?: number | '' | null;
+  certificationName?: string | null;
   certificationStartDate?: string | null;
   certificationEndDate?: string | null;
   score?: number | string | null;

@@ -19,7 +19,10 @@ interface EmployeeBasicInfoFormProps {
   mode: EmployeeFormMode;
   departments: DepartmentItem[];
   birthDateObj: Date | null;
-  onFieldChange: (field: keyof EmployeeFormData, value: any) => void;
+  onFieldChange: (
+    fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
+    value?: any
+  ) => void;
   onDateChange: (field: 'employeeBirthDate', date: Date | null) => void;
   onBlur: (field: keyof EmployeeFormData) => void;
 }
@@ -84,12 +87,15 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.departmentId ? 'is-invalid' : ''}`}
             style={errors.departmentId ? { borderColor: '#c00' } : undefined}
             value={formData.departmentId ?? ''}
-            onChange={(e) =>
-              onFieldChange(
-                'departmentId',
-                e.target.value === '' ? '' : Number(e.target.value)
-              )
-            }
+            onChange={(e) => {
+              const rawVal = e.target.value;
+              const deptId = rawVal === '' ? '' : Number(rawVal);
+              const selectedDept = departments.find((d) => d.departmentId === deptId);
+              onFieldChange({
+                departmentId: deptId,
+                departmentName: selectedDept?.departmentName || '',
+              });
+            }}
             onBlur={() => onBlur('departmentId')}
           >
             <option value="">{COMMON_LABELS.SELECT_DEFAULT}</option>

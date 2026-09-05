@@ -48,7 +48,7 @@
 --     score DECIMAL(5,2),
 --
 --     PRIMARY KEY (employee_certification_id),
--- 
+--
 --     CONSTRAINT fk_emp_cert_employee
 --         FOREIGN KEY (employee_id)
 --         REFERENCES employees (employee_id),

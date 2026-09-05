@@ -69,7 +69,10 @@ export interface UseAdm004Return {
   birthDateObj: Date | null;
   startDateObj: Date | null;
   endDateObj: Date | null;
-  handleFieldChange: (field: keyof EmployeeFormData, value: any) => void;
+  handleFieldChange: (
+    fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
+    value?: any
+  ) => void;
   handleDateChange: (
     field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',
     date: Date | null
@@ -127,6 +130,7 @@ export function useAdm004(): UseAdm004Return {
                 employeeId: emp.employeeId,
                 employeeLoginId: emp.employeeLoginId || '',
                 departmentId: emp.departmentId ?? '',
+                departmentName: emp.departmentName || '',
                 employeeName: emp.employeeName || '',
                 employeeNameKana: emp.employeeNameKana || '',
                 employeeBirthDate: emp.employeeBirthDate ? emp.employeeBirthDate.replace(/-/g, '/') : '',
@@ -135,6 +139,7 @@ export function useAdm004(): UseAdm004Return {
                 employeeLoginPassword: '',
                 employeeLoginPasswordConfirm: '',
                 certificationId: emp.certificationId ?? '',
+                certificationName: emp.certificationName || '',
                 certificationStartDate: emp.certificationStartDate
                   ? emp.certificationStartDate.replace(/-/g, '/')
                   : '',
@@ -189,15 +194,21 @@ export function useAdm004(): UseAdm004Return {
    * Xử lý thay đổi giá trị một trường input / select
    */
   const handleFieldChange = useCallback(
-    (field: keyof EmployeeFormData, value: any) => {
+    (fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>, value?: any) => {
+      const updates: Partial<EmployeeFormData> =
+        typeof fieldOrUpdates === 'object' ? fieldOrUpdates : { [fieldOrUpdates]: value };
+
       setFormData((prev) => {
-        const next = { ...prev, [field]: value };
+        const next = { ...prev, ...updates };
 
         // Xử lý đặc biệt khi đổi certificationId
-        if (field === 'certificationId') {
-          const hasCert = value !== '' && value !== null && value !== undefined && Number(value) > 0;
+        if ('certificationId' in updates) {
+          const certId = updates.certificationId;
+          const hasCert =
+            certId !== '' && certId !== null && certId !== undefined && Number(certId) > 0;
           if (!hasCert) {
-            // Disable & clear 3 trường tiếng Nhật
+            // Disable & clear các trường tiếng Nhật
+            next.certificationName = '';
             next.certificationStartDate = '';
             next.certificationEndDate = '';
             next.score = '';
@@ -216,15 +227,18 @@ export function useAdm004(): UseAdm004Return {
       });
 
       // Nếu trường này đã từng có lỗi, validate lại để xóa lỗi ngay khi hợp lệ
-      if (errors[field]) {
-        setFormData((latest) => {
-          const err = validateField(field, latest, mode);
-          setErrors((prevErr) => ({
-            ...prevErr,
-            [field]: err || undefined,
-          }));
-          return latest;
-        });
+      const updatedKeys = Object.keys(updates) as (keyof EmployeeFormData)[];
+      for (const field of updatedKeys) {
+        if (errors[field]) {
+          setFormData((latest) => {
+            const err = validateField(field, latest, mode);
+            setErrors((prevErr) => ({
+              ...prevErr,
+              [field]: err || undefined,
+            }));
+            return latest;
+          });
+        }
       }
     },
     [errors, mode]

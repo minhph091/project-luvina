@@ -39,6 +39,24 @@ describe('Page Snapshots', () => {
   });
 
   it('renders EmployeeConfirmPage unchanged', () => {
+    sessionStorage.setItem(
+      'employee_form_data',
+      JSON.stringify({
+        employeeLoginId: 'ntmhuong',
+        departmentId: 1,
+        departmentName: 'Nhóm 1',
+        employeeName: 'Nguyễn Thị Mai Hương',
+        employeeNameKana: '名カナ',
+        employeeBirthDate: '1983/07/08',
+        employeeEmail: 'メールアドレス',
+        employeeTelephone: '0914326386',
+        certificationId: 1,
+        certificationName: 'Trình độ tiếng nhật cấp 1',
+        certificationStartDate: '2010/07/08',
+        certificationEndDate: '2010/07/08',
+        score: '290',
+      })
+    );
     const { container } = render(<EmployeeConfirmPage />);
     expect(container).toMatchSnapshot();
   });
