@@ -13,7 +13,8 @@ import {
   clearEmployeeFormData,
 } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants';
+import { APP_ROUTES, COMPLETE_ACTION_TYPES } from '@/constants';
+import { getEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { EmployeeFormData } from '@/types/employee';
 import { addEmployee } from '@/lib/api/employees';
 
@@ -119,6 +120,7 @@ describe('useAdm005 Hook', () => {
 
     expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
     expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(getEmployeeCompleteAction()).toBe(COMPLETE_ACTION_TYPES.ADD);
     expect(result.current.apiError).toBeNull();
   });
 

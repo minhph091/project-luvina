@@ -18,7 +18,19 @@ export const STORAGE_KEYS = {
   EMPLOYEE_SEARCH_STATE: 'employee_search_state',
   EDIT_EMPLOYEE_ID: 'edit_employee_id',
   EMPLOYEE_FORM_DATA: 'employee_form_data',
+  EMPLOYEE_COMPLETE_ACTION: 'employee_complete_action',
 } as const;
+
+/**
+ * Các loại hành động hoàn tất hiển thị trên ADM006.
+ */
+export const COMPLETE_ACTION_TYPES = {
+  ADD: 'ADD',
+  EDIT: 'EDIT',
+  DELETE: 'DELETE',
+} as const;
+
+export type CompleteActionType = (typeof COMPLETE_ACTION_TYPES)[keyof typeof COMPLETE_ACTION_TYPES];
 
 /**
  * Các đường dẫn (routes) điều hướng trong ứng dụng.

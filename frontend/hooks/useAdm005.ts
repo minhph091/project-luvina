@@ -6,9 +6,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES } from '@/constants';
+import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION_TYPES } from '@/constants';
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
-import { getEmployeeFormData, getEditEmployeeId } from '@/lib/storage/employeeFormState';
+import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
+import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { addEmployee } from '@/lib/api/employees';
 
 export interface UseAdm005Return {
@@ -74,6 +75,8 @@ export function useAdm005(): UseAdm005Return {
       if (mode === 'ADD') {
         const response = await addEmployee(formData);
         if (response.code === 200) {
+          clearEmployeeFormData();
+          setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.ADD);
           router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
         } else {
           const errCode = response.message?.code;
@@ -82,6 +85,7 @@ export function useAdm005(): UseAdm005Return {
         }
       } else {
         // Mode EDIT (dự phòng cho chức năng update employee khi triển khai)
+        setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
         router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
       }
     } catch (error: any) {
