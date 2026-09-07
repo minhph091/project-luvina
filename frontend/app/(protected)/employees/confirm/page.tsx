@@ -17,6 +17,8 @@ export default function EmployeeConfirmPage() {
   const {
     formData,
     loading,
+    submitting,
+    apiError,
     hasCertification,
     handleConfirmSubmit,
     handleNavigateToEdit,
@@ -35,6 +37,15 @@ export default function EmployeeConfirmPage() {
             <p>{PAGE_TITLES.INFO_CONFIRM}</p>
             <p>{PAGE_TITLES.CONFIRM_DESCRIPTION}</p>
           </li>
+
+          {/* Vùng hiển thị thông báo lỗi từ API nếu có */}
+          {apiError && (
+            <li className="box-err">
+              <div id="api-error-box" className="box-err-content">
+                {apiError}
+              </div>
+            </li>
+          )}
 
           {/* Tài khoản */}
           <li className="form-group row d-flex">
@@ -110,6 +121,7 @@ export default function EmployeeConfirmPage() {
                 type="button"
                 id="btn-confirm-submit"
                 onClick={handleConfirmSubmit}
+                disabled={submitting}
                 className="btn btn-primary btn-sm"
               >
                 {BUTTON_LABELS.OK}

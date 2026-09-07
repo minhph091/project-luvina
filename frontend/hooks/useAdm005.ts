@@ -6,21 +6,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants';
+import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES } from '@/constants';
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
 import { getEmployeeFormData, getEditEmployeeId } from '@/lib/storage/employeeFormState';
+import { addEmployee } from '@/lib/api/employees';
 
 export interface UseAdm005Return {
   mode: EmployeeFormMode;
   formData: EmployeeFormData | null;
   loading: boolean;
+  submitting: boolean;
+  apiError: string | null;
   hasCertification: boolean;
-  handleConfirmSubmit: () => void;
+  handleConfirmSubmit: () => Promise<void>;
   handleNavigateToEdit: () => void;
 }
 
 /**
- * Custom Hook quản lý dữ liệu hiển thị và điều hướng cho màn hình ADM005 Xác nhận thông tin nhân viên.
+ * Custom Hook quản lý dữ liệu hiển thị, gọi API lưu và điều hướng cho màn hình ADM005 Xác nhận thông tin nhân viên.
  */
 export function useAdm005(): UseAdm005Return {
   const router = useRouter();
@@ -28,6 +31,8 @@ export function useAdm005(): UseAdm005Return {
   const [mode, setMode] = useState<EmployeeFormMode>('ADD');
   const [formData, setFormData] = useState<EmployeeFormData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
     const editId = getEditEmployeeId();
@@ -55,11 +60,41 @@ export function useAdm005(): UseAdm005Return {
 
   /**
    * Xử lý xác nhận lưu thông tin nhân viên (Nút OK)
+   * Gọi API backend tương ứng (thêm mới hoặc cập nhật).
    */
-  const handleConfirmSubmit = useCallback(() => {
-    // Điều hướng sang màn hình hoàn tất ADM006
-    router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
-  }, [router]);
+  const handleConfirmSubmit = useCallback(async () => {
+    if (!formData || submitting) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setApiError(null);
+
+      if (mode === 'ADD') {
+        const response = await addEmployee(formData);
+        if (response.code === 200) {
+          router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
+        } else {
+          const errCode = response.message?.code;
+          const params = response.message?.params;
+          setApiError(formatApiErrorMessage(errCode, params));
+        }
+      } else {
+        // Mode EDIT (dự phòng cho chức năng update employee khi triển khai)
+        router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
+      }
+    } catch (error: any) {
+      const respData = error.response?.data;
+      if (respData?.message?.code) {
+        setApiError(formatApiErrorMessage(respData.message.code, respData.message.params));
+      } else {
+        setApiError(VALIDATION_MESSAGES.ER015_SYSTEM_ERROR);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [formData, mode, submitting, router]);
 
   /**
    * Xử lý quay lại màn hình nhập liệu ADM004 (Nút 戻る)
@@ -73,8 +108,11 @@ export function useAdm005(): UseAdm005Return {
     mode,
     formData,
     loading,
+    submitting,
+    apiError,
     hasCertification,
     handleConfirmSubmit,
     handleNavigateToEdit,
   };
 }
+

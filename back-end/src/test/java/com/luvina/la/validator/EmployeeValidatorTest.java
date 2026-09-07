@@ -103,4 +103,298 @@ public class EmployeeValidatorTest {
         assertFalse(employeeValidator.isValidOrderParam("ascending"));
         assertFalse(employeeValidator.isValidOrderParam("123"));
     }
+
+    private com.luvina.la.payload.request.AddEmployeeRequest createValidAddRequest() {
+        return com.luvina.la.payload.request.AddEmployeeRequest.builder()
+                .employeeLoginId("nguyenvana")
+                .employeeLoginPassword("password123")
+                .employeeName("Nguyễn Văn A")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1995/05/20")
+                .employeeEmail("a@luvina.net")
+                .employeeTelephone("0987654321")
+                .departmentId("1")
+                .build();
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee thành công với request hợp lệ không có chứng chỉ")
+    void testValidateAddEmployeeSuccessWithoutCertifications() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.repository.DepartmentRepository mockDeptRepo = org.mockito.Mockito.mock(com.luvina.la.repository.DepartmentRepository.class);
+        com.luvina.la.repository.CertificationRepository mockCertRepo = org.mockito.Mockito.mock(com.luvina.la.repository.CertificationRepository.class);
+
+        org.mockito.Mockito.when(mockEmpRepo.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
+        org.mockito.Mockito.when(mockDeptRepo.existsById(1L)).thenReturn(true);
+
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+
+        assertNull(error);
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee thành công với request hợp lệ kèm chứng chỉ")
+    void testValidateAddEmployeeSuccessWithCertifications() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.repository.DepartmentRepository mockDeptRepo = org.mockito.Mockito.mock(com.luvina.la.repository.DepartmentRepository.class);
+        com.luvina.la.repository.CertificationRepository mockCertRepo = org.mockito.Mockito.mock(com.luvina.la.repository.CertificationRepository.class);
+
+        org.mockito.Mockito.when(mockEmpRepo.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
+        org.mockito.Mockito.when(mockDeptRepo.existsById(1L)).thenReturn(true);
+        org.mockito.Mockito.when(mockCertRepo.existsById(2L)).thenReturn(true);
+
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+        request.setCertifications(List.of(
+                com.luvina.la.payload.request.CertificationItemRequest.builder()
+                        .certificationId("2")
+                        .startDate("2023/01/01")
+                        .endDate("2024/01/01")
+                        .score("150")
+                        .build()
+        ));
+
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertNull(error);
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi loginId: rỗng (ER001), quá dài (ER006), ký tự sai/bắt đầu bằng số (ER019), trùng DB (ER003)")
+    void testValidateAddEmployeeLoginIdErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        // ER001 khi rỗng
+        request.setEmployeeLoginId("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), error.getParams());
+
+        // ER006 khi > 50 ký tự
+        request.setEmployeeLoginId("a".repeat(51));
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER006, error.getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), error.getParams());
+
+        // ER019 khi bắt đầu bằng số
+        request.setEmployeeLoginId("1admin");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER019, error.getCode());
+
+        // ER019 khi chứa ký tự đặc biệt không hợp lệ
+        request.setEmployeeLoginId("admin@xyz");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER019, error.getCode());
+
+        // ER003 khi đã tồn tại trong DB
+        request.setEmployeeLoginId("admin");
+        org.mockito.Mockito.when(mockEmpRepo.existsByEmployeeLoginId("admin")).thenReturn(true);
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER003, error.getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi name: rỗng (ER001), vượt quá 125 ký tự (ER006)")
+    void testValidateAddEmployeeNameErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        request.setEmployeeName("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_NAME), error.getParams());
+
+        request.setEmployeeName("A".repeat(126));
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER006, error.getCode());
+        assertEquals(List.of(Constants.PARAM_NAME), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi nameKana: rỗng (ER001), vượt 125 (ER006), không phải Katakana (ER009)")
+    void testValidateAddEmployeeNameKanaErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        request.setEmployeeNameKana("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_KATAKANA_NAME), error.getParams());
+
+        request.setEmployeeNameKana("ｱ".repeat(126));
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER006, error.getCode());
+
+        // Ký tự kanji / latin -> ER009
+        request.setEmployeeNameKana("Yamada");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER009, error.getCode());
+        assertEquals(List.of(Constants.PARAM_KATAKANA_NAME), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi birthDate: rỗng (ER001), sai format (ER005), ngày không hợp lệ (ER011)")
+    void testValidateAddEmployeeBirthDateErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        request.setEmployeeBirthDate("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_BIRTHDAY), error.getParams());
+
+        request.setEmployeeBirthDate("1995-05-20");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER005, error.getCode());
+
+        request.setEmployeeBirthDate("2023/02/29"); // Năm không nhuận
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi email và telephone (ER001, ER006, ER008)")
+    void testValidateAddEmployeeEmailAndTelephoneErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        // Email rỗng
+        request.setEmployeeEmail("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_EMAIL), error.getParams());
+
+        // Email > 125 ký tự
+        request.setEmployeeEmail("a".repeat(126) + "@luvina.net");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER006, error.getCode());
+
+        // Telephone rỗng
+        request = createValidAddRequest();
+        request.setEmployeeTelephone("");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_TEL), error.getParams());
+
+        // Telephone chứa ký tự non-1-byte
+        request.setEmployeeTelephone("０９８７６５４３２１"); // fullwidth
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER008, error.getCode());
+        assertEquals(List.of(Constants.PARAM_TEL), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi password: rỗng (ER001), < 8 hoặc > 50 (ER007)")
+    void testValidateAddEmployeePasswordErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        request.setEmployeeLoginPassword("");
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_PASSWORD), error.getParams());
+
+        request.setEmployeeLoginPassword("1234567"); // 7 ký tự
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER007, error.getCode());
+        assertEquals(List.of(Constants.PARAM_PASSWORD, "8", "50"), error.getParams());
+
+        request.setEmployeeLoginPassword("a".repeat(51)); // 51 ký tự
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER007, error.getCode());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi departmentId: không tồn tại (ER002), không phải số nguyên dương (ER018), không tồn tại trong DB (ER004)")
+    void testValidateAddEmployeeDepartmentErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.repository.DepartmentRepository mockDeptRepo = org.mockito.Mockito.mock(com.luvina.la.repository.DepartmentRepository.class);
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        request.setDepartmentId(null);
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, null);
+        assertEquals(Constants.ERROR_CODE_ER002, error.getCode());
+        assertEquals(List.of(Constants.PARAM_GROUP), error.getParams());
+
+        request.setDepartmentId("-1");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, null);
+        assertEquals(Constants.ERROR_CODE_ER018, error.getCode());
+
+        request.setDepartmentId("abc");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, null);
+        assertEquals(Constants.ERROR_CODE_ER018, error.getCode());
+
+        request.setDepartmentId("999");
+        org.mockito.Mockito.when(mockDeptRepo.existsById(999L)).thenReturn(false);
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, null);
+        assertEquals(Constants.ERROR_CODE_ER004, error.getCode());
+        assertEquals(List.of(Constants.PARAM_GROUP), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateAddEmployee lỗi certifications: endDate <= startDate (ER012), điểm sai (ER018), chứng chỉ không tồn tại (ER004)")
+    void testValidateAddEmployeeCertificationErrors() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+        com.luvina.la.repository.DepartmentRepository mockDeptRepo = org.mockito.Mockito.mock(com.luvina.la.repository.DepartmentRepository.class);
+        com.luvina.la.repository.CertificationRepository mockCertRepo = org.mockito.Mockito.mock(com.luvina.la.repository.CertificationRepository.class);
+
+        org.mockito.Mockito.when(mockEmpRepo.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
+        org.mockito.Mockito.when(mockDeptRepo.existsById(1L)).thenReturn(true);
+
+        com.luvina.la.payload.request.AddEmployeeRequest request = createValidAddRequest();
+
+        // 1. startDate rỗng
+        request.setCertifications(List.of(
+                com.luvina.la.payload.request.CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate("")
+                        .endDate("2024/01/01")
+                        .score("100")
+                        .build()
+        ));
+        MessageResponse error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertEquals(Constants.ERROR_CODE_ER001, error.getCode());
+        assertEquals(List.of(Constants.PARAM_CERTIFICATION_START_DATE), error.getParams());
+
+        // 2. endDate <= startDate (ER012)
+        request.setCertifications(List.of(
+                com.luvina.la.payload.request.CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate("2024/01/01")
+                        .endDate("2023/01/01")
+                        .score("100")
+                        .build()
+        ));
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertEquals(Constants.ERROR_CODE_ER012, error.getCode());
+
+        // 3. Score không phải số (ER018)
+        request.setCertifications(List.of(
+                com.luvina.la.payload.request.CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate("2023/01/01")
+                        .endDate("2024/01/01")
+                        .score("abc")
+                        .build()
+        ));
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertEquals(Constants.ERROR_CODE_ER018, error.getCode());
+        assertEquals(List.of(Constants.PARAM_SCORE), error.getParams());
+
+        // 4. certificationId không tồn tại trong DB (ER004)
+        request.setCertifications(List.of(
+                com.luvina.la.payload.request.CertificationItemRequest.builder()
+                        .certificationId("999")
+                        .startDate("2023/01/01")
+                        .endDate("2024/01/01")
+                        .score("100")
+                        .build()
+        ));
+        org.mockito.Mockito.when(mockCertRepo.existsById(999L)).thenReturn(false);
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertEquals(Constants.ERROR_CODE_ER004, error.getCode());
+        assertEquals(List.of(Constants.PARAM_CERTIFICATION), error.getParams());
+    }
 }
+

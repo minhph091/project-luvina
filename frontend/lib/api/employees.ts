@@ -113,6 +113,46 @@ export async function getEmployeeById(id: number | string): Promise<GetEmployeeD
   return response.data;
 }
 
+/**
+ * Gọi API POST /employee để tạo mới nhân viên theo tài liệu thiết kế API.
+ *
+ * @param formData Dữ liệu form nhập liệu nhân viên từ ADM004/ADM005.
+ * @returns Promise chứa phản hồi từ server (AddEmployeeApiResponse).
+ */
+export async function addEmployee(formData: EmployeeFormData): Promise<AddEmployeeApiResponse> {
+  const hasCert =
+    formData.certificationId !== '' &&
+    formData.certificationId !== null &&
+    formData.certificationId !== undefined &&
+    Number(formData.certificationId) > 0;
+
+  const certifications = hasCert
+    ? [
+        {
+          certificationId: String(formData.certificationId),
+          startDate: formData.certificationStartDate || '',
+          endDate: formData.certificationEndDate || '',
+          score: String(formData.score || ''),
+        },
+      ]
+    : undefined;
+
+  const requestBody = {
+    employeeLoginId: formData.employeeLoginId,
+    employeeLoginPassword: formData.employeeLoginPassword,
+    employeeName: formData.employeeName,
+    employeeNameKana: formData.employeeNameKana,
+    employeeBirthDate: formData.employeeBirthDate,
+    employeeEmail: formData.employeeEmail,
+    employeeTelephone: formData.employeeTelephone,
+    departmentId: String(formData.departmentId),
+    certifications,
+  };
+
+  const response = await apiClient.post<AddEmployeeApiResponse>('/employee', requestBody);
+  return response.data;
+}
+
 export type {
   EmployeeItem,
   GetEmployeesApiResponse,
@@ -123,4 +163,6 @@ export type {
   EmployeeFormErrors,
   EmployeeFormMode,
 };
+export type { AddEmployeeApiRequest, AddEmployeeApiResponse } from '@/types/employee';
+
 

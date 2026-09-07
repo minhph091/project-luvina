@@ -9,6 +9,8 @@ import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.mapper.EmployeeMapper;
+import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.response.AddEmployeeResponse;
 import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
@@ -19,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -165,5 +169,30 @@ public class EmployeeController {
         }
 
         return firstSort;
+    }
+
+    /**
+     * Thêm mới nhân viên và danh sách chứng chỉ tiếng Nhật (nếu có) theo tài liệu thiết kế API (POST /employee).
+     *
+     * @param request Payload chứa thông tin nhân viên và chứng chỉ gửi lên từ client.
+     * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công hoặc lỗi.
+     */
+    @PostMapping("/employee")
+    public AddEmployeeResponse addEmployee(@RequestBody AddEmployeeRequest request) {
+        try {
+            return employeeService.addEmployee(request);
+        } catch (CustomValidationException ex) {
+            log.warn("Validation error in addEmployee: {}", ex.getMessageResponse());
+            return AddEmployeeResponse.builder()
+                    .code(Constants.RESPONSE_CODE_ERROR)
+                    .message(ex.getMessageResponse())
+                    .build();
+        } catch (Exception ex) {
+            log.error("Error occurred while adding employee: ", ex);
+            return AddEmployeeResponse.builder()
+                    .code(Constants.RESPONSE_CODE_ERROR)
+                    .message(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()))
+                    .build();
+        }
     }
 }

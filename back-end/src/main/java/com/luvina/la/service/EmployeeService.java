@@ -57,4 +57,14 @@ public interface EmployeeService {
             String offsetStr,
             String limitStr,
             String sortBy);
+
+    /**
+     * Thêm mới nhân viên và danh sách chứng chỉ (nếu có) theo tài liệu thiết kế API.
+     *
+     * @param request Thông tin nhân viên và chứng chỉ gửi lên từ client.
+     * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công.
+     */
+    com.luvina.la.payload.response.AddEmployeeResponse addEmployee(
+            com.luvina.la.payload.request.AddEmployeeRequest request);
 }
+

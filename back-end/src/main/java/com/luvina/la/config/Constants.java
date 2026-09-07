@@ -51,15 +51,47 @@ public class Constants {
     public static final int RESPONSE_CODE_SUCCESS = 200;
     public static final int RESPONSE_CODE_ERROR = 500;
 
+    // Success Message Codes
+    public static final String MESSAGE_CODE_MSG001 = "MSG001";
+
     // Error Codes
+    public static final String ERROR_CODE_ER001 = "ER001";
+    public static final String ERROR_CODE_ER002 = "ER002";
+    public static final String ERROR_CODE_ER003 = "ER003";
+    public static final String ERROR_CODE_ER004 = "ER004";
+    public static final String ERROR_CODE_ER005 = "ER005";
+    public static final String ERROR_CODE_ER006 = "ER006";
+    public static final String ERROR_CODE_ER007 = "ER007";
+    public static final String ERROR_CODE_ER008 = "ER008";
+    public static final String ERROR_CODE_ER009 = "ER009";
+    public static final String ERROR_CODE_ER011 = "ER011";
+    public static final String ERROR_CODE_ER012 = "ER012";
+    public static final String ERROR_CODE_ER013 = "ER013";
     public static final String ERROR_CODE_ER015 = "ER015";
     public static final String ERROR_CODE_ER018 = "ER018";
+    public static final String ERROR_CODE_ER019 = "ER019";
     public static final String ERROR_CODE_ER021 = "ER021";
     public static final String ERROR_CODE_ER023 = "ER023";
 
     // Error Parameter Names
     public static final String PARAM_OFFSET = "オフセット";
     public static final String PARAM_LIMIT = "リミット";
+    public static final String PARAM_ACCOUNT_NAME = "アカウント名";
+    public static final String PARAM_NAME = "氏名";
+    public static final String PARAM_KATAKANA_NAME = "カタカナ氏名";
+    public static final String PARAM_BIRTHDAY = "生年月日";
+    public static final String PARAM_EMAIL = "メールアドレス";
+    public static final String PARAM_TEL = "電話番号";
+    public static final String PARAM_PASSWORD = "パスワード";
+    public static final String PARAM_GROUP = "グループ";
+    public static final String PARAM_CERTIFICATION_START_DATE = "資格交付日";
+    public static final String PARAM_CERTIFICATION_END_DATE = "失効日";
+    public static final String PARAM_SCORE = "点数";
+    public static final String PARAM_CERTIFICATION = "資格";
+    public static final String PARAM_ID = "ＩＤ";
+
+    // Date Format
+    public static final String DATE_FORMAT_YYYY_MM_DD = "yyyy/MM/dd";
 
     // Order Directions
     public static final String ORDER_ASC = "ASC";

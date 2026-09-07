@@ -124,3 +124,36 @@ export interface EmployeeFormData {
  */
 export type EmployeeFormErrors = Partial<Record<keyof EmployeeFormData, string>>;
 
+/**
+ * Cấu trúc request gửi lên API POST /employee khi thêm nhân viên
+ */
+export interface AddEmployeeApiRequest {
+  employeeLoginId: string;
+  employeeLoginPassword?: string;
+  employeeName: string;
+  employeeNameKana: string;
+  employeeBirthDate: string;
+  employeeEmail: string;
+  employeeTelephone: string;
+  departmentId: string | number;
+  certifications?: Array<{
+    certificationId: string | number;
+    startDate?: string;
+    endDate?: string;
+    score?: string | number;
+  }>;
+}
+
+/**
+ * Phản hồi từ API POST /employee
+ */
+export interface AddEmployeeApiResponse {
+  code: number;
+  employeeId?: number;
+  message?: {
+    code?: string;
+    params?: string[];
+  };
+}
+
+

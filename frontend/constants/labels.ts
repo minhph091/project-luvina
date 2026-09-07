@@ -137,3 +137,55 @@ export const VALIDATION_MESSAGES = {
   ER018_HALF_NUMBER: (field: string) => `「${field}」は半角で入力してください。`,
   ER019_HALF_ALPHANUMERIC: (field: string = 'アカウント名') => `[${field}]は(a-z, A-Z, 0-9 と _)の桁のみです。最初の桁は数字ではない。`,
 } as const;
+
+/**
+ * Định dạng thông báo lỗi trả về từ API backend theo mã lỗi và tham số.
+ *
+ * @param code Mã lỗi từ API (ER001 ~ ER023).
+ * @param params Danh sách tham số đính kèm mã lỗi.
+ * @returns Chuỗi thông báo lỗi tiếng Nhật tương ứng.
+ */
+export function formatApiErrorMessage(code?: string, params: string[] = []): string {
+  if (!code) return VALIDATION_MESSAGES.ER015_SYSTEM_ERROR;
+  const p0 = params[0] || '';
+  const p1 = params[1] || '';
+  const p2 = params[2] || '';
+
+  switch (code) {
+    case ERROR_CODES.ER001:
+      return VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(p0);
+    case ERROR_CODES.ER002:
+      return VALIDATION_MESSAGES.ER002_REQUIRED_SELECT(p0);
+    case ERROR_CODES.ER003:
+      return VALIDATION_MESSAGES.ER003_ALREADY_EXISTS(p0);
+    case ERROR_CODES.ER004:
+      return VALIDATION_MESSAGES.ER004_NOT_EXISTS(p0);
+    case ERROR_CODES.ER005:
+      return VALIDATION_MESSAGES.ER005_INVALID_FORMAT(p0, p1);
+    case ERROR_CODES.ER006:
+      return VALIDATION_MESSAGES.ER006_MAX_LENGTH(p0, Number(p1) || 125);
+    case ERROR_CODES.ER007:
+      return VALIDATION_MESSAGES.ER007_LENGTH_RANGE(p0, Number(p1) || 8, Number(p2) || 50);
+    case ERROR_CODES.ER008:
+      return VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(p0);
+    case ERROR_CODES.ER009:
+      return VALIDATION_MESSAGES.ER009_KATAKANA(p0);
+    case ERROR_CODES.ER011:
+      return VALIDATION_MESSAGES.ER011_INVALID_DATE(p0);
+    case ERROR_CODES.ER012:
+      return VALIDATION_MESSAGES.ER012_DATE_AFTER(p0 || '失効日', p1 || '資格交付日');
+    case ERROR_CODES.ER013:
+      return VALIDATION_MESSAGES.ER013_USER_NOT_FOUND;
+    case ERROR_CODES.ER014:
+      return VALIDATION_MESSAGES.ER014_USER_NOT_FOUND;
+    case ERROR_CODES.ER015:
+      return VALIDATION_MESSAGES.ER015_SYSTEM_ERROR;
+    case ERROR_CODES.ER018:
+      return VALIDATION_MESSAGES.ER018_HALF_NUMBER(p0);
+    case ERROR_CODES.ER019:
+      return VALIDATION_MESSAGES.ER019_HALF_ALPHANUMERIC(p0);
+    default:
+      return VALIDATION_MESSAGES.ER015_SYSTEM_ERROR;
+  }
+}
+

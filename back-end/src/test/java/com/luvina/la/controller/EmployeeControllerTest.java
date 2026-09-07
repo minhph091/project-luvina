@@ -5,6 +5,7 @@ package com.luvina.la.controller;
  * EmployeeControllerTest.java, 21/08/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.exception.CustomValidationException;
@@ -143,5 +144,63 @@ public class EmployeeControllerTest {
         assertEquals(500, response.getCode());
         assertNotNull(response.getMessage());
         assertEquals("ER021", response.getMessage().getCode());
+    }
+
+    @Test
+    @DisplayName("Test addEmployee thành công trả về code 200 và employeeId")
+    void testAddEmployeeSuccess() {
+        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder()
+                .employeeLoginId("nguyenvana")
+                .employeeName("Nguyễn Văn A")
+                .build();
+
+        com.luvina.la.payload.response.AddEmployeeResponse mockResponse = com.luvina.la.payload.response.AddEmployeeResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(1L)
+                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .build();
+
+        when(employeeService.addEmployee(request)).thenReturn(mockResponse);
+
+        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
+
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals(1L, response.getEmployeeId());
+        assertEquals("MSG001", response.getMessage().getCode());
+        verify(employeeService).addEmployee(request);
+    }
+
+    @Test
+    @DisplayName("Test addEmployee xử lý CustomValidationException trả về code 500")
+    void testAddEmployeeValidationException() {
+        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
+
+        when(employeeService.addEmployee(request))
+                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME))));
+
+        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
+
+        assertNotNull(response);
+        assertEquals(500, response.getCode());
+        assertNotNull(response.getMessage());
+        assertEquals(Constants.ERROR_CODE_ER001, response.getMessage().getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), response.getMessage().getParams());
+    }
+
+    @Test
+    @DisplayName("Test addEmployee xử lý ngoại lệ chung trả về code 500 kèm mã lỗi ER015")
+    void testAddEmployeeGeneralException() {
+        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
+
+        when(employeeService.addEmployee(request))
+                .thenThrow(new RuntimeException("Database error"));
+
+        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
+
+        assertNotNull(response);
+        assertEquals(500, response.getCode());
+        assertNotNull(response.getMessage());
+        assertEquals(Constants.ERROR_CODE_ER015, response.getMessage().getCode());
     }
 }

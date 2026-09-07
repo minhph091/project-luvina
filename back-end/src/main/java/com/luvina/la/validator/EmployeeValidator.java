@@ -130,4 +130,344 @@ public class EmployeeValidator {
         }
         return null;
     }
+
+    private static final java.time.format.DateTimeFormatter STRICT_DATE_FORMATTER =
+            java.time.format.DateTimeFormatter.ofPattern("uuuu/MM/dd")
+                    .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+
+    /**
+     * Validate toàn bộ thông tin trong request thêm mới nhân viên theo tài liệu thiết kế (POST /employee).
+     *
+     * @param request          Request DTO chứa thông tin nhân viên và chứng chỉ.
+     * @param employeeRepo     Repository nhân viên để kiểm tra trùng login ID.
+     * @param departmentRepo   Repository phòng ban để kiểm tra tồn tại phòng ban.
+     * @param certificationRepo Repository chứng chỉ để kiểm tra tồn tại chứng chỉ.
+     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     */
+    public MessageResponse validateAddEmployee(
+            com.luvina.la.payload.request.AddEmployeeRequest request,
+            com.luvina.la.repository.EmployeeEntityRepository employeeRepo,
+            com.luvina.la.repository.DepartmentRepository departmentRepo,
+            com.luvina.la.repository.CertificationRepository certificationRepo) {
+
+        if (request == null) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+
+        // 1.1 Validate employeeLoginId
+        MessageResponse loginIdError = validateEmployeeLoginId(request.getEmployeeLoginId(), employeeRepo);
+        if (loginIdError != null) {
+            return loginIdError;
+        }
+
+        // 1.2 Validate employeeName
+        MessageResponse nameError = validateEmployeeName(request.getEmployeeName());
+        if (nameError != null) {
+            return nameError;
+        }
+
+        // 1.3 Validate employeeNameKana
+        MessageResponse kanaError = validateEmployeeNameKana(request.getEmployeeNameKana());
+        if (kanaError != null) {
+            return kanaError;
+        }
+
+        // 1.4 Validate employeeBirthDate
+        MessageResponse birthDateError = validateEmployeeBirthDate(request.getEmployeeBirthDate());
+        if (birthDateError != null) {
+            return birthDateError;
+        }
+
+        // 1.5 Validate employeeEmail
+        MessageResponse emailError = validateEmployeeEmail(request.getEmployeeEmail());
+        if (emailError != null) {
+            return emailError;
+        }
+
+        // 1.6 Validate employeeTelephone
+        MessageResponse telephoneError = validateEmployeeTelephone(request.getEmployeeTelephone());
+        if (telephoneError != null) {
+            return telephoneError;
+        }
+
+        // 1.7 Validate employeeLoginPassword
+        MessageResponse passwordError = validateEmployeePassword(request.getEmployeeLoginPassword());
+        if (passwordError != null) {
+            return passwordError;
+        }
+
+        // 1.8 Validate departmentId
+        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId(), departmentRepo);
+        if (departmentError != null) {
+            return departmentError;
+        }
+
+        // 1.9 Validate certifications
+        MessageResponse certsError = validateCertifications(request.getCertifications(), certificationRepo);
+        if (certsError != null) {
+            return certsError;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate employeeLoginId.
+     */
+    public MessageResponse validateEmployeeLoginId(
+            String loginId,
+            com.luvina.la.repository.EmployeeEntityRepository employeeRepo) {
+        if (loginId == null || loginId.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        String trimmed = loginId.trim();
+        if (trimmed.length() > 50) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        // Chỉ chứa ký tự a-z, A-Z, 0-9, _ và ký tự đầu tiên không phải là số
+        if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+            return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        if (employeeRepo != null && employeeRepo.existsByEmployeeLoginId(trimmed)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeName.
+     */
+    public MessageResponse validateEmployeeName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_NAME));
+        }
+        if (name.trim().length() > 125) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_NAME));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeNameKana (yêu cầu Halfsize Katakana).
+     */
+    public MessageResponse validateEmployeeNameKana(String nameKana) {
+        if (nameKana == null || nameKana.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
+        }
+        String trimmed = nameKana.trim();
+        if (trimmed.length() > 125) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
+        }
+        if (!trimmed.matches("^[\\uFF66-\\uFF9F]+$")) {
+            return new MessageResponse(Constants.ERROR_CODE_ER009, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeBirthDate (định dạng yyyy/MM/dd và ngày hợp lệ).
+     */
+    public MessageResponse validateEmployeeBirthDate(String birthDate) {
+        if (birthDate == null || birthDate.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_BIRTHDAY));
+        }
+        String trimmed = birthDate.trim();
+        if (!isValidDateFormat(trimmed)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_BIRTHDAY, Constants.DATE_FORMAT_YYYY_MM_DD));
+        }
+        if (parseStrictDate(trimmed) == null) {
+            return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_BIRTHDAY));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeEmail.
+     */
+    public MessageResponse validateEmployeeEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_EMAIL));
+        }
+        if (email.trim().length() > 125) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_EMAIL));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeTelephone (chỉ ký tự 1 byte, độ dài tối đa 50).
+     */
+    public MessageResponse validateEmployeeTelephone(String telephone) {
+        if (telephone == null || telephone.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_TEL));
+        }
+        String trimmed = telephone.trim();
+        if (trimmed.length() > 50) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_TEL));
+        }
+        if (!trimmed.chars().allMatch(c -> c >= 0 && c <= 127)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER008, Collections.singletonList(Constants.PARAM_TEL));
+        }
+        return null;
+    }
+
+    /**
+     * Validate employeeLoginPassword (độ dài 8 đến 50 ký tự).
+     */
+    public MessageResponse validateEmployeePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_PASSWORD));
+        }
+        String trimmed = password.trim();
+        if (trimmed.length() < 8 || trimmed.length() > 50) {
+            return new MessageResponse(Constants.ERROR_CODE_ER007, java.util.Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
+        }
+        return null;
+    }
+
+    /**
+     * Validate departmentId (bắt buộc, số nguyên dương, tồn tại trong database).
+     */
+    public MessageResponse validateDepartmentId(
+            String departmentId,
+            com.luvina.la.repository.DepartmentRepository departmentRepo) {
+        if (departmentId == null || departmentId.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER002, Collections.singletonList(Constants.PARAM_GROUP));
+        }
+        String trimmed = departmentId.trim();
+        if (!trimmed.matches("^[0-9]+$")) {
+            return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
+        }
+        long parsedId;
+        try {
+            parsedId = Long.parseLong(trimmed);
+            if (parsedId <= 0) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
+            }
+        } catch (NumberFormatException ex) {
+            return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
+        }
+
+        if (departmentRepo != null && !departmentRepo.existsById(parsedId)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_GROUP));
+        }
+        return null;
+    }
+
+    /**
+     * Validate danh sách certifications.
+     */
+    public MessageResponse validateCertifications(
+            java.util.List<com.luvina.la.payload.request.CertificationItemRequest> certs,
+            com.luvina.la.repository.CertificationRepository certificationRepo) {
+        if (certs == null || certs.isEmpty()) {
+            return null;
+        }
+
+        for (com.luvina.la.payload.request.CertificationItemRequest cert : certs) {
+            if (cert == null) {
+                continue;
+            }
+
+            // 1. startDate
+            String startDate = cert.getStartDate();
+            if (startDate == null || startDate.trim().isEmpty()) {
+                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
+            }
+            String trimmedStart = startDate.trim();
+            if (!isValidDateFormat(trimmedStart)) {
+                return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_START_DATE, Constants.DATE_FORMAT_YYYY_MM_DD));
+            }
+            java.time.LocalDate parsedStart = parseStrictDate(trimmedStart);
+            if (parsedStart == null) {
+                return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
+            }
+
+            // 2. endDate
+            String endDate = cert.getEndDate();
+            if (endDate == null || endDate.trim().isEmpty()) {
+                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION_END_DATE));
+            }
+            String trimmedEnd = endDate.trim();
+            if (!isValidDateFormat(trimmedEnd)) {
+                return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.DATE_FORMAT_YYYY_MM_DD));
+            }
+            java.time.LocalDate parsedEnd = parseStrictDate(trimmedEnd);
+            if (parsedEnd == null) {
+                return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_END_DATE));
+            }
+
+            // Check endDate > startDate (ER012)
+            if (!parsedEnd.isAfter(parsedStart)) {
+                return new MessageResponse(Constants.ERROR_CODE_ER012, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));
+            }
+
+            // 3. score
+            String score = cert.getScore();
+            if (score == null || score.trim().isEmpty()) {
+                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_SCORE));
+            }
+            String trimmedScore = score.trim();
+            if (!trimmedScore.matches("^[0-9]+$")) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
+            }
+            try {
+                int parsedScore = Integer.parseInt(trimmedScore);
+                if (parsedScore < 0) {
+                    return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
+                }
+            } catch (NumberFormatException ex) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
+            }
+
+            // 4. certificationId
+            String certId = cert.getCertificationId();
+            if (certId == null || certId.trim().isEmpty()) {
+                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+            }
+            String trimmedCertId = certId.trim();
+            if (!trimmedCertId.matches("^[0-9]+$")) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+            }
+            long parsedCertId;
+            try {
+                parsedCertId = Long.parseLong(trimmedCertId);
+                if (parsedCertId <= 0) {
+                    return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+                }
+            } catch (NumberFormatException ex) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+            }
+
+            if (certificationRepo != null && !certificationRepo.existsById(parsedCertId)) {
+                return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Kiểm tra định dạng chuỗi ngày yyyy/MM/dd.
+     */
+    public boolean isValidDateFormat(String dateStr) {
+        if (dateStr == null) {
+            return false;
+        }
+        return dateStr.matches("^\\d{4}/\\d{2}/\\d{2}$");
+    }
+
+    /**
+     * Parse chuỗi ngày nghiêm ngặt (strict) theo định dạng yyyy/MM/dd.
+     */
+    public java.time.LocalDate parseStrictDate(String dateStr) {
+        if (dateStr == null) {
+            return null;
+        }
+        try {
+            return java.time.LocalDate.parse(dateStr, STRICT_DATE_FORMATTER);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
 }

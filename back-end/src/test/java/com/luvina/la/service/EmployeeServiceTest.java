@@ -27,6 +27,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.luvina.la.entity.EmployeeCertificationEntity;
+import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.response.AddEmployeeResponse;
+import com.luvina.la.payload.response.MessageResponse;
+import com.luvina.la.repository.CertificationRepository;
+import com.luvina.la.repository.DepartmentRepository;
+import com.luvina.la.repository.EmployeeCertificationRepository;
+import com.luvina.la.repository.EmployeeEntityRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 /**
  * Unit test cho EmployeeService sử dụng EmployeeDTO và EmployeeListDTO.
  *
@@ -38,13 +50,37 @@ public class EmployeeServiceTest {
     @Mock
     private EmployeeNativeRepository employeeNativeRepository;
 
-    private EmployeeValidator employeeValidator;
+    @Mock
+    private EmployeeEntityRepository employeeEntityRepository;
+
+    @Mock
+    private DepartmentRepository departmentRepository;
+
+    @Mock
+    private CertificationRepository certificationRepository;
+
+    @Mock
+    private EmployeeCertificationRepository employeeCertificationRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @org.mockito.Spy
+    private EmployeeValidator employeeValidator = new EmployeeValidator();
+
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
-        employeeValidator = new EmployeeValidator();
-        employeeService = new EmployeeServiceImpl(employeeNativeRepository, employeeValidator);
+        employeeService = new EmployeeServiceImpl(
+                employeeNativeRepository,
+                employeeValidator,
+                employeeEntityRepository,
+                departmentRepository,
+                certificationRepository,
+                employeeCertificationRepository,
+                passwordEncoder
+        );
     }
 
     @Test
@@ -198,5 +234,102 @@ public class EmployeeServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getTotalRecords());
         verify(employeeNativeRepository).findEmployees(isNull(), isNull(), eq(5), eq(0), eq("ASC"), eq("ASC"), eq("DESC"), eq("endDateOrder"));
+    }
+
+    private AddEmployeeRequest createValidAddRequest() {
+        return AddEmployeeRequest.builder()
+                .employeeLoginId("nguyenvana")
+                .employeeLoginPassword("password123")
+                .employeeName("Nguyễn Văn A")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1995/05/20")
+                .employeeEmail("a@luvina.net")
+                .employeeTelephone("0987654321")
+                .departmentId("1")
+                .build();
+    }
+
+    @Test
+    @DisplayName("Test addEmployee thành công khi không có chứng chỉ")
+    void testAddEmployeeSuccessWithoutCertifications() {
+        AddEmployeeRequest request = createValidAddRequest();
+
+        when(employeeEntityRepository.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
+        when(departmentRepository.existsById(1L)).thenReturn(true);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+
+        EmployeeEntity savedEntity = new EmployeeEntity();
+        savedEntity.setEmployeeId(10L);
+        savedEntity.setDepartmentId(1L);
+        savedEntity.setEmployeeName("Nguyễn Văn A");
+        when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenReturn(savedEntity);
+
+        AddEmployeeResponse response = employeeService.addEmployee(request);
+
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals(10L, response.getEmployeeId());
+        assertNotNull(response.getMessage());
+        assertEquals("MSG001", response.getMessage().getCode());
+
+        verify(employeeEntityRepository).save(argThat(entity ->
+                entity.getDepartmentId().equals(1L)
+                        && "Nguyễn Văn A".equals(entity.getEmployeeName())
+                        && "encodedPassword".equals(entity.getEmployeeLoginPassword())
+                        && "USER".equals(entity.getEmployeeRole())
+        ));
+    }
+
+    @Test
+    @DisplayName("Test addEmployee thành công kèm chứng chỉ tiếng Nhật")
+    void testAddEmployeeSuccessWithCertifications() {
+        AddEmployeeRequest request = createValidAddRequest();
+        request.setCertifications(List.of(
+                CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate("2023/01/01")
+                        .endDate("2024/01/01")
+                        .score("150")
+                        .build()
+        ));
+
+        when(employeeEntityRepository.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
+        when(departmentRepository.existsById(1L)).thenReturn(true);
+        when(certificationRepository.existsById(1L)).thenReturn(true);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+
+        EmployeeEntity savedEntity = new EmployeeEntity();
+        savedEntity.setEmployeeId(15L);
+        when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenReturn(savedEntity);
+
+        AddEmployeeResponse response = employeeService.addEmployee(request);
+
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals(15L, response.getEmployeeId());
+        assertEquals("MSG001", response.getMessage().getCode());
+
+        verify(employeeCertificationRepository).save(argThat(certEntity ->
+                certEntity.getEmployeeId().equals(15L)
+                        && certEntity.getCertificationId().equals(1L)
+                        && certEntity.getStartDate().equals(LocalDate.of(2023, 1, 1))
+                        && certEntity.getEndDate().equals(LocalDate.of(2024, 1, 1))
+                        && certEntity.getScore().compareTo(new BigDecimal("150")) == 0
+        ));
+    }
+
+    @Test
+    @DisplayName("Test addEmployee ném CustomValidationException khi dữ liệu không hợp lệ")
+    void testAddEmployeeValidationFailureThrowsCustomValidationException() {
+        AddEmployeeRequest request = createValidAddRequest();
+        request.setEmployeeLoginId(""); // Không hợp lệ
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.addEmployee(request);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER001", ex.getMessageResponse().getCode());
+        assertEquals(List.of("アカウント名"), ex.getMessageResponse().getParams());
     }
 }

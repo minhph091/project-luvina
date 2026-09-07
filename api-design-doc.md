@@ -773,3 +773,305 @@ Kết thúc xử lý.
 | No. | Mã tham chiếu | Tài liệu tham chiếu |
 |-----|---------------|---------------------|
 | | | |
+
+
+# Thiết kế API - Add Employee
+
+| Mục | Giá trị |
+|-----|---------|
+| **Tên system** | Manager User |
+| **Loại system** | Thiết kế API |
+| **TKCB** | - |
+| **Người tạo** | ThanhPD |
+| **Ngày tạo** | 2023-01-04 |
+| **Người update** | ThanhPD |
+| **Ngày update** | 2023-01-04 |
+| **Version** | 0.1 |
+| **Category chức năng** | - |
+| **Hạng mục** | Add Employee |
+
+---
+
+## Lịch sử thay đổi
+
+| Date | Người update | Version | Nội dung thay đổi | Ngày phê chuẩn | Người phê chuẩn |
+|------|--------------|---------|-------------------|----------------|-----------------|
+| 2023-01-04 | ThanhPD | 0.1 | Tạo mới tài liệu | - | - |
+
+---
+
+## 1. Khái quát
+
+### 1.1. Khái quát
+
+Tạo mới nhân viên
+
+### 1.2. Request
+
+#### Request URL
+
+| No. | Service | API name | Method HTTP | Note |
+|-----|---------|----------|-------------|------|
+| 1 | employee | Add Employee | POST | - |
+
+#### Request Parameter
+
+| No. | Parameter | Bắt buộc | Kiểu | Giá trị default | Tên hạng mục | Note |
+|-----|-----------|----------|------|-----------------|--------------|------|
+| 1 | key | - | string | `{}` | Tên hạng mục | Lưu vào table `employees` |
+| | value | - | string | `{}` | giá trị hạng mục | Lưu vào table `employees` |
+| 2 | certifications | - | arrar | `{}` | Mảng lưu các chứng chỉ tiếng Nhật của nhân viên | - |
+| | key | - | string | `{}` | Tên hạng mục | Lưu vào table `employees_certifications` |
+| | value | - | string | `{}` | giá trị hạng mục | Lưu vào table `employees_certifications` |
+
+> **Lưu ý:** Trong tài liệu gốc kiểu của `certifications` được ghi là `arrar` (có thể là typo của `array`).
+
+#### ※ Sample Request
+
+```json
+{
+  "employeeName": "Nguyễn Văn A",
+  "employeeBirthDate": "1983/01/01",
+  "employeeEmail": "nguyenvana@luvina.net",
+  "employeeTelephone": "01234567",
+  "employeeNameKana": "01234567",
+  "employeeLoginId": "01234567",
+  "employeeLoginPassword": "01234567",
+  "departmentId": "1",
+  "certifications": [
+    {
+      "certificationId": "1",
+      "certificationStartDate": "2023/01/01",
+      "certificationEndDate": "2024/01/01",
+      "employeeCertificationScore": "999"
+    },
+    {
+      "certificationId": "2",
+      "certificationStartDate": "2023/06/01",
+      "certificationEndDate": "2024/06/01",
+      "employeeCertificationScore": "999"
+    }
+  ]
+}
+```
+
+### 1.3. Response
+
+#### Trường hợp API trả về response bình thường
+
+| No. | json key name | Kiểu | Tên hạng mục | Note |
+|-----|---------------|------|--------------|------|
+| 1 | code | number | - | - |
+| 2 | employeeId | number | - | - |
+| 3 | message | object | - | - |
+
+##### ※ Sample Success Response
+
+```json
+{
+  "code": "200",
+  "employeeId": "1",
+  "message": {
+    "code": "MSG001",
+    "params": []
+  }
+}
+```
+
+#### Trường hợp API trả về lỗi
+
+##### ※ Sample Error Response
+
+```json
+{
+  "code": "500",
+  "message": {
+    "code": "ER015",
+    "params": []
+  }
+}
+```
+
+---
+
+## 2. Flow xử lý
+
+*(Sheet "Flow xử lý" trong tài liệu gốc chỉ có phần header, không có nội dung chi tiết flow)*
+
+---
+
+## 3. Chi tiết xử lý
+
+### 3.1. Xử lý common
+
+`<Không có>`
+
+### 3.2. Xử lý chi tiết
+
+#### 1. Validate parameter
+
+##### 1.1. Validate parameter `[employeeLoginId]`
+
+- Nếu **không tồn tại** parameter này thì trả về lỗi có mã code **ER001**, tham số `"アカウント名"`
+- Nếu có **độ dài vượt quá 50 ký tự** thì trả về lỗi có mã code **ER006**, tham số `"アカウント名"`
+- Nếu **không thỏa mãn** điều kiện chỉ chứa các ký tự `a-z`, `A-Z`, `0-9` và `_` **hoặc ký tự đầu tiên là số** thì trả về lỗi có mã code **ER019**
+- Nếu **đã tồn tại** trong bảng `employees.employee_login_id` thì trả về lỗi có mã code **ER003**, tham số `"アカウント名"`
+
+##### 1.2. Validate parameter `[employeeName]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"氏名"`
+- Nếu có **độ dài vượt quá 125 ký tự** thì trả về lỗi có mã code **ER006**, tham số `"氏名"`
+
+##### 1.3. Validate parameter `[employeeNameKana]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"カタカナ氏名"`
+- Nếu có **độ dài vượt quá 125 ký tự** thì trả về lỗi có mã code **ER006**, tham số `"カタカナ氏名"`
+- Nếu **không phải là chỉ chứa ký tự katakana** thì trả về lỗi có mã code **ER009**, tham số `"カタカナ氏名"`
+
+##### 1.4. Validate parameter `[employeeBirthDate]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"生年月日"`
+- Nếu **không phải giá trị ngày tháng hợp lệ** thì trả về lỗi có mã code **ER011**, tham số `"生年月日"`
+- Nếu **không thỏa mãn định dạng `yyyy/MM/dd`** thì trả về lỗi có mã code **ER005**, tham số `"生年月日"`, `"yyyy/MM/dd"`
+
+##### 1.5. Validate parameter `[employeeEmail]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"メールアドレス"`
+- Nếu có **độ dài vượt quá 125 ký tự** thì trả về lỗi có mã code **ER006**, tham số `"メールアドレス"`
+
+##### 1.6. Validate parameter `[employeeTelephone]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"電話番号"`
+- Nếu có **độ dài vượt quá 50 ký tự** thì trả về lỗi có mã code **ER006**, tham số `"電話番号"`
+- Nếu **chứa ký tự ngoài ký tự 1 byte** thì trả về lỗi có mã code **ER008**, tham số `"電話番号"`
+
+##### 1.7. Validate parameter `[employeeLoginPassword]`
+
+- Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"パスワード"`
+- Nếu có **độ dài vượt quá 50 ký tự hoặc ngắn hơn 8 ký tự** thì trả về lỗi có mã code **ER007**, tham số `"パスワード"`, `8`, `50`
+
+##### 1.8. Validate parameter `[departmentId]`
+
+- Nếu **không tồn tại** parameter này thì trả về lỗi có mã code **ER002**, tham số `"グループ"`
+- Nếu giá trị parameter này **không phải là số nguyên dương** thì trả về lỗi có mã code **ER018**, tham số `"グループ"`
+- Nếu giá trị của parameter này **không tồn tại** trong `departments.departmentId` thì trả về lỗi có mã code **ER004**, tham số `"グループ"`
+
+##### 1.9. Validate parameter `[certifications]`
+
+Nếu request **có truyền** parameter này thì cần check chi tiết bên dưới:
+
+| Field | Điều kiện | Kết quả |
+|-------|-----------|---------|
+| **startDate** | Không tồn tại hoặc bị rỗng | ⇒ trả về lỗi có mã code **ER001**, tham số `"資格交付日"` |
+| | Không phải giá trị ngày tháng hợp lệ | ⇒ trả về lỗi có mã code **ER001**, tham số `"資格交付日"` |
+| | Không thỏa mãn định dạng `yyyy/MM/dd` | ⇒ trả về lỗi có mã code **ER005**, tham số `"資格交付日"`, `"yyyy/MM/dd"` |
+| **endDate** | Không tồn tại hoặc bị rỗng | ⇒ trả về lỗi có mã code **ER001**, tham số `"失効日"` |
+| | Không phải giá trị ngày tháng hợp lệ | ⇒ trả về lỗi có mã code **ER001**, tham số `"失効日"` |
+| | Không thỏa mãn định dạng `yyyy/MM/dd` | ⇒ trả về lỗi có mã code **ER005**, tham số `"失効日"`, `"yyyy/MM/dd"` |
+| | `certificationEndDate` < `certificationStartDate` | ⇒ trả về lỗi có mã code **ER012** |
+| **score** | Không tồn tại hoặc bị rỗng | ⇒ trả về lỗi có mã code **ER001**, tham số `"点数"` |
+| | Không phải là giá trị kiểu số nguyên dương | ⇒ trả về lỗi có mã code **ER018**, tham số `"点数"` |
+| **certificationId** | Không tồn tại hoặc bị rỗng | ⇒ trả về lỗi có mã code **ER001**, tham số `"資格"` |
+| | Không phải giá trị kiểu số nguyên dương | ⇒ trả về lỗi có mã code **ER018**, tham số `"資格"` |
+| | Không tồn tại giá trị này trong `certifications.certification_id` | ⇒ trả về lỗi có mã code **ER004**, tham số `"資格"` |
+
+> Nếu có lỗi thì chuyển sang bước **[4. Tạo dữ liệu response cho API]**
+
+---
+
+#### Khởi tạo transaction
+
+#### 2. Insert thông tin nhân viên
+
+##### 2.1. Insert nhân viên vào database
+
+**■ Danh sách bảng sử dụng**
+
+| No | Tên bảng logic | ID bảng vật lý | Create | Refer | Update | Xóa |
+|----|----------------|----------------|--------|-------|--------|-----|
+| 1 | Thông tin nhân viên | `employees` | 〇 | - | - | - |
+
+**■ Table access**
+
+① Hạng mục insert
+
+| No | Tên bảng | Alias | Tên trường | Giá trị |
+|----|----------|-------|------------|---------|
+| 1 | employees | - | `employee_id` | Không cần insert vì để tự động tăng |
+| 2 | employees | - | `department_id` | parameter `[departmentId]` |
+| 3 | employees | - | `employee_name` | parameter `[employeeName]` |
+| 4 | employees | - | `employee_name_kana` | parameter `[employeeNameKana]` |
+| 5 | employees | - | `employee_birth_date` | parameter `[employeeBirthDate]` |
+| 7 | employees | - | `employee_email` | parameter `[employeeEmail]` |
+| 8 | employees | - | `employee_telephone` | parameter `[employeeTelephone]` |
+| 9 | employees | - | `employee_login_id` | parameter `[employeeLoginId]` |
+| 10 | employees | - | `employee_login_password` | parameter `[employeeLoginPassword]` |
+
+> **Lưu ý:** Trong tài liệu gốc không có dòng No. 6 (nhảy từ 5 → 7).
+
+---
+
+#### 3. Nếu tồn tại parameter `[certifications]` thì thực hiện Insert chứng chỉ tiếng Nhật
+
+##### 3.1. Insert chứng chỉ vào database
+
+**■ Danh sách bảng sử dụng**
+
+| No | Tên bảng logic | ID bảng vật lý | Create | Refer | Update | Xóa |
+|----|----------------|----------------|--------|-------|--------|-----|
+| 1 | Thông tin nhân viên chứng chỉ tiếng Nhật | `employees_certifications` | 〇 | - | - | - |
+
+**■ Table access**
+
+① Hạng mục insert
+
+| No | Tên bảng | Alias | Tên trường | Giá trị |
+|----|----------|-------|------------|---------|
+| 1 | employees_certifications | - | `employee_certification_id` | Không cần insert vì để tự động tăng |
+| 2 | employees_certifications | - | `employee_id` | lấy từ bước 2 |
+| 3 | employees_certifications | - | `certification_id` | parameter `[certificationId]` |
+| 4 | employees_certifications | - | `start_date` | parameter `[startDate]` |
+| 5 | employees_certifications | - | `end_date` | parameter `[endDate]` |
+| 7 | employees_certifications | - | `score` | parameter `[score]` |
+
+> **Lưu ý:** Trong tài liệu gốc không có dòng No. 6 (nhảy từ 5 → 7).  
+> Tên field trong sample request (`certificationStartDate`, `certificationEndDate`, `employeeCertificationScore`) khác với tên dùng trong validation/insert (`startDate`, `endDate`, `score`).
+
+---
+
+#### Commit / Rollback transaction
+
+- Nếu **không có lỗi** gì xảy ra thì **Commit** transaction.
+- Nếu **có lỗi** xảy ra thì **Rollback** transaction, di chuyển đến **[4. Tạo dữ liệu response cho API]** với mã lỗi **ER015**.
+
+---
+
+#### 4. Tạo dữ liệu response cho API
+
+##### Trường hợp không có lỗi xảy ra
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | `200` | - |
+| 2 | employeeId | Lấy giá trị từ bước 2 | - |
+| 3 | message | `{ "code": "MSG001", "params": [] }` | - |
+
+##### Trường hợp có lỗi xảy ra
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | `500` | - |
+| 2 | message | Lấy giá trị từ validation. Format `{ "code": "", "params": [] }` | - |
+
+- **Kết thúc xử lý**
+
+---
+
+## 4. Tham chiếu
+
+### Danh sách tài liệu tham chiếu
+
+| No. | Mã tham chiếu | Tài liệu tham chiếu |
+|-----|---------------|---------------------|
+| - | - | - |
+

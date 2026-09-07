@@ -5,12 +5,13 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import EmployeeConfirmPage from '@/app/(protected)/employees/confirm/page';
 import { saveEmployeeFormData, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 import { EmployeeFormData } from '@/types/employee';
+import { addEmployee } from '@/lib/api/employees';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
@@ -19,6 +20,10 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/hooks/useAuth', () => ({
   useAuth: jest.fn(),
+}));
+
+jest.mock('@/lib/api/employees', () => ({
+  addEmployee: jest.fn(),
 }));
 
 const MOCK_FORM_DATA: EmployeeFormData = {
@@ -101,7 +106,13 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     expect(screen.queryByText('Trình độ tiếng Nhật N2')).not.toBeInTheDocument();
   });
 
-  test('clicking OK button navigates to EMPLOYEE_COMPLETE', () => {
+  test('clicking OK button navigates to EMPLOYEE_COMPLETE', async () => {
+    (addEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 200,
+      employeeId: 10,
+      message: { code: 'MSG001', params: [] },
+    });
+
     saveEmployeeFormData(MOCK_FORM_DATA);
 
     render(<EmployeeConfirmPage />);
@@ -109,7 +120,28 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     const okButton = screen.getByRole('button', { name: BUTTON_LABELS.OK });
     fireEvent.click(okButton);
 
-    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    });
+  });
+
+  test('displays API error box when backend returns error', async () => {
+    (addEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 500,
+      message: { code: 'ER003', params: ['アカウント名'] },
+    });
+
+    saveEmployeeFormData(MOCK_FORM_DATA);
+
+    render(<EmployeeConfirmPage />);
+
+    const okButton = screen.getByRole('button', { name: BUTTON_LABELS.OK });
+    fireEvent.click(okButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('「アカウント名」は既に存在しています。')).toBeInTheDocument();
+    });
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
   });
 
   test('clicking BACK button navigates to EMPLOYEE_EDIT', () => {

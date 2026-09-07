@@ -15,10 +15,15 @@ import {
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES } from '@/constants';
 import { EmployeeFormData } from '@/types/employee';
+import { addEmployee } from '@/lib/api/employees';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('@/lib/api/employees', () => ({
+  addEmployee: jest.fn(),
 }));
 
 const MOCK_FORM_DATA: EmployeeFormData = {
@@ -97,16 +102,59 @@ describe('useAdm005 Hook', () => {
     expect(result.current.hasCertification).toBe(false);
   });
 
-  test('handleConfirmSubmit navigates to EMPLOYEE_COMPLETE', () => {
+  test('handleConfirmSubmit calls addEmployee and navigates to EMPLOYEE_COMPLETE on success', async () => {
+    (addEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 200,
+      employeeId: 10,
+      message: { code: 'MSG001', params: [] },
+    });
+
     saveEmployeeFormData(MOCK_FORM_DATA);
 
     const { result } = renderHook(() => useAdm005());
 
-    act(() => {
-      result.current.handleConfirmSubmit();
+    await act(async () => {
+      await result.current.handleConfirmSubmit();
     });
 
+    expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
     expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(result.current.apiError).toBeNull();
+  });
+
+  test('handleConfirmSubmit sets apiError when addEmployee returns error code 500', async () => {
+    (addEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 500,
+      message: { code: 'ER003', params: ['アカウント名'] },
+    });
+
+    saveEmployeeFormData(MOCK_FORM_DATA);
+
+    const { result } = renderHook(() => useAdm005());
+
+    await act(async () => {
+      await result.current.handleConfirmSubmit();
+    });
+
+    expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(result.current.apiError).toBe('「アカウント名」は既に存在しています。');
+  });
+
+  test('handleConfirmSubmit sets apiError when addEmployee throws an exception', async () => {
+    (addEmployee as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+
+    saveEmployeeFormData(MOCK_FORM_DATA);
+
+    const { result } = renderHook(() => useAdm005());
+
+    await act(async () => {
+      await result.current.handleConfirmSubmit();
+    });
+
+    expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(result.current.apiError).toBe('システムエラーが発生しました。');
   });
 
   test('handleNavigateToEdit navigates back to EMPLOYEE_EDIT', () => {

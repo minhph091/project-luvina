@@ -19,6 +19,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.luvina.la.entity.EmployeeCertificationEntity;
+import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.response.AddEmployeeResponse;
+import com.luvina.la.repository.CertificationRepository;
+import com.luvina.la.repository.DepartmentRepository;
+import com.luvina.la.repository.EmployeeCertificationRepository;
+import com.luvina.la.repository.EmployeeEntityRepository;
+import java.math.BigDecimal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Lớp triển khai các dịch vụ liên quan đến nhân viên.
  * Trả về EmployeeListDTO cho tầng Controller.
@@ -32,18 +46,40 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeNativeRepository employeeNativeRepository;
     private final EmployeeValidator employeeValidator;
+    private final EmployeeEntityRepository employeeEntityRepository;
+    private final DepartmentRepository departmentRepository;
+    private final CertificationRepository certificationRepository;
+    private final EmployeeCertificationRepository employeeCertificationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
-     * Khởi tạo EmployeeServiceImpl.
-     *
-     * @param employeeNativeRepository Repository native query cho nhân viên.
-     * @param employeeValidator        Validator kiểm tra tính hợp lệ của tham số nhân viên.
+     * Khởi tạo EmployeeServiceImpl với tham số tối thiểu cho backward compatibility trong unit tests.
      */
     public EmployeeServiceImpl(
             EmployeeNativeRepository employeeNativeRepository,
             EmployeeValidator employeeValidator) {
+        this(employeeNativeRepository, employeeValidator, null, null, null, null, null);
+    }
+
+    /**
+     * Khởi tạo EmployeeServiceImpl với đầy đủ các dependencies cần thiết.
+     */
+    @Autowired
+    public EmployeeServiceImpl(
+            EmployeeNativeRepository employeeNativeRepository,
+            EmployeeValidator employeeValidator,
+            EmployeeEntityRepository employeeEntityRepository,
+            DepartmentRepository departmentRepository,
+            CertificationRepository certificationRepository,
+            EmployeeCertificationRepository employeeCertificationRepository,
+            PasswordEncoder passwordEncoder) {
         this.employeeNativeRepository = employeeNativeRepository;
         this.employeeValidator = employeeValidator;
+        this.employeeEntityRepository = employeeEntityRepository;
+        this.departmentRepository = departmentRepository;
+        this.certificationRepository = certificationRepository;
+        this.employeeCertificationRepository = employeeCertificationRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -147,5 +183,67 @@ public class EmployeeServiceImpl implements EmployeeService {
                 sortBy);
 
         return new EmployeeListDTO(totalRecords, employeeDTOs);
+    }
+
+    /**
+     * Thêm mới nhân viên và danh sách chứng chỉ tiếng Nhật (nếu có) theo tài liệu thiết kế API.
+     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu có ngoại lệ.
+     *
+     * @param request Thông tin nhân viên và chứng chỉ gửi lên từ client.
+     * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công.
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AddEmployeeResponse addEmployee(AddEmployeeRequest request) {
+        // 1. Validate parameter
+        MessageResponse validationError = employeeValidator.validateAddEmployee(
+                request, employeeEntityRepository, departmentRepository, certificationRepository);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
+
+        // 2. Insert nhân viên vào database (bảng employees)
+        EmployeeEntity employeeEntity = new EmployeeEntity();
+        employeeEntity.setDepartmentId(Long.parseLong(request.getDepartmentId().trim()));
+        employeeEntity.setEmployeeName(request.getEmployeeName().trim());
+        employeeEntity.setEmployeeNameKana(request.getEmployeeNameKana().trim());
+        employeeEntity.setEmployeeBirthDate(employeeValidator.parseStrictDate(request.getEmployeeBirthDate().trim()));
+        employeeEntity.setEmployeeEmail(request.getEmployeeEmail().trim());
+        employeeEntity.setEmployeeTelephone(request.getEmployeeTelephone().trim());
+        employeeEntity.setEmployeeLoginId(request.getEmployeeLoginId().trim());
+        if (passwordEncoder != null && request.getEmployeeLoginPassword() != null) {
+            employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(request.getEmployeeLoginPassword().trim()));
+        } else {
+            employeeEntity.setEmployeeLoginPassword(request.getEmployeeLoginPassword());
+        }
+        employeeEntity.setEmployeeRole("USER");
+
+        EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
+        Long newEmployeeId = savedEmployee.getEmployeeId();
+
+        // 3. Nếu tồn tại certifications thì thực hiện insert vào bảng employees_certifications
+        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
+            for (CertificationItemRequest certReq : request.getCertifications()) {
+                if (certReq == null) {
+                    continue;
+                }
+                EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
+                        .employeeId(newEmployeeId)
+                        .certificationId(Long.parseLong(certReq.getCertificationId().trim()))
+                        .startDate(employeeValidator.parseStrictDate(certReq.getStartDate().trim()))
+                        .endDate(employeeValidator.parseStrictDate(certReq.getEndDate().trim()))
+                        .score(new BigDecimal(certReq.getScore().trim()))
+                        .build();
+
+                employeeCertificationRepository.save(certEntity);
+            }
+        }
+
+        // 4. Tạo dữ liệu response thành công
+        return AddEmployeeResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(newEmployeeId)
+                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .build();
     }
 }
