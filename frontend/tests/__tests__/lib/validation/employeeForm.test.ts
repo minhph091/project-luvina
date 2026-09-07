@@ -152,7 +152,7 @@ describe('validateEmployeeForm - Mode ADD', () => {
     );
   });
 
-  test('validates katakana halfsize requirement (ER008)', () => {
+  test('validates katakana halfsize requirement (ER009)', () => {
     const fullsizeKanaForm: EmployeeFormData = {
       ...validAddFormData,
       employeeNameKana: 'ヤマダ', // Fullsize
@@ -160,7 +160,19 @@ describe('validateEmployeeForm - Mode ADD', () => {
     const result = validateEmployeeForm(fullsizeKanaForm, 'ADD');
     expect(result.isValid).toBe(false);
     expect(result.errors.employeeNameKana).toBe(
-      VALIDATION_MESSAGES.ER008_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
+      VALIDATION_MESSAGES.ER009_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
+    );
+  });
+
+  test('validates invalid date format for birthday (ER011)', () => {
+    const invalidDateForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeBirthDate: '2026/02/30', // Invalid day
+    };
+    const result = validateEmployeeForm(invalidDateForm, 'ADD');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.employeeBirthDate).toBe(
+      VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY)
     );
   });
 

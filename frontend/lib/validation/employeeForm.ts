@@ -24,6 +24,11 @@ export const HALFSIZE_NUMERIC_REGEX = /^[0-9]+$/;
 export const HALFSIZE_ALPHANUMERIC_REGEX = /^[a-zA-Z0-9_]+$/;
 
 /**
+ * Regex kiểm tra tên đăng nhập (ER019: a-z, A-Z, 0-9 và _, ký tự đầu tiên không phải là số)
+ */
+export const LOGIN_ID_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+/**
  * Regex kiểm tra email chuẩn
  */
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,7 +79,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.ACCOUNT_NAME))
         .max(50, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.ACCOUNT_NAME, 50))
         .regex(
-          HALFSIZE_ALPHANUMERIC_REGEX,
+          LOGIN_ID_REGEX,
           VALIDATION_MESSAGES.ER019_HALF_ALPHANUMERIC(FIELD_LABELS.ACCOUNT_NAME)
         ),
 
@@ -100,7 +105,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .max(100, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, 100))
         .regex(
           HALFSIZE_KATAKANA_REGEX,
-          VALIDATION_MESSAGES.ER008_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
+          VALIDATION_MESSAGES.ER009_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
         ),
 
       // 5. employeeBirthDate
@@ -109,7 +114,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.BIRTHDAY))
         .refine((val) => isValidDateString(val), {
-          message: VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.BIRTHDAY),
+          message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY),
         }),
 
       // 6. employeeEmail
@@ -228,7 +233,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['certificationStartDate'],
-            message: VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.START_DATE),
+            message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.START_DATE),
           });
         } else {
           isStartDateValid = true;
@@ -247,7 +252,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['certificationEndDate'],
-            message: VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.END_DATE),
+            message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.END_DATE),
           });
         } else {
           isEndDateValid = true;
