@@ -264,13 +264,11 @@ public class EmployeeServiceTest {
         savedEntity.setEmployeeName("Nguyễn Văn A");
         when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenReturn(savedEntity);
 
-        AddEmployeeResponse response = employeeService.addEmployee(request);
+        EmployeeDTO response = employeeService.addEmployee(request);
 
         assertNotNull(response);
-        assertEquals(200, response.getCode());
         assertEquals(10L, response.getEmployeeId());
-        assertNotNull(response.getMessage());
-        assertEquals("MSG001", response.getMessage().getCode());
+        assertEquals("Nguyễn Văn A", response.getEmployeeName());
 
         verify(employeeEntityRepository).save(argThat(entity ->
                 entity.getDepartmentId().equals(1L)
@@ -302,12 +300,10 @@ public class EmployeeServiceTest {
         savedEntity.setEmployeeId(15L);
         when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenReturn(savedEntity);
 
-        AddEmployeeResponse response = employeeService.addEmployee(request);
+        EmployeeDTO response = employeeService.addEmployee(request);
 
         assertNotNull(response);
-        assertEquals(200, response.getCode());
         assertEquals(15L, response.getEmployeeId());
-        assertEquals("MSG001", response.getMessage().getCode());
 
         verify(employeeCertificationRepository).save(argThat(certEntity ->
                 certEntity.getEmployeeId().equals(15L)

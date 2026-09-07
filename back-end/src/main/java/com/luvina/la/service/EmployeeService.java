@@ -5,6 +5,7 @@ package com.luvina.la.service;
  * EmployeeService.java, 21/08/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 
 /**
@@ -62,9 +63,9 @@ public interface EmployeeService {
      * Thêm mới nhân viên và danh sách chứng chỉ (nếu có) theo tài liệu thiết kế API.
      *
      * @param request Thông tin nhân viên và chứng chỉ gửi lên từ client.
-     * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công.
+     * @return EmployeeDTO chứa thông tin nhân viên vừa được tạo (bao gồm employeeId).
      */
-    com.luvina.la.payload.response.AddEmployeeResponse addEmployee(
+    EmployeeDTO addEmployee(
             com.luvina.la.payload.request.AddEmployeeRequest request);
 }
 

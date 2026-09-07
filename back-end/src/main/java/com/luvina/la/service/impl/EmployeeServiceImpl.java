@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 
 import com.luvina.la.entity.EmployeeCertificationEntity;
 import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
-import com.luvina.la.payload.response.AddEmployeeResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeCertificationRepository;
@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Lớp triển khai các dịch vụ liên quan đến nhân viên.
- * Trả về EmployeeListDTO cho tầng Controller.
+ * Trả về EmployeeListDTO và EmployeeDTO cho tầng Controller.
  *
  * @author Phạm Văn Minh
  */
@@ -51,6 +51,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final CertificationRepository certificationRepository;
     private final EmployeeCertificationRepository employeeCertificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeMapper employeeMapper;
 
     /**
      * Khởi tạo EmployeeServiceImpl với tham số tối thiểu cho backward compatibility trong unit tests.
@@ -58,7 +59,21 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeServiceImpl(
             EmployeeNativeRepository employeeNativeRepository,
             EmployeeValidator employeeValidator) {
-        this(employeeNativeRepository, employeeValidator, null, null, null, null, null);
+        this(employeeNativeRepository, employeeValidator, null, null, null, null, null, null);
+    }
+
+    /**
+     * Khởi tạo EmployeeServiceImpl với 7 tham số hỗ trợ backward compatibility trong unit tests.
+     */
+    public EmployeeServiceImpl(
+            EmployeeNativeRepository employeeNativeRepository,
+            EmployeeValidator employeeValidator,
+            EmployeeEntityRepository employeeEntityRepository,
+            DepartmentRepository departmentRepository,
+            CertificationRepository certificationRepository,
+            EmployeeCertificationRepository employeeCertificationRepository,
+            PasswordEncoder passwordEncoder) {
+        this(employeeNativeRepository, employeeValidator, employeeEntityRepository, departmentRepository, certificationRepository, employeeCertificationRepository, passwordEncoder, null);
     }
 
     /**
@@ -72,7 +87,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             DepartmentRepository departmentRepository,
             CertificationRepository certificationRepository,
             EmployeeCertificationRepository employeeCertificationRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            EmployeeMapper employeeMapper) {
         this.employeeNativeRepository = employeeNativeRepository;
         this.employeeValidator = employeeValidator;
         this.employeeEntityRepository = employeeEntityRepository;
@@ -80,6 +96,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         this.certificationRepository = certificationRepository;
         this.employeeCertificationRepository = employeeCertificationRepository;
         this.passwordEncoder = passwordEncoder;
+        this.employeeMapper = employeeMapper;
     }
 
     /**
@@ -190,11 +207,11 @@ public class EmployeeServiceImpl implements EmployeeService {
      * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu có ngoại lệ.
      *
      * @param request Thông tin nhân viên và chứng chỉ gửi lên từ client.
-     * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công.
+     * @return EmployeeDTO chứa thông tin nhân viên vừa được tạo (bao gồm employeeId).
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AddEmployeeResponse addEmployee(AddEmployeeRequest request) {
+    public EmployeeDTO addEmployee(AddEmployeeRequest request) {
         // 1. Validate parameter
         MessageResponse validationError = employeeValidator.validateAddEmployee(
                 request, employeeEntityRepository, departmentRepository, certificationRepository);
@@ -239,11 +256,20 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
         }
 
-        // 4. Tạo dữ liệu response thành công
-        return AddEmployeeResponse.builder()
-                .code(Constants.RESPONSE_CODE_SUCCESS)
+        // 4. Chuyển đổi sang EmployeeDTO và trả về
+        if (employeeMapper != null) {
+            return employeeMapper.toDto(savedEmployee);
+        }
+        return EmployeeDTO.builder()
                 .employeeId(newEmployeeId)
-                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .departmentId(savedEmployee.getDepartmentId())
+                .employeeName(savedEmployee.getEmployeeName())
+                .employeeNameKana(savedEmployee.getEmployeeNameKana())
+                .employeeBirthDate(savedEmployee.getEmployeeBirthDate())
+                .employeeEmail(savedEmployee.getEmployeeEmail())
+                .employeeTelephone(savedEmployee.getEmployeeTelephone())
+                .employeeLoginId(savedEmployee.getEmployeeLoginId())
+                .employeeRole(savedEmployee.getEmployeeRole())
                 .build();
     }
 }

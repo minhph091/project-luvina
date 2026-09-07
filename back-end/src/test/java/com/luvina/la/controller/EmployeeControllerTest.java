@@ -12,6 +12,7 @@ import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
+import com.luvina.la.exception.GlobalExceptionHandler;
 import com.luvina.la.service.EmployeeService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,13 +25,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Unit test cho EmployeeController.
@@ -45,11 +53,15 @@ public class EmployeeControllerTest {
 
     private EmployeeMapper employeeMapper;
     private EmployeeController employeeController;
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         employeeMapper = Mappers.getMapper(EmployeeMapper.class);
         employeeController = new EmployeeController(employeeService, employeeMapper);
+        mockMvc = MockMvcBuilders.standaloneSetup(employeeController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -130,20 +142,28 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test getEmployees handles CustomValidationException returning error response")
+    @DisplayName("Test getEmployees ném CustomValidationException khi Service ném lỗi")
     void testGetEmployeesValidationException() {
         when(employeeService.getEmployees(
                 isNull(), isNull(), eq("INVALID"), isNull(), isNull(), isNull(), isNull(), isNull()
         )).thenThrow(new CustomValidationException(new MessageResponse("ER021", new ArrayList<>())));
 
-        ListEmployeesResponse response = employeeController.getEmployees(
+        assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
                 null, null, "INVALID", null, null, null, null
-        );
+        ));
+    }
 
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals("ER021", response.getMessage().getCode());
+    @Test
+    @DisplayName("Test getEmployees với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500")
+    void testGetEmployeesValidationWithMockMvc() throws Exception {
+        when(employeeService.getEmployees(
+                isNull(), isNull(), eq("INVALID"), isNull(), isNull(), isNull(), isNull(), any()
+        )).thenThrow(new CustomValidationException(new MessageResponse("ER021", new ArrayList<>())));
+
+        mockMvc.perform(get("/employee").param("ord_employee_name", "INVALID"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER021"));
     }
 
     @Test
@@ -154,13 +174,12 @@ public class EmployeeControllerTest {
                 .employeeName("Nguyễn Văn A")
                 .build();
 
-        com.luvina.la.payload.response.AddEmployeeResponse mockResponse = com.luvina.la.payload.response.AddEmployeeResponse.builder()
-                .code(Constants.RESPONSE_CODE_SUCCESS)
+        com.luvina.la.dto.EmployeeDTO mockDto = com.luvina.la.dto.EmployeeDTO.builder()
                 .employeeId(1L)
-                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .employeeName("Nguyễn Văn A")
                 .build();
 
-        when(employeeService.addEmployee(request)).thenReturn(mockResponse);
+        when(employeeService.addEmployee(request)).thenReturn(mockDto);
 
         com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
 
@@ -172,35 +191,55 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test addEmployee xử lý CustomValidationException trả về code 500")
+    @DisplayName("Test addEmployee ném CustomValidationException khi Service ném lỗi")
     void testAddEmployeeValidationException() {
         com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
 
         when(employeeService.addEmployee(request))
                 .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME))));
 
-        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
-
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals(Constants.ERROR_CODE_ER001, response.getMessage().getCode());
-        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), response.getMessage().getParams());
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.addEmployee(request));
+        assertEquals(Constants.ERROR_CODE_ER001, ex.getMessageResponse().getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), ex.getMessageResponse().getParams());
     }
 
     @Test
-    @DisplayName("Test addEmployee xử lý ngoại lệ chung trả về code 500 kèm mã lỗi ER015")
+    @DisplayName("Test addEmployee với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500")
+    void testAddEmployeeValidationWithMockMvc() throws Exception {
+        when(employeeService.addEmployee(any()))
+                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME))));
+
+        mockMvc.perform(post("/employee")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER001"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ACCOUNT_NAME));
+    }
+
+    @Test
+    @DisplayName("Test addEmployee ném RuntimeException khi có lỗi hệ thống")
     void testAddEmployeeGeneralException() {
         com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
 
         when(employeeService.addEmployee(request))
                 .thenThrow(new RuntimeException("Database error"));
 
-        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
+        assertThrows(RuntimeException.class, () -> employeeController.addEmployee(request));
+    }
 
-        assertNotNull(response);
-        assertEquals(500, response.getCode());
-        assertNotNull(response.getMessage());
-        assertEquals(Constants.ERROR_CODE_ER015, response.getMessage().getCode());
+    @Test
+    @DisplayName("Test addEmployee với MockMvc và GlobalExceptionHandler trả về JSON mã lỗi ER015 khi có lỗi hệ thống")
+    void testAddEmployeeGeneralExceptionWithMockMvc() throws Exception {
+        when(employeeService.addEmployee(any()))
+                .thenThrow(new RuntimeException("Database error"));
+
+        mockMvc.perform(post("/employee")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value(Constants.ERROR_CODE_ER015));
     }
 }

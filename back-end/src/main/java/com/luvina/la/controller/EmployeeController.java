@@ -6,8 +6,8 @@ package com.luvina.la.controller;
  */
 
 import com.luvina.la.config.Constants;
+import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeListDTO;
-import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.response.AddEmployeeResponse;
@@ -79,38 +79,23 @@ public class EmployeeController {
 
         String sortBy = extractSortBy(request);
 
-        try {
-            EmployeeListDTO employeeListDTO = employeeService.getEmployees(
-                    employeeName,
-                    departmentId,
-                    ordEmployeeName,
-                    ordCertificationName,
-                    ordEndDate,
-                    offset,
-                    limit,
-                    sortBy);
+        EmployeeListDTO employeeListDTO = employeeService.getEmployees(
+                employeeName,
+                departmentId,
+                ordEmployeeName,
+                ordCertificationName,
+                ordEndDate,
+                offset,
+                limit,
+                sortBy);
 
-            List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeListDTO.getEmployees());
+        List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeListDTO.getEmployees());
 
-            return ListEmployeesResponse.builder()
-                    .code(Constants.RESPONSE_CODE_SUCCESS)
-                    .totalRecords(employeeListDTO.getTotalRecords())
-                    .employees(employeeResponses)
-                    .build();
-
-        } catch (CustomValidationException ex) {
-            log.warn("Validation error in getEmployees: {}", ex.getMessageResponse());
-            return ListEmployeesResponse.builder()
-                    .code(Constants.RESPONSE_CODE_ERROR)
-                    .message(ex.getMessageResponse())
-                    .build();
-        } catch (Exception ex) {
-            log.error("Error occurred while getting employee list: ", ex);
-            return ListEmployeesResponse.builder()
-                    .code(Constants.RESPONSE_CODE_ERROR)
-                    .message(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()))
-                    .build();
-        }
+        return ListEmployeesResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .totalRecords(employeeListDTO.getTotalRecords())
+                .employees(employeeResponses)
+                .build();
     }
 
     /**
@@ -173,26 +158,18 @@ public class EmployeeController {
 
     /**
      * Thêm mới nhân viên và danh sách chứng chỉ tiếng Nhật (nếu có) theo tài liệu thiết kế API (POST /employee).
+     * Nhận EmployeeDTO từ Service và đóng gói thành AddEmployeeResponse trả về client.
      *
      * @param request Payload chứa thông tin nhân viên và chứng chỉ gửi lên từ client.
      * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công hoặc lỗi.
      */
     @PostMapping("/employee")
     public AddEmployeeResponse addEmployee(@RequestBody AddEmployeeRequest request) {
-        try {
-            return employeeService.addEmployee(request);
-        } catch (CustomValidationException ex) {
-            log.warn("Validation error in addEmployee: {}", ex.getMessageResponse());
-            return AddEmployeeResponse.builder()
-                    .code(Constants.RESPONSE_CODE_ERROR)
-                    .message(ex.getMessageResponse())
-                    .build();
-        } catch (Exception ex) {
-            log.error("Error occurred while adding employee: ", ex);
-            return AddEmployeeResponse.builder()
-                    .code(Constants.RESPONSE_CODE_ERROR)
-                    .message(new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()))
-                    .build();
-        }
+        EmployeeDTO createdEmployee = employeeService.addEmployee(request);
+        return AddEmployeeResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(createdEmployee != null ? createdEmployee.getEmployeeId() : null)
+                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .build();
     }
 }
