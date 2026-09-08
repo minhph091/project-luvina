@@ -28,7 +28,7 @@ interface EmployeeFormProps {
   loading: boolean;
   onFieldChange: (
     fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
-    value?: any
+    value?: EmployeeFormData[keyof EmployeeFormData]
   ) => void;
   onDateChange: (
     field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',

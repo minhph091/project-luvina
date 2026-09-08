@@ -36,6 +36,7 @@ describe('EmployeeCompletePage (ADM006)', () => {
 
   test('displays MSG001 (Add complete) by default when no action is in sessionStorage', () => {
     render(<EmployeeCompletePage />);
+    expect(useAuth).toHaveBeenCalled();
     expect(screen.getByText(SYSTEM_MESSAGES.MSG001_USER_ADD_COMPLETE)).toBeInTheDocument();
   });
 

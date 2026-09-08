@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useAdm002 } from '@/hooks/useAdm002';
 import { getEmployees } from '@/lib/api/employees';
 import {
   saveEmployeeSearchState,
@@ -11,7 +11,7 @@ jest.mock('@/lib/api/employees', () => ({
   getEmployees: jest.fn(),
 }));
 
-describe('useEmployees Hook', () => {
+describe('useAdm002 Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
@@ -36,9 +36,9 @@ describe('useEmployees Hook', () => {
       ],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -79,9 +79,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -111,9 +111,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -150,9 +150,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -181,9 +181,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -219,9 +219,9 @@ describe('useEmployees Hook', () => {
   it('handles error when fetch fails', async () => {
     (getEmployees as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {
@@ -238,9 +238,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     expect(hookResult.current.formatDate('2026-08-21')).toBe('2026/08/21');
@@ -254,9 +254,9 @@ describe('useEmployees Hook', () => {
       employees: [],
     });
 
-    let hookResult: { current: ReturnType<typeof useEmployees> };
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
     await act(async () => {
-      hookResult = renderHook(() => useEmployees()).result;
+      hookResult = renderHook(() => useAdm002()).result;
     });
 
     await waitFor(() => {

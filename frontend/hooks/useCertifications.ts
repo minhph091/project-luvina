@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { getCertifications } from '@/lib/api/certifications';
 import { CertificationItem } from '@/types/certification';
+import { ERROR_MESSAGES } from '@/constants';
 
 interface UseCertificationsReturn {
   certifications: CertificationItem[];
@@ -37,7 +38,7 @@ export function useCertifications(): UseCertificationsReturn {
         }
       } catch {
         if (isMounted) {
-          setCertificationErrorMessage('資格を取得できません');
+          setCertificationErrorMessage(ERROR_MESSAGES.FETCH_CERTIFICATIONS_FAILED);
         }
       } finally {
         if (isMounted) {

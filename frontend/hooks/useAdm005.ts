@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION_TYPES } from '@/constants';
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
 import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
@@ -48,7 +49,8 @@ export function useAdm005(): UseAdm005Return {
 
     setFormData(savedData);
     setLoading(false);
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Kiểm tra xem nhân viên có thông tin chứng chỉ tiếng Nhật hợp lệ không
   const hasCertification = Boolean(
@@ -88,10 +90,10 @@ export function useAdm005(): UseAdm005Return {
         setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
         router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
       }
-    } catch (error: any) {
-      const respData = error.response?.data;
-      if (respData?.message?.code) {
-        setApiError(formatApiErrorMessage(respData.message.code, respData.message.params));
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data?.message?.code) {
+        const respData = error.response.data as { message?: { code?: string; params?: string[] } };
+        setApiError(formatApiErrorMessage(respData.message?.code, respData.message?.params));
       } else {
         setApiError(VALIDATION_MESSAGES.ER015_SYSTEM_ERROR);
       }

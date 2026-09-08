@@ -22,7 +22,7 @@ interface EmployeeJapaneseFormProps {
   endDateObj: Date | null;
   onFieldChange: (
     fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
-    value?: any
+    value?: EmployeeFormData[keyof EmployeeFormData]
   ) => void;
   onDateChange: (
     field: 'certificationStartDate' | 'certificationEndDate',

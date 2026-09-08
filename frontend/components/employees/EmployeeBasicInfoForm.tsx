@@ -21,7 +21,7 @@ interface EmployeeBasicInfoFormProps {
   birthDateObj: Date | null;
   onFieldChange: (
     fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
-    value?: any
+    value?: EmployeeFormData[keyof EmployeeFormData]
   ) => void;
   onDateChange: (field: 'employeeBirthDate', date: Date | null) => void;
   onBlur: (field: keyof EmployeeFormData) => void;

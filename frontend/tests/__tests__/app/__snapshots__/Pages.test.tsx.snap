@@ -11,7 +11,7 @@ exports[`Page Snapshots renders EmployeeCompletePage unchanged 1`] = `
       <h1
         class="msg-title"
       >
-        ユーザの登録が完了しました。 or ユーザの更新が完了しました。 or ユーザの削除が完了しました。
+        ユーザの登録が完了しました。
       </h1>
       <div
         class="notification-box-btn"
@@ -134,7 +134,7 @@ exports[`Page Snapshots renders EmployeeConfirmPage unchanged 1`] = `
           </div>
         </li>
         <li
-          class="form-group row d-flex  bor-none"
+          class="form-group row d-flex bor-none"
         >
           <label
             class="col-form-label col-sm-2"
@@ -220,12 +220,14 @@ exports[`Page Snapshots renders EmployeeConfirmPage unchanged 1`] = `
           >
             <button
               class="btn btn-primary btn-sm"
+              id="btn-confirm-submit"
               type="button"
             >
               OK
             </button>
             <button
               class="btn btn-secondary btn-sm"
+              id="btn-confirm-back"
               type="button"
             >
               戻る

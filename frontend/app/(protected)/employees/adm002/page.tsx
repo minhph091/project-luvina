@@ -10,7 +10,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useAdm002 } from '@/hooks/useAdm002';
 import { APP_ROUTES } from '@/constants';
 import { clearEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import EmployeeSearchForm from '@/components/employees/EmployeeSearchForm';
@@ -19,7 +19,7 @@ import EmployeePagination from '@/components/employees/EmployeePagination';
 
 /**
  * Component trang Danh sách nhân viên (ADM002).
- * Phối hợp các sub-components (SearchForm, Table, Pagination) và custom hooks (useAuth, useDepartments, useEmployees).
+ * Phối hợp các sub-components (SearchForm, Table, Pagination) và custom hooks (useAuth, useDepartments, useAdm002).
  */
 export default function EmployeeListPage() {
   // Bảo vệ route: kiểm tra token xác thực
@@ -46,7 +46,7 @@ export default function EmployeeListPage() {
     sortIcon,
     formatDate,
     getPageNumbers,
-  } = useEmployees();
+  } = useAdm002();
 
   /**
    * Xử lý submit form tìm kiếm nhân viên.

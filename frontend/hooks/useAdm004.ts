@@ -71,7 +71,7 @@ export interface UseAdm004Return {
   endDateObj: Date | null;
   handleFieldChange: (
     fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
-    value?: any
+    value?: EmployeeFormData[keyof EmployeeFormData]
   ) => void;
   handleDateChange: (
     field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',
@@ -194,7 +194,10 @@ export function useAdm004(): UseAdm004Return {
    * Xử lý thay đổi giá trị một trường input / select
    */
   const handleFieldChange = useCallback(
-    (fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>, value?: any) => {
+    (
+      fieldOrUpdates: keyof EmployeeFormData | Partial<EmployeeFormData>,
+      value?: EmployeeFormData[keyof EmployeeFormData]
+    ) => {
       const updates: Partial<EmployeeFormData> =
         typeof fieldOrUpdates === 'object' ? fieldOrUpdates : { [fieldOrUpdates]: value };
 

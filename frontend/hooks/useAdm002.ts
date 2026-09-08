@@ -1,6 +1,6 @@
 /**
  * Copyright(C) 2026 Luvina
- * useEmployees.ts - Custom Hook for Employee List Logic and State Management
+ * useAdm002.ts - Custom Hook for ADM002 (Employee List Logic and State Management)
  * 21/08/2026 Phạm Văn Minh
  */
 
@@ -13,7 +13,7 @@ import {
   saveEmployeeSearchState,
 } from '@/lib/storage/employeeSearchState';
 
-interface UseEmployeesReturn {
+export interface UseAdm002Return {
   employees: EmployeeItem[];
   totalRecords: number;
   totalPages: number;
@@ -39,13 +39,15 @@ interface UseEmployeesReturn {
   ) => Promise<void>;
 }
 
+export type UseEmployeesReturn = UseAdm002Return;
+
 /**
- * Custom hook quản lý toàn bộ state, tìm kiếm, phân trang, sắp xếp và gọi API danh sách nhân viên.
+ * Custom hook quản lý toàn bộ state, tìm kiếm, phân trang, sắp xếp và gọi API danh sách nhân viên cho màn hình ADM002.
  * Hỗ trợ lưu trữ và khôi phục trạng thái từ sessionStorage khi điều hướng qua lại các màn hình.
  *
  * @returns Object chứa dữ liệu và các handler xử lý logic cho màn hình danh sách nhân viên.
  */
-export function useEmployees(): UseEmployeesReturn {
+export function useAdm002(): UseAdm002Return {
   // ── Khởi tạo trạng thái từ sessionStorage nếu có ─────────────────
   const savedState = typeof window !== 'undefined' ? getEmployeeSearchState() : null;
 
@@ -287,3 +289,5 @@ export function useEmployees(): UseEmployeesReturn {
     fetchEmployees,
   };
 }
+
+export { useAdm002 as useEmployees };

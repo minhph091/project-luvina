@@ -52,6 +52,7 @@ export const APP_ROUTES = {
 export const ERROR_MESSAGES = {
   FETCH_EMPLOYEES_FAILED: '従業員を取得できません',
   FETCH_DEPARTMENTS_FAILED: '部門を取得できません',
+  FETCH_CERTIFICATIONS_FAILED: '資格を取得できません',
   LOGIN_FAILED: 'ログインに失敗しました。アカウント名またはパスワードを確認してください。',
   REQUIRED_USERNAME: 'Username is required',
   REQUIRED_PASSWORD: 'Password is required',
