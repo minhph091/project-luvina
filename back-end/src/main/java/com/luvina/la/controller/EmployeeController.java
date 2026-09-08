@@ -20,7 +20,13 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.luvina.la.dto.EmployeeDetailDTO;
+import com.luvina.la.payload.response.DeleteEmployeeResponse;
+import com.luvina.la.payload.response.EmployeeCertificationResponse;
+import com.luvina.la.payload.response.EmployeeDetailResponse;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -170,6 +176,60 @@ public class EmployeeController {
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(createdEmployee != null ? createdEmployee.getEmployeeId() : null)
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
+                .build();
+    }
+
+    /**
+     * Lấy thông tin chi tiết một nhân viên theo ID theo tài liệu thiết kế API (GET /employee/{id}).
+     *
+     * @param id ID của nhân viên cần lấy chi tiết.
+     * @return EmployeeDetailResponse chứa toàn bộ thông tin nhân viên và danh sách chứng chỉ tiếng Nhật.
+     */
+    @GetMapping("/employee/{id}")
+    public EmployeeDetailResponse getEmployeeById(@PathVariable("id") Long id) {
+        EmployeeDetailDTO detailDTO = employeeService.getEmployeeById(id);
+
+        List<EmployeeCertificationResponse> certResponses = new ArrayList<>();
+        if (detailDTO.getCertifications() != null) {
+            for (EmployeeDetailDTO.CertificationInfo cert : detailDTO.getCertifications()) {
+                certResponses.add(EmployeeCertificationResponse.builder()
+                        .certificationId(cert.getCertificationId())
+                        .certificationName(cert.getCertificationName())
+                        .startDate(cert.getStartDate())
+                        .endDate(cert.getEndDate())
+                        .score(cert.getScore())
+                        .build());
+            }
+        }
+
+        return EmployeeDetailResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(detailDTO.getEmployeeId())
+                .employeeName(detailDTO.getEmployeeName())
+                .employeeBirthDate(detailDTO.getEmployeeBirthDate())
+                .departmentId(detailDTO.getDepartmentId())
+                .departmentName(detailDTO.getDepartmentName())
+                .employeeEmail(detailDTO.getEmployeeEmail())
+                .employeeTelephone(detailDTO.getEmployeeTelephone())
+                .employeeNameKana(detailDTO.getEmployeeNameKana())
+                .employeeLoginId(detailDTO.getEmployeeLoginId())
+                .certifications(certResponses)
+                .build();
+    }
+
+    /**
+     * Xóa một nhân viên theo ID trong CSDL theo tài liệu thiết kế (DELETE /employee/{id}).
+     *
+     * @param id ID của nhân viên cần xóa.
+     * @return DeleteEmployeeResponse chứa mã kết quả 200 và message thành công MSG003.
+     */
+    @DeleteMapping("/employee/{id}")
+    public DeleteEmployeeResponse deleteEmployee(@PathVariable("id") Long id) {
+        employeeService.deleteEmployee(id);
+        return DeleteEmployeeResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(id)
+                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG003, new ArrayList<>()))
                 .build();
     }
 }

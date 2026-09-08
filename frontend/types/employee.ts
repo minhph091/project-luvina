@@ -86,11 +86,44 @@ export interface EmployeeDetail {
 }
 
 /**
+ * Chi tiết thông tin chứng chỉ tiếng Nhật trong API GET /employee/:id
+ */
+export interface EmployeeCertificationDetail {
+  certificationId: number;
+  certificationName: string;
+  startDate: string;
+  endDate: string;
+  score: number | string;
+}
+
+/**
  * Phản hồi từ API GET /employee/:id
  */
 export interface GetEmployeeDetailApiResponse {
   code: number;
+  employeeId?: number;
+  employeeName?: string;
+  employeeBirthDate?: string;
+  departmentId?: number;
+  departmentName?: string;
+  employeeEmail?: string;
+  employeeTelephone?: string;
+  employeeNameKana?: string;
+  employeeLoginId?: string;
+  certifications?: EmployeeCertificationDetail[];
   employee?: EmployeeDetail;
+  message?: {
+    code?: string;
+    params?: string[];
+  };
+}
+
+/**
+ * Phản hồi từ API DELETE /employee/:id
+ */
+export interface DeleteEmployeeApiResponse {
+  code: number;
+  employeeId?: number;
   message?: {
     code?: string;
     params?: string[];

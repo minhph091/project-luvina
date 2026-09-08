@@ -25,4 +25,25 @@ public interface EmployeeCertificationRepository extends JpaRepository<EmployeeC
      * @return Danh sách các chứng chỉ của nhân viên.
      */
     List<EmployeeCertificationEntity> findByEmployeeId(Long employeeId);
+
+    /**
+     * Tìm danh sách chi tiết chứng chỉ của nhân viên sắp xếp theo level chứng chỉ tăng dần.
+     *
+     * @param employeeId ID của nhân viên.
+     * @return Danh sách mảng Object chứa certificationId, certificationName, startDate, endDate, score.
+     */
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT ec.certificationId, c.certificationName, ec.startDate, ec.endDate, ec.score "
+                    + "FROM EmployeeCertificationEntity ec, CertificationEntity c "
+                    + "WHERE ec.certificationId = c.certificationId AND ec.employeeId = :employeeId "
+                    + "ORDER BY c.certificationLevel ASC")
+    List<Object[]> findCertificationsWithDetailsByEmployeeId(
+            @org.springframework.data.repository.query.Param("employeeId") Long employeeId);
+
+    /**
+     * Xóa toàn bộ chứng chỉ của nhân viên theo employeeId.
+     *
+     * @param employeeId ID của nhân viên cần xóa chứng chỉ.
+     */
+    void deleteByEmployeeId(Long employeeId);
 }

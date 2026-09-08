@@ -67,5 +67,20 @@ public interface EmployeeService {
      */
     EmployeeDTO addEmployee(
             com.luvina.la.payload.request.AddEmployeeRequest request);
+
+    /**
+     * Lấy thông tin chi tiết của một nhân viên theo employeeId.
+     *
+     * @param employeeId ID của nhân viên cần lấy thông tin.
+     * @return EmployeeDetailDTO chứa thông tin nhân viên và danh sách chứng chỉ tiếng Nhật.
+     */
+    com.luvina.la.dto.EmployeeDetailDTO getEmployeeById(Long employeeId);
+
+    /**
+     * Xóa thông tin nhân viên và toàn bộ chứng chỉ liên quan theo employeeId.
+     *
+     * @param employeeId ID của nhân viên cần xóa.
+     */
+    void deleteEmployee(Long employeeId);
 }
 

@@ -470,4 +470,25 @@ public class EmployeeValidator {
             return null;
         }
     }
+
+    /**
+     * Validate tham số employeeId theo thiết kế API Get/Delete employee.
+     *
+     * @param employeeId   ID của nhân viên.
+     * @param employeeRepo Repository để kiểm tra tồn tại trong CSDL.
+     * @return MessageResponse nếu có lỗi (ER001 hoặc ER013), null nếu hợp lệ.
+     */
+    public MessageResponse validateEmployeeId(
+            Long employeeId,
+            com.luvina.la.repository.EmployeeEntityRepository employeeRepo) {
+        if (employeeId == null || employeeId <= 0) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
+        }
+
+        if (employeeRepo != null && !employeeRepo.existsById(employeeId)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID));
+        }
+
+        return null;
+    }
 }

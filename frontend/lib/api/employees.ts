@@ -11,9 +11,13 @@ import {
   GetEmployeesParams,
   EmployeeDetail,
   GetEmployeeDetailApiResponse,
+  DeleteEmployeeApiResponse,
+  EmployeeCertificationDetail,
   EmployeeFormData,
   EmployeeFormErrors,
   EmployeeFormMode,
+  AddEmployeeApiResponse,
+  AddEmployeeApiRequest,
 } from '@/types/employee';
 
 /**
@@ -110,6 +114,37 @@ export async function getEmployees(
  */
 export async function getEmployeeById(id: number | string): Promise<GetEmployeeDetailApiResponse> {
   const response = await apiClient.get<GetEmployeeDetailApiResponse>(`/employee/${id}`);
+  const data = response.data;
+  if (data && data.employeeId && !data.employee) {
+    const firstCert = data.certifications && data.certifications.length > 0 ? data.certifications[0] : null;
+    data.employee = {
+      employeeId: data.employeeId,
+      employeeLoginId: data.employeeLoginId || '',
+      employeeName: data.employeeName || '',
+      employeeNameKana: data.employeeNameKana || '',
+      employeeBirthDate: data.employeeBirthDate || '',
+      departmentId: Number(data.departmentId) || 0,
+      departmentName: data.departmentName || '',
+      employeeEmail: data.employeeEmail || '',
+      employeeTelephone: data.employeeTelephone || '',
+      certificationId: firstCert ? Number(firstCert.certificationId) : null,
+      certificationName: firstCert ? firstCert.certificationName : null,
+      certificationStartDate: firstCert ? firstCert.startDate : null,
+      certificationEndDate: firstCert ? firstCert.endDate : null,
+      score: firstCert && firstCert.score !== null && firstCert.score !== undefined ? Number(firstCert.score) : null,
+    };
+  }
+  return data;
+}
+
+/**
+ * Gọi API DELETE /employee/:id để xóa một nhân viên theo ID.
+ *
+ * @param id ID của nhân viên cần xóa.
+ * @returns Promise chứa phản hồi từ server (DeleteEmployeeApiResponse).
+ */
+export async function deleteEmployee(id: number | string): Promise<DeleteEmployeeApiResponse> {
+  const response = await apiClient.delete<DeleteEmployeeApiResponse>(`/employee/${id}`);
   return response.data;
 }
 
@@ -159,6 +194,8 @@ export type {
   GetEmployeesParams,
   EmployeeDetail,
   GetEmployeeDetailApiResponse,
+  DeleteEmployeeApiResponse,
+  EmployeeCertificationDetail,
   EmployeeFormData,
   EmployeeFormErrors,
   EmployeeFormMode,

@@ -31,6 +31,9 @@ import com.luvina.la.repository.EmployeeEntityRepository;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.luvina.la.entity.DepartmentEntity;
+import com.luvina.la.dto.EmployeeDetailDTO;
+import java.util.Collections;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -271,5 +274,90 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .employeeLoginId(savedEmployee.getEmployeeLoginId())
                 .employeeRole(savedEmployee.getEmployeeRole())
                 .build();
+    }
+
+    /**
+     * Lấy thông tin chi tiết của một nhân viên theo employeeId.
+     *
+     * @param employeeId ID của nhân viên cần lấy thông tin.
+     * @return EmployeeDetailDTO chứa thông tin nhân viên và danh sách chứng chỉ tiếng Nhật.
+     */
+    @Override
+    public EmployeeDetailDTO getEmployeeById(Long employeeId) {
+        // 1. Validate employeeId
+        MessageResponse validationError = employeeValidator.validateEmployeeId(employeeId, employeeEntityRepository);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
+
+        // 2. Lấy thông tin nhân viên từ bảng employees
+        EmployeeEntity employee = employeeEntityRepository.findById(employeeId).orElseThrow(() ->
+                new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID))));
+
+        // 3. Lấy tên phòng ban từ bảng departments
+        String departmentName = null;
+        if (employee.getDepartmentId() != null && departmentRepository != null) {
+            departmentName = departmentRepository.findById(employee.getDepartmentId())
+                    .map(DepartmentEntity::getDepartmentName)
+                    .orElse(null);
+        }
+
+        // 4. Lấy danh sách chứng chỉ tiếng Nhật sắp xếp theo level tăng dần
+        List<EmployeeDetailDTO.CertificationInfo> certInfoList = new ArrayList<>();
+        if (employeeCertificationRepository != null) {
+            List<Object[]> certRows = employeeCertificationRepository.findCertificationsWithDetailsByEmployeeId(employeeId);
+            if (certRows != null) {
+                for (Object[] row : certRows) {
+                    certInfoList.add(EmployeeDetailDTO.CertificationInfo.builder()
+                            .certificationId((Long) row[0])
+                            .certificationName((String) row[1])
+                            .startDate((java.time.LocalDate) row[2])
+                            .endDate((java.time.LocalDate) row[3])
+                            .score((BigDecimal) row[4])
+                            .build());
+                }
+            }
+        }
+
+        // 5. Trả về EmployeeDetailDTO
+        return EmployeeDetailDTO.builder()
+                .employeeId(employee.getEmployeeId())
+                .departmentId(employee.getDepartmentId())
+                .departmentName(departmentName)
+                .employeeName(employee.getEmployeeName())
+                .employeeNameKana(employee.getEmployeeNameKana())
+                .employeeBirthDate(employee.getEmployeeBirthDate())
+                .employeeEmail(employee.getEmployeeEmail())
+                .employeeTelephone(employee.getEmployeeTelephone())
+                .employeeLoginId(employee.getEmployeeLoginId())
+                .employeeRole(employee.getEmployeeRole())
+                .certifications(certInfoList)
+                .build();
+    }
+
+    /**
+     * Xóa thông tin nhân viên và toàn bộ chứng chỉ liên quan theo employeeId.
+     * Thao tác được thực hiện trong transaction, tự động rollback nếu xảy ra lỗi.
+     *
+     * @param employeeId ID của nhân viên cần xóa.
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteEmployee(Long employeeId) {
+        // 1. Validate employeeId
+        MessageResponse validationError = employeeValidator.validateEmployeeId(employeeId, employeeEntityRepository);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
+
+        // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
+        if (employeeCertificationRepository != null) {
+            employeeCertificationRepository.deleteByEmployeeId(employeeId);
+        }
+
+        // 3. Xóa nhân viên trong bảng employees
+        if (employeeEntityRepository != null) {
+            employeeEntityRepository.deleteById(employeeId);
+        }
     }
 }

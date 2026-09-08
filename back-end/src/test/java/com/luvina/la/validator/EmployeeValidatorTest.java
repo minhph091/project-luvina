@@ -396,5 +396,36 @@ public class EmployeeValidatorTest {
         assertEquals(Constants.ERROR_CODE_ER004, error.getCode());
         assertEquals(List.of(Constants.PARAM_CERTIFICATION), error.getParams());
     }
+
+    @Test
+    @DisplayName("Test validateEmployeeId khi ID null hoặc <= 0 (ER001) và không tồn tại trong DB (ER013)")
+    void testValidateEmployeeId() {
+        com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo =
+                org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);
+
+        // 1. employeeId null -> ER001
+        MessageResponse errorNull = employeeValidator.validateEmployeeId(null, mockEmpRepo);
+        assertNotNull(errorNull);
+        assertEquals(Constants.ERROR_CODE_ER001, errorNull.getCode());
+        assertEquals(List.of(Constants.PARAM_ID), errorNull.getParams());
+
+        // 2. employeeId <= 0 -> ER001
+        MessageResponse errorNegative = employeeValidator.validateEmployeeId(0L, mockEmpRepo);
+        assertNotNull(errorNegative);
+        assertEquals(Constants.ERROR_CODE_ER001, errorNegative.getCode());
+        assertEquals(List.of(Constants.PARAM_ID), errorNegative.getParams());
+
+        // 3. employeeId không tồn tại trong DB -> ER013
+        org.mockito.Mockito.when(mockEmpRepo.existsById(999L)).thenReturn(false);
+        MessageResponse errorNotFound = employeeValidator.validateEmployeeId(999L, mockEmpRepo);
+        assertNotNull(errorNotFound);
+        assertEquals(Constants.ERROR_CODE_ER013, errorNotFound.getCode());
+        assertEquals(List.of(Constants.PARAM_ID), errorNotFound.getParams());
+
+        // 4. employeeId hợp lệ và tồn tại -> null
+        org.mockito.Mockito.when(mockEmpRepo.existsById(1L)).thenReturn(true);
+        MessageResponse valid = employeeValidator.validateEmployeeId(1L, mockEmpRepo);
+        assertNull(valid);
+    }
 }
 

@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -241,5 +242,79 @@ public class EmployeeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message.code").value(Constants.ERROR_CODE_ER015));
+    }
+
+    @Test
+    @DisplayName("Test getEmployeeById trả về HTTP 200 và chi tiết nhân viên khi ID tồn tại")
+    void testGetEmployeeByIdSuccess() throws Exception {
+        com.luvina.la.dto.EmployeeDetailDTO detailDTO = com.luvina.la.dto.EmployeeDetailDTO.builder()
+                .employeeId(1L)
+                .employeeName("Nguyễn Văn A")
+                .employeeBirthDate(java.time.LocalDate.of(1990, 5, 20))
+                .departmentId(3L)
+                .departmentName("Phòng Phát Triển 1")
+                .employeeEmail("vana@luvina.net")
+                .employeeTelephone("0123456789")
+                .employeeNameKana("名カナ")
+                .employeeLoginId("vana")
+                .certifications(List.of(
+                        com.luvina.la.dto.EmployeeDetailDTO.CertificationInfo.builder()
+                                .certificationId(1L)
+                                .certificationName("Trình độ tiếng Nhật cấp 1")
+                                .startDate(java.time.LocalDate.of(2023, 1, 1))
+                                .endDate(java.time.LocalDate.of(2024, 1, 1))
+                                .score(new java.math.BigDecimal("180"))
+                                .build()
+                ))
+                .build();
+
+        when(employeeService.getEmployeeById(1L)).thenReturn(detailDTO);
+
+        mockMvc.perform(get("/employee/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.employeeId").value(1))
+                .andExpect(jsonPath("$.employeeName").value("Nguyễn Văn A"))
+                .andExpect(jsonPath("$.departmentName").value("Phòng Phát Triển 1"))
+                .andExpect(jsonPath("$.certifications[0].certificationName").value("Trình độ tiếng Nhật cấp 1"))
+                .andExpect(jsonPath("$.certifications[0].score").value(180));
+    }
+
+    @Test
+    @DisplayName("Test getEmployeeById trả về lỗi ER013 khi ID không tồn tại")
+    void testGetEmployeeByIdNotFound() throws Exception {
+        when(employeeService.getEmployeeById(999L))
+                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, List.of(Constants.PARAM_ID))));
+
+        mockMvc.perform(get("/employee/999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER013"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee trả về HTTP 200 và MSG003 khi xóa thành công")
+    void testDeleteEmployeeSuccess() throws Exception {
+        mockMvc.perform(delete("/employee/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.employeeId").value(1))
+                .andExpect(jsonPath("$.message.code").value("MSG003"));
+
+        verify(employeeService).deleteEmployee(1L);
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee trả về lỗi ER013 khi ID không tồn tại")
+    void testDeleteEmployeeNotFound() throws Exception {
+        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, List.of(Constants.PARAM_ID))))
+                .when(employeeService).deleteEmployee(999L);
+
+        mockMvc.perform(delete("/employee/999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER013"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
     }
 }

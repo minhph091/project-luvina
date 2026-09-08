@@ -2,90 +2,184 @@
 
 /**
  * Copyright(C) 2026 Luvina
- * page.tsx - ADM003: Employee Detail Page
+ * page.tsx - ADM003: Employee Detail Page (会員情報詳細)
  * 21/08/2026 Pham Van Minh
  */
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
-import { setEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
+import { useAdm003 } from '@/hooks/useAdm003';
+import { BUTTON_LABELS, COMMON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 
-export default function EmployeeDetailPage() {
+function EmployeeDetailContent() {
   useAuth();
-  const router = useRouter();
+  const {
+    employee,
+    loading,
+    deleting,
+    apiError,
+    hasCertification,
+    handleNavigateToEdit,
+    handleNavigateToList,
+    handleDelete,
+  } = useAdm003();
 
-  const handleNavigateToEdit = () => {
-    // Lưu ID nhân viên cần chỉnh sửa vào sessionStorage và xóa dữ liệu form cũ
-    setEditEmployeeId(1); // placeholder ID hoặc ID từ employee detail
-    clearEmployeeFormData();
-    router.push(APP_ROUTES.EMPLOYEE_EDIT);
-  };
-
-  const handleNavigateToList = () => {
-    router.push(APP_ROUTES.EMPLOYEE_LIST);
-  };
+  if (loading && !employee && !apiError) {
+    return (
+      <div className="row">
+        <div style={{ padding: '24px', textAlign: 'center', color: '#888' }}>
+          {COMMON_LABELS.LOADING}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="row">
-      <form className="c-form box-shadow">
+      <form className="c-form box-shadow" onSubmit={(e) => e.preventDefault()}>
         <ul className="show-data">
+          {/* Tiêu đề khối thông tin */}
           <li className="title">{PAGE_TITLES.INFO_CONFIRM}</li>
+
+          {/* Vùng hiển thị thông báo lỗi từ server nếu có */}
+          {apiError && (
+            <li className="box-err">
+              <div id="api-error-box" className="box-err-content">
+                {apiError}
+              </div>
+            </li>
+          )}
+
+          {/* Tài khoản */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.ACCOUNT_NAME}</label>
-            <div className="col-sm col-sm-10">ntmhuong</div>
+            <div id="detail-account-name" className="col-sm col-sm-10">
+              {employee?.employeeLoginId || ''}
+            </div>
           </li>
+
+          {/* Phòng ban */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.GROUP}</label>
-            <div className="col-sm col-sm-10">Nhóm 1</div>
+            <div id="detail-group" className="col-sm col-sm-10">
+              {employee?.departmentName || ''}
+            </div>
           </li>
+
+          {/* Họ và tên */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.NAME}</label>
-            <div className="col-sm col-sm-10">Nguyễn Thị Mai Hương</div>
+            <div id="detail-name" className="col-sm col-sm-10">
+              {employee?.employeeName || ''}
+            </div>
           </li>
+
+          {/* Họ và tên Katakana */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.KATAKANA_NAME}</label>
-            <div className="col-sm col-sm-10">名カナ</div>
+            <div id="detail-katakana-name" className="col-sm col-sm-10">
+              {employee?.employeeNameKana || ''}
+            </div>
           </li>
+
+          {/* Ngày sinh */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.BIRTHDAY}</label>
-            <div className="col-sm col-sm-10">1983/07/08</div>
+            <div id="detail-birthday" className="col-sm col-sm-10">
+              {employee?.employeeBirthDate || ''}
+            </div>
           </li>
+
+          {/* Email */}
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.EMAIL}</label>
-            <div className="col-sm col-sm-10">ntmhuong@luvina.net</div>
+            <div id="detail-email" className="col-sm col-sm-10">
+              {employee?.employeeEmail || ''}
+            </div>
           </li>
-          <li className="form-group row d-flex  bor-none">
+
+          {/* Số điện thoại */}
+          <li className="form-group row d-flex bor-none">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.TEL}</label>
-            <div className="col-sm col-sm-10">0914326386</div>
+            <div id="detail-tel" className="col-sm col-sm-10">
+              {employee?.employeeTelephone || ''}
+            </div>
           </li>
-          <li className="title mt-12"><a href="#!">{FIELD_LABELS.JAPANESE_LEVEL}</a></li>
-          <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
-            <div className="col-sm col-sm-10">Trình độ tiếng nhật cấp 1</div>
-          </li>
-          <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
-            <div className="col-sm col-sm-10">2010/07/08</div>
-          </li>
-          <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
-            <div className="col-sm col-sm-10">2010/07/08</div>
-          </li>
-          <li className="form-group row d-flex">
-            <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
-            <div className="col-sm col-sm-10">290</div>
-          </li>
+
+          {/* Khối thông tin chứng chỉ tiếng Nhật (nếu có) */}
+          {hasCertification && (
+            <>
+              <li className="title mt-12">
+                <a href="#!">{FIELD_LABELS.JAPANESE_LEVEL}</a>
+              </li>
+              <li className="form-group row d-flex">
+                <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
+                <div id="detail-certification-name" className="col-sm col-sm-10">
+                  {employee?.certificationName || ''}
+                </div>
+              </li>
+              <li className="form-group row d-flex">
+                <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
+                <div id="detail-start-date" className="col-sm col-sm-10">
+                  {employee?.certificationStartDate || ''}
+                </div>
+              </li>
+              <li className="form-group row d-flex">
+                <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
+                <div id="detail-end-date" className="col-sm col-sm-10">
+                  {employee?.certificationEndDate || ''}
+                </div>
+              </li>
+              <li className="form-group row d-flex">
+                <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
+                <div id="detail-score" className="col-sm col-sm-10">
+                  {employee?.score !== null && employee?.score !== undefined ? String(employee.score) : ''}
+                </div>
+              </li>
+            </>
+          )}
+
+          {/* Nhóm nút thao tác: 編集 (Edit), 削除 (Delete), 戻る (Back) */}
           <li className="form-group row d-flex">
             <div className="btn-group col-sm col-sm-10 ml">
-              <button type="button" onClick={handleNavigateToEdit} className="btn btn-primary btn-sm">{BUTTON_LABELS.EDIT}</button>
-              <button type="button" className="btn btn-secondary btn-sm">{BUTTON_LABELS.DELETE}</button>
-              <button type="button" onClick={handleNavigateToList} className="btn btn-secondary btn-sm">{BUTTON_LABELS.BACK}</button>
+              <button
+                type="button"
+                id="btn-detail-edit"
+                onClick={handleNavigateToEdit}
+                disabled={!employee}
+                className="btn btn-primary btn-sm"
+              >
+                {BUTTON_LABELS.EDIT}
+              </button>
+              <button
+                type="button"
+                id="btn-detail-delete"
+                onClick={handleDelete}
+                disabled={!employee || deleting}
+                className="btn btn-secondary btn-sm"
+              >
+                {BUTTON_LABELS.DELETE}
+              </button>
+              <button
+                type="button"
+                id="btn-detail-back"
+                onClick={handleNavigateToList}
+                className="btn btn-secondary btn-sm"
+              >
+                {BUTTON_LABELS.BACK}
+              </button>
             </div>
           </li>
         </ul>
       </form>
     </div>
+  );
+}
+
+export default function EmployeeDetailPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '24px', textAlign: 'center', color: '#888' }}>{COMMON_LABELS.LOADING}</div>}>
+      <EmployeeDetailContent />
+    </Suspense>
   );
 }

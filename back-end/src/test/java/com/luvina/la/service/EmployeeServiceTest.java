@@ -328,4 +328,83 @@ public class EmployeeServiceTest {
         assertEquals("ER001", ex.getMessageResponse().getCode());
         assertEquals(List.of("アカウント名"), ex.getMessageResponse().getParams());
     }
+
+    @Test
+    @DisplayName("Test getEmployeeById thành công trả về đầy đủ EmployeeDetailDTO và certifications")
+    void testGetEmployeeByIdSuccess() {
+        Long empId = 1L;
+        EmployeeEntity empEntity = new EmployeeEntity();
+        empEntity.setEmployeeId(empId);
+        empEntity.setDepartmentId(2L);
+        empEntity.setEmployeeName("Nguyễn Văn A");
+        empEntity.setEmployeeNameKana("名カナ");
+        empEntity.setEmployeeBirthDate(LocalDate.of(1990, 1, 1));
+        empEntity.setEmployeeEmail("vana@luvina.net");
+        empEntity.setEmployeeTelephone("0123456789");
+        empEntity.setEmployeeLoginId("vana");
+        empEntity.setEmployeeRole("USER");
+
+        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
+        when(employeeEntityRepository.findById(empId)).thenReturn(java.util.Optional.of(empEntity));
+
+        com.luvina.la.entity.DepartmentEntity deptEntity = new com.luvina.la.entity.DepartmentEntity();
+        deptEntity.setDepartmentId(2L);
+        deptEntity.setDepartmentName("Phòng Phát Triển 1");
+        when(departmentRepository.findById(2L)).thenReturn(java.util.Optional.of(deptEntity));
+
+        List<Object[]> certRows = new java.util.ArrayList<>();
+        certRows.add(new Object[] { 1L, "Trình độ tiếng Nhật cấp 1", LocalDate.of(2023, 1, 1), LocalDate.of(2024, 1, 1), new BigDecimal("180") });
+        when(employeeCertificationRepository.findCertificationsWithDetailsByEmployeeId(empId)).thenReturn(certRows);
+
+        com.luvina.la.dto.EmployeeDetailDTO result = employeeService.getEmployeeById(empId);
+
+        assertNotNull(result);
+        assertEquals(empId, result.getEmployeeId());
+        assertEquals("Nguyễn Văn A", result.getEmployeeName());
+        assertEquals("Phòng Phát Triển 1", result.getDepartmentName());
+        assertEquals(1, result.getCertifications().size());
+        assertEquals("Trình độ tiếng Nhật cấp 1", result.getCertifications().get(0).getCertificationName());
+    }
+
+    @Test
+    @DisplayName("Test getEmployeeById thất bại khi ID không tồn tại ném CustomValidationException ER013")
+    void testGetEmployeeByIdNotFoundThrowsCustomValidationException() {
+        Long empId = 999L;
+        when(employeeEntityRepository.existsById(empId)).thenReturn(false);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.getEmployeeById(empId);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER013", ex.getMessageResponse().getCode());
+        assertEquals(List.of("ＩＤ"), ex.getMessageResponse().getParams());
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee thành công xóa trong cả employees và employees_certifications")
+    void testDeleteEmployeeSuccess() {
+        Long empId = 1L;
+        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
+
+        employeeService.deleteEmployee(empId);
+
+        verify(employeeCertificationRepository).deleteByEmployeeId(empId);
+        verify(employeeEntityRepository).deleteById(empId);
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee thất bại khi ID không tồn tại ném CustomValidationException ER013")
+    void testDeleteEmployeeNotFoundThrowsCustomValidationException() {
+        Long empId = 999L;
+        when(employeeEntityRepository.existsById(empId)).thenReturn(false);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.deleteEmployee(empId);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER013", ex.getMessageResponse().getCode());
+        assertEquals(List.of("ＩＤ"), ex.getMessageResponse().getParams());
+    }
 }
