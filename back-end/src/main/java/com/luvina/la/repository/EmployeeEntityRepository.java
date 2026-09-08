@@ -33,4 +33,23 @@ public interface EmployeeEntityRepository extends JpaRepository<EmployeeEntity, 
      * @return true nếu đã tồn tại, ngược lại false.
      */
     boolean existsByEmployeeLoginId(String employeeLoginId);
+
+    /**
+     * Lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ bằng 1 câu JOIN 4 bảng.
+     *
+     * @param employeeId ID của nhân viên cần lấy chi tiết.
+     * @return Danh sách mảng Object chứa thông tin nhân viên, phòng ban và chứng chỉ.
+     */
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT e.employeeId, e.departmentId, d.departmentName, e.employeeName, e.employeeNameKana, "
+                    + "e.employeeBirthDate, e.employeeEmail, e.employeeTelephone, e.employeeLoginId, e.employeeRole, "
+                    + "ec.certificationId, c.certificationName, ec.startDate, ec.endDate, ec.score "
+                    + "FROM EmployeeEntity e "
+                    + "LEFT JOIN DepartmentEntity d ON e.departmentId = d.departmentId "
+                    + "LEFT JOIN EmployeeCertificationEntity ec ON e.employeeId = ec.employeeId "
+                    + "LEFT JOIN CertificationEntity c ON ec.certificationId = c.certificationId "
+                    + "WHERE e.employeeId = :employeeId "
+                    + "ORDER BY c.certificationLevel ASC")
+    java.util.List<Object[]> findEmployeeDetailWithCertifications(
+            @org.springframework.data.repository.query.Param("employeeId") Long employeeId);
 }

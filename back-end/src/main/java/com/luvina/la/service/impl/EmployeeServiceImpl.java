@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.dto.EmployeeDetailDTO;
+import java.time.LocalDate;
 import java.util.Collections;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -290,49 +291,46 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new CustomValidationException(validationError);
         }
 
-        // 2. Lấy thông tin nhân viên từ bảng employees
-        EmployeeEntity employee = employeeEntityRepository.findById(employeeId).orElseThrow(() ->
-                new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID))));
-
-        // 3. Lấy tên phòng ban từ bảng departments
-        String departmentName = null;
-        if (employee.getDepartmentId() != null && departmentRepository != null) {
-            departmentName = departmentRepository.findById(employee.getDepartmentId())
-                    .map(DepartmentEntity::getDepartmentName)
-                    .orElse(null);
+        // 2. Thực hiện query JOIN 4 bảng lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ
+        List<Object[]> rows = employeeEntityRepository.findEmployeeDetailWithCertifications(employeeId);
+        if (rows == null || rows.isEmpty()) {
+            throw new CustomValidationException(
+                    new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID)));
         }
 
-        // 4. Lấy danh sách chứng chỉ tiếng Nhật sắp xếp theo level tăng dần
-        List<EmployeeDetailDTO.CertificationInfo> certInfoList = new ArrayList<>();
-        if (employeeCertificationRepository != null) {
-            List<Object[]> certRows = employeeCertificationRepository.findCertificationsWithDetailsByEmployeeId(employeeId);
-            if (certRows != null) {
-                for (Object[] row : certRows) {
-                    certInfoList.add(EmployeeDetailDTO.CertificationInfo.builder()
-                            .certificationId((Long) row[0])
-                            .certificationName((String) row[1])
-                            .startDate((java.time.LocalDate) row[2])
-                            .endDate((java.time.LocalDate) row[3])
-                            .score((BigDecimal) row[4])
-                            .build());
-                }
+        // 3. Lấy thông tin chung của nhân viên từ dòng đầu tiên (index 0)
+        Object[] firstRow = rows.get(0);
+        EmployeeDetailDTO detailDTO = EmployeeDetailDTO.builder()
+                .employeeId(firstRow[0] != null ? ((Number) firstRow[0]).longValue() : null)
+                .departmentId(firstRow[1] != null ? ((Number) firstRow[1]).longValue() : null)
+                .departmentName((String) firstRow[2])
+                .employeeName((String) firstRow[3])
+                .employeeNameKana((String) firstRow[4])
+                .employeeBirthDate((LocalDate) firstRow[5])
+                .employeeEmail((String) firstRow[6])
+                .employeeTelephone((String) firstRow[7])
+                .employeeLoginId((String) firstRow[8])
+                .employeeRole((String) firstRow[9])
+                .certifications(new ArrayList<>())
+                .build();
+
+        // 4. Duyệt qua tất cả các dòng để gom danh sách chứng chỉ (quan hệ 1 - N)
+        for (Object[] row : rows) {
+            Long certId = row[10] != null ? ((Number) row[10]).longValue() : null;
+            // Chỉ thêm nếu dòng có chứng chỉ (do dùng LEFT JOIN, nhân viên không có chứng chỉ thì certId = null)
+            if (certId != null) {
+                EmployeeDetailDTO.CertificationInfo certInfo = EmployeeDetailDTO.CertificationInfo.builder()
+                        .certificationId(certId)
+                        .certificationName((String) row[11])
+                        .startDate((LocalDate) row[12])
+                        .endDate((LocalDate) row[13])
+                        .score((BigDecimal) row[14])
+                        .build();
+                detailDTO.getCertifications().add(certInfo);
             }
         }
 
-        // 5. Trả về EmployeeDetailDTO
-        return EmployeeDetailDTO.builder()
-                .employeeId(employee.getEmployeeId())
-                .departmentId(employee.getDepartmentId())
-                .departmentName(departmentName)
-                .employeeName(employee.getEmployeeName())
-                .employeeNameKana(employee.getEmployeeNameKana())
-                .employeeBirthDate(employee.getEmployeeBirthDate())
-                .employeeEmail(employee.getEmployeeEmail())
-                .employeeTelephone(employee.getEmployeeTelephone())
-                .employeeLoginId(employee.getEmployeeLoginId())
-                .employeeRole(employee.getEmployeeRole())
-                .certifications(certInfoList)
-                .build();
+        return detailDTO;
     }
 
     /**

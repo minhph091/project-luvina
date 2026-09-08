@@ -333,28 +333,28 @@ public class EmployeeServiceTest {
     @DisplayName("Test getEmployeeById thành công trả về đầy đủ EmployeeDetailDTO và certifications")
     void testGetEmployeeByIdSuccess() {
         Long empId = 1L;
-        EmployeeEntity empEntity = new EmployeeEntity();
-        empEntity.setEmployeeId(empId);
-        empEntity.setDepartmentId(2L);
-        empEntity.setEmployeeName("Nguyễn Văn A");
-        empEntity.setEmployeeNameKana("名カナ");
-        empEntity.setEmployeeBirthDate(LocalDate.of(1990, 1, 1));
-        empEntity.setEmployeeEmail("vana@luvina.net");
-        empEntity.setEmployeeTelephone("0123456789");
-        empEntity.setEmployeeLoginId("vana");
-        empEntity.setEmployeeRole("USER");
 
         when(employeeEntityRepository.existsById(empId)).thenReturn(true);
-        when(employeeEntityRepository.findById(empId)).thenReturn(java.util.Optional.of(empEntity));
 
-        com.luvina.la.entity.DepartmentEntity deptEntity = new com.luvina.la.entity.DepartmentEntity();
-        deptEntity.setDepartmentId(2L);
-        deptEntity.setDepartmentName("Phòng Phát Triển 1");
-        when(departmentRepository.findById(2L)).thenReturn(java.util.Optional.of(deptEntity));
-
-        List<Object[]> certRows = new java.util.ArrayList<>();
-        certRows.add(new Object[] { 1L, "Trình độ tiếng Nhật cấp 1", LocalDate.of(2023, 1, 1), LocalDate.of(2024, 1, 1), new BigDecimal("180") });
-        when(employeeCertificationRepository.findCertificationsWithDetailsByEmployeeId(empId)).thenReturn(certRows);
+        List<Object[]> rows = new java.util.ArrayList<>();
+        rows.add(new Object[] {
+                empId,
+                2L,
+                "Phòng Phát Triển 1",
+                "Nguyễn Văn A",
+                "名カナ",
+                LocalDate.of(1990, 1, 1),
+                "vana@luvina.net",
+                "0123456789",
+                "vana",
+                "USER",
+                1L,
+                "Trình độ tiếng Nhật cấp 1",
+                LocalDate.of(2023, 1, 1),
+                LocalDate.of(2024, 1, 1),
+                new BigDecimal("180")
+        });
+        when(employeeEntityRepository.findEmployeeDetailWithCertifications(empId)).thenReturn(rows);
 
         com.luvina.la.dto.EmployeeDetailDTO result = employeeService.getEmployeeById(empId);
 
