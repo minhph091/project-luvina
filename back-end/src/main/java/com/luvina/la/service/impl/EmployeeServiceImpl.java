@@ -15,6 +15,7 @@ import com.luvina.la.service.EmployeeService;
 import com.luvina.la.validator.EmployeeValidator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -331,6 +332,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteEmployee(Long employeeId) {
         try {
+            // 1. Kiểm tra an toàn: Không cho phép xóa người dùng có role ADMIN
+            if (employeeEntityRepository != null) {
+                Optional<EmployeeEntity> employeeOpt = employeeEntityRepository.findById(employeeId);
+                if (employeeOpt.isPresent() && Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
+                    throw new CustomValidationException(
+                            new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID)),
+                            employeeId
+                    );
+                }
+            }
+
             // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
             if (employeeCertificationRepository != null) {
                 employeeCertificationRepository.deleteByEmployeeId(employeeId);
@@ -340,6 +352,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             if (employeeEntityRepository != null) {
                 employeeEntityRepository.deleteById(employeeId);
             }
+        } catch (CustomValidationException cve) {
+            throw cve;
         } catch (Exception ex) {
             log.error("Lỗi khi xóa nhân viên có employeeId = {}", employeeId, ex);
             throw new CustomValidationException(

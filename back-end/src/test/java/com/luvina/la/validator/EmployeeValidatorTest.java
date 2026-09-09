@@ -12,11 +12,13 @@ import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeEntityRepository;
+import com.luvina.la.entity.EmployeeEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -467,7 +469,7 @@ public class EmployeeValidatorTest {
     }
 
     @Test
-    @DisplayName("Test validateEmployeeIdForDelete khi ID null hoặc <= 0 (ER001) và không tồn tại trong DB (ER014)")
+    @DisplayName("Test validateEmployeeIdForDelete khi ID null/<=0 (ER001), không tồn tại hoặc role ADMIN (ER014), và hợp lệ role USER")
     void testValidateEmployeeIdForDelete() {
         EmployeeEntityRepository mockEmpRepo =
                 mock(EmployeeEntityRepository.class);
@@ -485,14 +487,29 @@ public class EmployeeValidatorTest {
         assertEquals(List.of(Constants.PARAM_ID), errorNegative.getParams());
 
         // 3. employeeId không tồn tại trong DB -> ER014
-        when(mockEmpRepo.existsById(999L)).thenReturn(false);
+        when(mockEmpRepo.findById(999L)).thenReturn(Optional.empty());
         MessageResponse errorNotFound = employeeValidator.validateEmployeeIdForDelete(999L, mockEmpRepo);
         assertNotNull(errorNotFound);
         assertEquals(Constants.ERROR_CODE_ER014, errorNotFound.getCode());
         assertEquals(List.of(Constants.PARAM_ID), errorNotFound.getParams());
 
-        // 4. employeeId hợp lệ và tồn tại -> null
-        when(mockEmpRepo.existsById(1L)).thenReturn(true);
+        // 4. employeeId tồn tại nhưng có role là ADMIN -> ER014 (không được xóa role Admin)
+        EmployeeEntity adminEntity = new EmployeeEntity();
+        adminEntity.setEmployeeId(2L);
+        adminEntity.setEmployeeRole(Constants.ROLE_ADMIN);
+        when(mockEmpRepo.findById(2L)).thenReturn(Optional.of(adminEntity));
+
+        MessageResponse errorAdmin = employeeValidator.validateEmployeeIdForDelete(2L, mockEmpRepo);
+        assertNotNull(errorAdmin);
+        assertEquals(Constants.ERROR_CODE_ER014, errorAdmin.getCode());
+        assertEquals(List.of(Constants.PARAM_ID), errorAdmin.getParams());
+
+        // 5. employeeId hợp lệ và tồn tại với role USER -> null
+        EmployeeEntity userEntity = new EmployeeEntity();
+        userEntity.setEmployeeId(1L);
+        userEntity.setEmployeeRole("USER");
+        when(mockEmpRepo.findById(1L)).thenReturn(Optional.of(userEntity));
+
         MessageResponse valid = employeeValidator.validateEmployeeIdForDelete(1L, mockEmpRepo);
         assertNull(valid);
     }

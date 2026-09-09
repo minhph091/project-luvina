@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -355,5 +357,27 @@ public class EmployeeServiceTest {
         assertNotNull(ex.getMessageResponse());
         assertEquals("ER015", ex.getMessageResponse().getCode());
         assertEquals(empId, ex.getEmployeeId());
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee với tài khoản có role ADMIN ném CustomValidationException ER014")
+    void testDeleteEmployeeAdminRoleThrowsCustomValidationExceptionER014() {
+        Long empId = 2L;
+        EmployeeEntity adminEntity = new EmployeeEntity();
+        adminEntity.setEmployeeId(empId);
+        adminEntity.setEmployeeRole(Constants.ROLE_ADMIN);
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(adminEntity));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.deleteEmployee(empId);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals(Constants.ERROR_CODE_ER014, ex.getMessageResponse().getCode());
+        assertEquals(List.of(Constants.PARAM_ID), ex.getMessageResponse().getParams());
+        assertEquals(empId, ex.getEmployeeId());
+
+        verify(employeeCertificationRepository, never()).deleteByEmployeeId(anyLong());
+        verify(employeeEntityRepository, never()).deleteById(anyLong());
     }
 }

@@ -12,6 +12,7 @@ import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeEntityRepository;
+import com.luvina.la.entity.EmployeeEntity;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -547,7 +549,8 @@ public class EmployeeValidator {
 
     /**
      * Validate tham số employeeId theo thiết kế API Delete employee.
-     * Trả về ER001 nếu không tồn tại tham số, trả về ER014 nếu không tồn tại trong bảng employees.
+     * Trả về ER001 nếu không tồn tại tham số.
+     * Trả về ER014 nếu không tồn tại trong bảng employees hoặc nhân viên có role ADMIN.
      *
      * @param employeeId   ID của nhân viên cần xóa.
      * @param employeeRepo Repository để kiểm tra tồn tại trong CSDL.
@@ -560,8 +563,11 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }
 
-        if (employeeRepo != null && !employeeRepo.existsById(employeeId)) {
-            return new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID));
+        if (employeeRepo != null) {
+            Optional<EmployeeEntity> employeeOpt = employeeRepo.findById(employeeId);
+            if (employeeOpt.isEmpty() || Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
+                return new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID));
+            }
         }
 
         return null;

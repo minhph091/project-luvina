@@ -379,4 +379,18 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$.employeeId").value(1))
                 .andExpect(jsonPath("$.message.code").value("ER015"));
     }
+
+    @Test
+    @DisplayName("Test deleteEmployee trả về lỗi ER014 và employeeId khi xóa tài khoản có role ADMIN")
+    void testDeleteEmployeeAdminRole() throws Exception {
+        when(employeeValidator.validateEmployeeIdForDelete(2L))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER014, List.of(Constants.PARAM_ID)));
+
+        mockMvc.perform(delete("/employee/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.employeeId").value(2))
+                .andExpect(jsonPath("$.message.code").value("ER014"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+    }
 }

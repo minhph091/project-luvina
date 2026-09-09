@@ -463,6 +463,7 @@
 
 - - Hiển thị message confirm "削除しますが、よろしいでしょうか。" (MSG004). Nếu user click OK thì xử lý tiếp.
 - - User click vào button Delete thực hiện gọi API để xóa data nhân viên trong database (tham khảo thiết kế API)
+- - Không cho phép xóa người dùng có role admin (ADMIN). Nếu cố tình thao tác hoặc gọi API xóa tài khoản Admin, API sẽ từ chối và trả về lỗi ER014.
 - TH API trả về trạng thái thành công: di chuyển sang MH complete với mã message được trả về từ API
 - TH API trả về lỗi hiển thị ở vùng thông báo lỗi với mã message lấy từ API
 

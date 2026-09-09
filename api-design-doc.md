@@ -1183,7 +1183,7 @@ Lấy thông tin chi tiết nhân viên *(ghi chú: tiêu đề khái quát tron
 ##### 1.1 Validate parameter [employeeId]
 
 - Nếu **không tồn tại** parameter này thì trả về lỗi có mã code **ER001**, tham số `"ＩＤ"`.
-- Nếu **không tồn tại** trong bảng `employees.employee_id` thì trả về lỗi có mã code **ER014**, tham số `"ＩＤ"`.
+- Nếu **không tồn tại** trong bảng `employees.employee_id` hoặc nhân viên có role là **ADMIN** (`employee_role = 'ADMIN'`) thì trả về lỗi có mã code **ER014**, tham số `"ＩＤ"`.
 - Nếu có lỗi thì chuyển sang bước **[4. Tạo dữ liệu response cho API]**.
 
 #### Khởi tạo transaction
