@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import EmployeeEditPage from '@/app/(protected)/employees/edit/page';
+import EmployeeEditPage from '@/app/(protected)/employees/adm004/page';
 import { getDepartments } from '@/lib/api/departments';
 import { getCertifications } from '@/lib/api/certifications';
 import { PAGE_TITLES } from '@/constants';

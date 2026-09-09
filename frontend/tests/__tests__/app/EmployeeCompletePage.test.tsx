@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import EmployeeCompletePage from '@/app/(protected)/employees/complete/page';
+import EmployeeCompletePage from '@/app/(protected)/employees/adm006/page';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { APP_ROUTES, BUTTON_LABELS, COMPLETE_ACTION_TYPES, STORAGE_KEYS, SYSTEM_MESSAGES } from '@/constants';

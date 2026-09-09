@@ -41,9 +41,9 @@ export const APP_ROUTES = {
   LOGOUT: '/logout',
   EMPLOYEE_LIST: '/employees/adm002',
   EMPLOYEE_DETAIL: '/employees/adm003',
-  EMPLOYEE_EDIT: '/employees/edit',
-  EMPLOYEE_CONFIRM: '/employees/confirm',
-  EMPLOYEE_COMPLETE: '/employees/complete',
+  EMPLOYEE_EDIT: '/employees/adm004',
+  EMPLOYEE_CONFIRM: '/employees/adm005',
+  EMPLOYEE_COMPLETE: '/employees/adm006',
 } as const;
 
 /**

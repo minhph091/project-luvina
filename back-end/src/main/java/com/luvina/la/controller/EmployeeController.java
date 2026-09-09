@@ -26,6 +26,8 @@ import com.luvina.la.dto.EmployeeDetailDTO;
 import com.luvina.la.payload.response.DeleteEmployeeResponse;
 import com.luvina.la.payload.response.EmployeeCertificationResponse;
 import com.luvina.la.payload.response.EmployeeDetailResponse;
+import com.luvina.la.validator.EmployeeValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,18 +49,32 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     private final EmployeeMapper employeeMapper;
+    private final EmployeeValidator employeeValidator;
 
     /**
-     * Khởi tạo EmployeeController.
-     *
-     * @param employeeService Service xử lý nghiệp vụ nhân viên.
-     * @param employeeMapper  Mapper chuyển đổi từ DTO sang Response Payload.
+     * Khởi tạo EmployeeController hỗ trợ backward compatibility cho các unit test.
      */
     public EmployeeController(
             EmployeeService employeeService,
             EmployeeMapper employeeMapper) {
+        this(employeeService, employeeMapper, new EmployeeValidator());
+    }
+
+    /**
+     * Khởi tạo EmployeeController với đầy đủ dependencies.
+     *
+     * @param employeeService  Service xử lý nghiệp vụ nhân viên.
+     * @param employeeMapper   Mapper chuyển đổi từ DTO sang Response Payload.
+     * @param employeeValidator Validator kiểm tra tính hợp lệ của tham số request.
+     */
+    @Autowired
+    public EmployeeController(
+            EmployeeService employeeService,
+            EmployeeMapper employeeMapper,
+            EmployeeValidator employeeValidator) {
         this.employeeService = employeeService;
         this.employeeMapper = employeeMapper;
+        this.employeeValidator = employeeValidator;
     }
 
     /**
@@ -84,6 +100,13 @@ public class EmployeeController {
             @RequestParam(required = false, name = "offset") String offset,
             @RequestParam(required = false, name = "limit") String limit,
             HttpServletRequest request) {
+
+        // Validate các tham số sắp xếp và phân trang đầu vào theo thiết kế
+        MessageResponse validationError = employeeValidator.validateGetEmployeesParams(
+                ordEmployeeName, ordCertificationName, ordEndDate, offset, limit);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
 
         String sortBy = extractSortBy(request);
 
@@ -173,6 +196,12 @@ public class EmployeeController {
      */
     @PostMapping("/employee")
     public AddEmployeeResponse addEmployee(@RequestBody AddEmployeeRequest request) {
+        // Validate dữ liệu request thêm mới nhân viên theo thiết kế
+        MessageResponse validationError = employeeValidator.validateAddEmployee(request);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
+
         EmployeeDTO createdEmployee = employeeService.addEmployee(request);
         return AddEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
@@ -189,6 +218,12 @@ public class EmployeeController {
      */
     @GetMapping("/employee/{id}")
     public EmployeeDetailResponse getEmployeeById(@PathVariable("id") Long id) {
+        // Validate ID nhân viên
+        MessageResponse validationError = employeeValidator.validateEmployeeId(id);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError);
+        }
+
         EmployeeDetailDTO detailDTO = employeeService.getEmployeeById(id);
 
         List<EmployeeCertificationResponse> certResponses = new ArrayList<>();
@@ -227,12 +262,12 @@ public class EmployeeController {
      */
     @DeleteMapping(value = {"/employee", "/employee/{id}"})
     public DeleteEmployeeResponse deleteEmployee(@PathVariable(name = "id", required = false) Long id) {
-        if (id == null) {
-            throw new CustomValidationException(
-                    new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID)),
-                    null
-            );
+        // Validate ID nhân viên khi xóa (ER001 nếu rỗng, ER014 nếu không tồn tại)
+        MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(id);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError, id);
         }
+
         employeeService.deleteEmployee(id);
         return DeleteEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)

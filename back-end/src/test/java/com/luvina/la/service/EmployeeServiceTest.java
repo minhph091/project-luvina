@@ -5,6 +5,7 @@ package com.luvina.la.service;
  * EmployeeServiceTest.java, 21/08/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.exception.CustomValidationException;
@@ -166,41 +167,7 @@ public class EmployeeServiceTest {
         verify(employeeNativeRepository).countEmployees(eq("Nonexistent"), eq(1L));
     }
 
-    @Test
-    @DisplayName("Test getEmployees ném CustomValidationException khi tham số ord không phải ASC hoặc DESC")
-    void testGetEmployeesInvalidOrder() {
-        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
-            employeeService.getEmployees(null, null, "INVALID", null, null, "0", "5");
-        });
 
-        assertNotNull(ex.getMessageResponse());
-        assertEquals("ER021", ex.getMessageResponse().getCode());
-        assertTrue(ex.getMessageResponse().getParams().isEmpty());
-    }
-
-    @Test
-    @DisplayName("Test getEmployees ném CustomValidationException khi offset không phải số nguyên không âm")
-    void testGetEmployeesInvalidOffset() {
-        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
-            employeeService.getEmployees(null, null, "ASC", null, null, "-1", "5");
-        });
-
-        assertNotNull(ex.getMessageResponse());
-        assertEquals("ER018", ex.getMessageResponse().getCode());
-        assertEquals(List.of("オフセット"), ex.getMessageResponse().getParams());
-    }
-
-    @Test
-    @DisplayName("Test getEmployees ném CustomValidationException khi limit không phải số nguyên dương")
-    void testGetEmployeesInvalidLimit() {
-        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
-            employeeService.getEmployees(null, null, "ASC", null, null, "0", "0");
-        });
-
-        assertNotNull(ex.getMessageResponse());
-        assertEquals("ER018", ex.getMessageResponse().getCode());
-        assertEquals(List.of("リミット"), ex.getMessageResponse().getParams());
-    }
 
     @Test
     @DisplayName("Test getEmployees với sortBy certificationNameOrder")
@@ -254,8 +221,6 @@ public class EmployeeServiceTest {
     void testAddEmployeeSuccessWithoutCertifications() {
         AddEmployeeRequest request = createValidAddRequest();
 
-        when(employeeEntityRepository.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
-        when(departmentRepository.existsById(1L)).thenReturn(true);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
 
         EmployeeEntity savedEntity = new EmployeeEntity();
@@ -291,9 +256,6 @@ public class EmployeeServiceTest {
                         .build()
         ));
 
-        when(employeeEntityRepository.existsByEmployeeLoginId("nguyenvana")).thenReturn(false);
-        when(departmentRepository.existsById(1L)).thenReturn(true);
-        when(certificationRepository.existsById(1L)).thenReturn(true);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
 
         EmployeeEntity savedEntity = new EmployeeEntity();
@@ -315,26 +277,9 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    @DisplayName("Test addEmployee ném CustomValidationException khi dữ liệu không hợp lệ")
-    void testAddEmployeeValidationFailureThrowsCustomValidationException() {
-        AddEmployeeRequest request = createValidAddRequest();
-        request.setEmployeeLoginId(""); // Không hợp lệ
-
-        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
-            employeeService.addEmployee(request);
-        });
-
-        assertNotNull(ex.getMessageResponse());
-        assertEquals("ER001", ex.getMessageResponse().getCode());
-        assertEquals(List.of("アカウント名"), ex.getMessageResponse().getParams());
-    }
-
-    @Test
     @DisplayName("Test getEmployeeById thành công trả về đầy đủ EmployeeDetailDTO và certifications")
     void testGetEmployeeByIdSuccess() {
         Long empId = 1L;
-
-        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
 
         List<Object[]> rows = new java.util.ArrayList<>();
         rows.add(new Object[] {
@@ -370,7 +315,7 @@ public class EmployeeServiceTest {
     @DisplayName("Test getEmployeeById thất bại khi ID không tồn tại ném CustomValidationException ER013")
     void testGetEmployeeByIdNotFoundThrowsCustomValidationException() {
         Long empId = 999L;
-        when(employeeEntityRepository.existsById(empId)).thenReturn(false);
+        when(employeeEntityRepository.findEmployeeDetailWithCertifications(empId)).thenReturn(Collections.emptyList());
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
             employeeService.getEmployeeById(empId);
@@ -378,14 +323,13 @@ public class EmployeeServiceTest {
 
         assertNotNull(ex.getMessageResponse());
         assertEquals("ER013", ex.getMessageResponse().getCode());
-        assertEquals(List.of("ＩＤ"), ex.getMessageResponse().getParams());
+        assertEquals(List.of(Constants.PARAM_ID), ex.getMessageResponse().getParams());
     }
 
     @Test
     @DisplayName("Test deleteEmployee thành công xóa trong cả employees và employees_certifications")
     void testDeleteEmployeeSuccess() {
         Long empId = 1L;
-        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
 
         employeeService.deleteEmployee(empId);
 
@@ -394,26 +338,9 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee thất bại khi ID không tồn tại ném CustomValidationException ER014")
-    void testDeleteEmployeeNotFoundThrowsCustomValidationException() {
-        Long empId = 999L;
-        when(employeeEntityRepository.existsById(empId)).thenReturn(false);
-
-        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
-            employeeService.deleteEmployee(empId);
-        });
-
-        assertNotNull(ex.getMessageResponse());
-        assertEquals("ER014", ex.getMessageResponse().getCode());
-        assertEquals(List.of("ＩＤ"), ex.getMessageResponse().getParams());
-        assertEquals(empId, ex.getEmployeeId());
-    }
-
-    @Test
     @DisplayName("Test deleteEmployee gặp lỗi khi xóa trong CSDL ném CustomValidationException ER015")
     void testDeleteEmployeeDatabaseErrorThrowsCustomValidationExceptionER015() {
         Long empId = 1L;
-        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
         org.mockito.Mockito.doThrow(new RuntimeException("DB Connection Error"))
                 .when(employeeEntityRepository).deleteById(empId);
 

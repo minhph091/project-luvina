@@ -98,9 +98,9 @@ project/
     │       └── employees/
     │           ├── adm002/  # Danh sách nhân viên (Tìm kiếm, Sắp xếp, Phân trang)
     │           ├── adm003/  # Chi tiết nhân viên
-    │           ├── edit/    # Thêm mới / Chỉnh sửa thông tin nhân viên (ADM004)
-    │           ├── confirm/ # Màn hình xác nhận thông tin (ADM005)
-    │           └── complete/# Màn hình thông báo hoàn tất (ADM006)
+    │           ├── adm004/  # Thêm mới / Chỉnh sửa thông tin nhân viên (ADM004)
+    │           ├── adm005/  # Màn hình xác nhận thông tin (ADM005)
+    │           └── adm006/  # Màn hình thông báo hoàn tất (ADM006)
     ├── components/          # Các component tái sử dụng (Header, Footer, Pagination, Form controls)
     ├── constants/           # Hằng số, API Routes, Storage Keys, Message Keys
     ├── hooks/               # Custom React Hooks
@@ -141,9 +141,9 @@ project/
   - Phân trang (mặc định 20 bản ghi/trang).
   - Không hiển thị tài khoản có quyền `ADMIN` trên danh sách.
 - **ADM003 - Chi tiết nhân viên (`/employees/adm003` hoặc `/employees/[id]`)**: Xem toàn bộ thông tin cá nhân, phòng ban và chứng chỉ tiếng Nhật. Hỗ trợ chuyển sang sửa hoặc xóa.
-- **ADM004 - Thêm mới / Cập nhật nhân viên (`/employees/edit`)**: Nhập thông tin nhân viên kèm chọn trình độ tiếng Nhật, ngày cấp, hạn chứng chỉ, điểm số.
-- **ADM005 - Xác nhận thông tin (`/employees/confirm`)**: Màn hình trung gian kiểm tra lại toàn bộ thông tin trước khi ghi nhận vào CSDL.
-- **ADM006 - Hoàn tất (`/employees/complete`)**: Thông báo kết quả thực hiện thành công (Thêm / Sửa / Xóa) và điều hướng quay lại danh sách.
+- **ADM004 - Thêm mới / Cập nhật nhân viên (`/employees/adm004`)**: Nhập thông tin nhân viên kèm chọn trình độ tiếng Nhật, ngày cấp, hạn chứng chỉ, điểm số.
+- **ADM005 - Xác nhận thông tin (`/employees/adm005`)**: Màn hình trung gian kiểm tra lại toàn bộ thông tin trước khi ghi nhận vào CSDL.
+- **ADM006 - Hoàn tất (`/employees/adm006`)**: Thông báo kết quả thực hiện thành công (Thêm / Sửa / Xóa) và điều hướng quay lại danh sách.
 
 ---
 

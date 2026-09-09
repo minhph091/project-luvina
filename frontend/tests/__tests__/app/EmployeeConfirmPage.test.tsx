@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EmployeeConfirmPage from '@/app/(protected)/employees/confirm/page';
+import EmployeeConfirmPage from '@/app/(protected)/employees/adm005/page';
 import { saveEmployeeFormData, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';

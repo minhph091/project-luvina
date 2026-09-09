@@ -151,23 +151,24 @@ public class EmployeeServiceImpl implements EmployeeService {
             String limitStr,
             String sortBy) {
 
-        // 1. Validate parameter
-        MessageResponse validationError = employeeValidator.validateGetEmployeesParams(
-                ordEmployeeName, ordCertificationName, ordEndDate, offsetStr, limitStr);
-        if (validationError != null) {
-            throw new CustomValidationException(validationError);
-        }
-
         // Parse offset
         int offsetVal = Constants.DEFAULT_OFFSET;
         if (offsetStr != null && !offsetStr.trim().isEmpty()) {
-            offsetVal = Integer.parseInt(offsetStr.trim());
+            try {
+                offsetVal = Integer.parseInt(offsetStr.trim());
+            } catch (NumberFormatException ex) {
+                log.warn("Invalid offset format: {}", offsetStr);
+            }
         }
 
         // Parse limit
         int limitVal = Constants.DEFAULT_LIMIT;
         if (limitStr != null && !limitStr.trim().isEmpty()) {
-            limitVal = Integer.parseInt(limitStr.trim());
+            try {
+                limitVal = Integer.parseInt(limitStr.trim());
+            } catch (NumberFormatException ex) {
+                log.warn("Invalid limit format: {}", limitStr);
+            }
         }
 
         // Parse departmentId
@@ -216,14 +217,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public EmployeeDTO addEmployee(AddEmployeeRequest request) {
-        // 1. Validate parameter
-        MessageResponse validationError = employeeValidator.validateAddEmployee(
-                request, employeeEntityRepository, departmentRepository, certificationRepository);
-        if (validationError != null) {
-            throw new CustomValidationException(validationError);
-        }
-
-        // 2. Insert nhân viên vào database (bảng employees)
+        // 1. Insert nhân viên vào database (bảng employees)
         EmployeeEntity employeeEntity = new EmployeeEntity();
         employeeEntity.setDepartmentId(Long.parseLong(request.getDepartmentId().trim()));
         employeeEntity.setEmployeeName(request.getEmployeeName().trim());
@@ -285,13 +279,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     @Override
     public EmployeeDetailDTO getEmployeeById(Long employeeId) {
-        // 1. Validate employeeId
-        MessageResponse validationError = employeeValidator.validateEmployeeId(employeeId, employeeEntityRepository);
-        if (validationError != null) {
-            throw new CustomValidationException(validationError);
-        }
-
-        // 2. Thực hiện query JOIN 4 bảng lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ
+        // 1. Thực hiện query JOIN 4 bảng lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ
         List<Object[]> rows = employeeEntityRepository.findEmployeeDetailWithCertifications(employeeId);
         if (rows == null || rows.isEmpty()) {
             throw new CustomValidationException(
@@ -342,12 +330,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteEmployee(Long employeeId) {
-        // 1. Validate employeeId (ER001 nếu rỗng, ER014 nếu không tồn tại trong CSDL)
-        MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(employeeId, employeeEntityRepository);
-        if (validationError != null) {
-            throw new CustomValidationException(validationError, employeeId);
-        }
-
         try {
             // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
             if (employeeCertificationRepository != null) {

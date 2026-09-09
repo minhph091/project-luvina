@@ -254,6 +254,37 @@ public class EmployeeValidatorTest {
     }
 
     @Test
+    @DisplayName("Test validateDateField kiểm tra đầy đủ các trường hợp rỗng (ER001), sai format (ER005), ngày không hợp lệ (ER011), và thành công")
+    void testValidateDateField() {
+        // 1. null hoặc rỗng -> ER001
+        MessageResponse errorNull = employeeValidator.validateDateField(null, Constants.PARAM_BIRTHDAY);
+        assertNotNull(errorNull);
+        assertEquals(Constants.ERROR_CODE_ER001, errorNull.getCode());
+        assertEquals(List.of(Constants.PARAM_BIRTHDAY), errorNull.getParams());
+
+        MessageResponse errorEmpty = employeeValidator.validateDateField("   ", Constants.PARAM_CERTIFICATION_START_DATE);
+        assertNotNull(errorEmpty);
+        assertEquals(Constants.ERROR_CODE_ER001, errorEmpty.getCode());
+        assertEquals(List.of(Constants.PARAM_CERTIFICATION_START_DATE), errorEmpty.getParams());
+
+        // 2. Sai format -> ER005
+        MessageResponse errorFormat = employeeValidator.validateDateField("2024-01-01", Constants.PARAM_BIRTHDAY);
+        assertNotNull(errorFormat);
+        assertEquals(Constants.ERROR_CODE_ER005, errorFormat.getCode());
+        assertEquals(List.of(Constants.PARAM_BIRTHDAY, Constants.DATE_FORMAT_YYYY_MM_DD), errorFormat.getParams());
+
+        // 3. Ngày không hợp lệ trong lịch (ví dụ 30/02) -> ER011
+        MessageResponse errorInvalidDate = employeeValidator.validateDateField("2024/02/30", Constants.PARAM_CERTIFICATION_END_DATE);
+        assertNotNull(errorInvalidDate);
+        assertEquals(Constants.ERROR_CODE_ER011, errorInvalidDate.getCode());
+        assertEquals(List.of(Constants.PARAM_CERTIFICATION_END_DATE), errorInvalidDate.getParams());
+
+        // 4. Hợp lệ -> null
+        MessageResponse success = employeeValidator.validateDateField("2024/02/29", Constants.PARAM_BIRTHDAY); // 2024 là năm nhuận
+        assertNull(success);
+    }
+
+    @Test
     @DisplayName("Test validateAddEmployee lỗi email và telephone (ER001, ER006, ER008)")
     void testValidateAddEmployeeEmailAndTelephoneErrors() {
         com.luvina.la.repository.EmployeeEntityRepository mockEmpRepo = org.mockito.Mockito.mock(com.luvina.la.repository.EmployeeEntityRepository.class);

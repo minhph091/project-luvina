@@ -6,9 +6,16 @@ package com.luvina.la.validator;
  */
 
 import com.luvina.la.config.Constants;
+import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.request.CertificationItemRequest;
 import com.luvina.la.payload.response.MessageResponse;
+import com.luvina.la.repository.CertificationRepository;
+import com.luvina.la.repository.DepartmentRepository;
+import com.luvina.la.repository.EmployeeEntityRepository;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,6 +25,27 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EmployeeValidator {
+
+    @Autowired(required = false)
+    private EmployeeEntityRepository employeeEntityRepository;
+
+    @Autowired(required = false)
+    private DepartmentRepository departmentRepository;
+
+    @Autowired(required = false)
+    private CertificationRepository certificationRepository;
+
+    public EmployeeValidator() {
+    }
+
+    public EmployeeValidator(
+            EmployeeEntityRepository employeeEntityRepository,
+            DepartmentRepository departmentRepository,
+            CertificationRepository certificationRepository) {
+        this.employeeEntityRepository = employeeEntityRepository;
+        this.departmentRepository = departmentRepository;
+        this.certificationRepository = certificationRepository;
+    }
 
     /**
      * Validate toàn bộ các tham số đầu vào khi lấy danh sách nhân viên.
@@ -136,6 +164,16 @@ public class EmployeeValidator {
                     .withResolverStyle(java.time.format.ResolverStyle.STRICT);
 
     /**
+     * Validate toàn bộ thông tin trong request thêm mới nhân viên sử dụng các repository được inject tự động.
+     *
+     * @param request Request DTO chứa thông tin nhân viên và chứng chỉ.
+     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     */
+    public MessageResponse validateAddEmployee(AddEmployeeRequest request) {
+        return validateAddEmployee(request, this.employeeEntityRepository, this.departmentRepository, this.certificationRepository);
+    }
+
+    /**
      * Validate toàn bộ thông tin trong request thêm mới nhân viên theo tài liệu thiết kế (POST /employee).
      *
      * @param request          Request DTO chứa thông tin nhân viên và chứng chỉ.
@@ -145,10 +183,10 @@ public class EmployeeValidator {
      * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
      */
     public MessageResponse validateAddEmployee(
-            com.luvina.la.payload.request.AddEmployeeRequest request,
-            com.luvina.la.repository.EmployeeEntityRepository employeeRepo,
-            com.luvina.la.repository.DepartmentRepository departmentRepo,
-            com.luvina.la.repository.CertificationRepository certificationRepo) {
+            AddEmployeeRequest request,
+            EmployeeEntityRepository employeeRepo,
+            DepartmentRepository departmentRepo,
+            CertificationRepository certificationRepo) {
 
         if (request == null) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
@@ -216,7 +254,7 @@ public class EmployeeValidator {
      */
     public MessageResponse validateEmployeeLoginId(
             String loginId,
-            com.luvina.la.repository.EmployeeEntityRepository employeeRepo) {
+            EmployeeEntityRepository employeeRepo) {
         if (loginId == null || loginId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
@@ -265,20 +303,31 @@ public class EmployeeValidator {
     }
 
     /**
+     * Validate một trường ngày tháng bắt buộc theo định dạng yyyy/MM/dd và tính hợp lệ của ngày.
+     *
+     * @param dateStr   Giá trị chuỗi ngày cần kiểm tra.
+     * @param paramName Tên tham số dùng trong message lỗi (Constants.PARAM_BIRTHDAY, Constants.PARAM_CERTIFICATION_START_DATE, v.v.).
+     * @return MessageResponse nếu có lỗi (ER001 nếu rỗng, ER005 nếu sai format, ER011 nếu ngày không hợp lệ), null nếu hợp lệ.
+     */
+    public MessageResponse validateDateField(String dateStr, String paramName) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(paramName));
+        }
+        String trimmed = dateStr.trim();
+        if (!isValidDateFormat(trimmed)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(paramName, Constants.DATE_FORMAT_YYYY_MM_DD));
+        }
+        if (parseStrictDate(trimmed) == null) {
+            return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(paramName));
+        }
+        return null;
+    }
+
+    /**
      * Validate employeeBirthDate (định dạng yyyy/MM/dd và ngày hợp lệ).
      */
     public MessageResponse validateEmployeeBirthDate(String birthDate) {
-        if (birthDate == null || birthDate.trim().isEmpty()) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_BIRTHDAY));
-        }
-        String trimmed = birthDate.trim();
-        if (!isValidDateFormat(trimmed)) {
-            return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_BIRTHDAY, Constants.DATE_FORMAT_YYYY_MM_DD));
-        }
-        if (parseStrictDate(trimmed) == null) {
-            return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_BIRTHDAY));
-        }
-        return null;
+        return validateDateField(birthDate, Constants.PARAM_BIRTHDAY);
     }
 
     /**
@@ -330,7 +379,7 @@ public class EmployeeValidator {
      */
     public MessageResponse validateDepartmentId(
             String departmentId,
-            com.luvina.la.repository.DepartmentRepository departmentRepo) {
+            DepartmentRepository departmentRepo) {
         if (departmentId == null || departmentId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER002, Collections.singletonList(Constants.PARAM_GROUP));
         }
@@ -358,46 +407,32 @@ public class EmployeeValidator {
      * Validate danh sách certifications.
      */
     public MessageResponse validateCertifications(
-            java.util.List<com.luvina.la.payload.request.CertificationItemRequest> certs,
-            com.luvina.la.repository.CertificationRepository certificationRepo) {
+            List<CertificationItemRequest> certs,
+            CertificationRepository certificationRepo) {
         if (certs == null || certs.isEmpty()) {
             return null;
         }
 
-        for (com.luvina.la.payload.request.CertificationItemRequest cert : certs) {
+        for (CertificationItemRequest cert : certs) {
             if (cert == null) {
                 continue;
             }
 
             // 1. startDate
-            String startDate = cert.getStartDate();
-            if (startDate == null || startDate.trim().isEmpty()) {
-                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
-            }
-            String trimmedStart = startDate.trim();
-            if (!isValidDateFormat(trimmedStart)) {
-                return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_START_DATE, Constants.DATE_FORMAT_YYYY_MM_DD));
-            }
-            java.time.LocalDate parsedStart = parseStrictDate(trimmedStart);
-            if (parsedStart == null) {
-                return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
+            MessageResponse startDateError = validateDateField(cert.getStartDate(), Constants.PARAM_CERTIFICATION_START_DATE);
+            if (startDateError != null) {
+                return startDateError;
             }
 
             // 2. endDate
-            String endDate = cert.getEndDate();
-            if (endDate == null || endDate.trim().isEmpty()) {
-                return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION_END_DATE));
-            }
-            String trimmedEnd = endDate.trim();
-            if (!isValidDateFormat(trimmedEnd)) {
-                return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.DATE_FORMAT_YYYY_MM_DD));
-            }
-            java.time.LocalDate parsedEnd = parseStrictDate(trimmedEnd);
-            if (parsedEnd == null) {
-                return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_END_DATE));
+            MessageResponse endDateError = validateDateField(cert.getEndDate(), Constants.PARAM_CERTIFICATION_END_DATE);
+            if (endDateError != null) {
+                return endDateError;
             }
 
             // Check endDate > startDate (ER012)
+            java.time.LocalDate parsedStart = parseStrictDate(cert.getStartDate().trim());
+            java.time.LocalDate parsedEnd = parseStrictDate(cert.getEndDate().trim());
             if (!parsedEnd.isAfter(parsedStart)) {
                 return new MessageResponse(Constants.ERROR_CODE_ER012, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));
             }
@@ -472,6 +507,13 @@ public class EmployeeValidator {
     }
 
     /**
+     * Validate tham số employeeId theo thiết kế API Get employee sử dụng repository được inject.
+     */
+    public MessageResponse validateEmployeeId(Long employeeId) {
+        return validateEmployeeId(employeeId, this.employeeEntityRepository);
+    }
+
+    /**
      * Validate tham số employeeId theo thiết kế API Get/Delete employee.
      *
      * @param employeeId   ID của nhân viên.
@@ -480,7 +522,7 @@ public class EmployeeValidator {
      */
     public MessageResponse validateEmployeeId(
             Long employeeId,
-            com.luvina.la.repository.EmployeeEntityRepository employeeRepo) {
+            EmployeeEntityRepository employeeRepo) {
         if (employeeId == null || employeeId <= 0) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }
@@ -493,6 +535,13 @@ public class EmployeeValidator {
     }
 
     /**
+     * Validate tham số employeeId theo thiết kế API Delete employee sử dụng repository được inject.
+     */
+    public MessageResponse validateEmployeeIdForDelete(Long employeeId) {
+        return validateEmployeeIdForDelete(employeeId, this.employeeEntityRepository);
+    }
+
+    /**
      * Validate tham số employeeId theo thiết kế API Delete employee.
      * Trả về ER001 nếu không tồn tại tham số, trả về ER014 nếu không tồn tại trong bảng employees.
      *
@@ -502,7 +551,7 @@ public class EmployeeValidator {
      */
     public MessageResponse validateEmployeeIdForDelete(
             Long employeeId,
-            com.luvina.la.repository.EmployeeEntityRepository employeeRepo) {
+            EmployeeEntityRepository employeeRepo) {
         if (employeeId == null || employeeId <= 0) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }

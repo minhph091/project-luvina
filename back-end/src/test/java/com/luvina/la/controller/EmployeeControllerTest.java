@@ -14,6 +14,7 @@ import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.exception.GlobalExceptionHandler;
 import com.luvina.la.service.EmployeeService;
+import com.luvina.la.validator.EmployeeValidator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +53,9 @@ public class EmployeeControllerTest {
     @Mock
     private EmployeeService employeeService;
 
+    @Mock
+    private EmployeeValidator employeeValidator;
+
     private EmployeeMapper employeeMapper;
     private EmployeeController employeeController;
     private MockMvc mockMvc;
@@ -59,7 +63,7 @@ public class EmployeeControllerTest {
     @BeforeEach
     void setUp() {
         employeeMapper = Mappers.getMapper(EmployeeMapper.class);
-        employeeController = new EmployeeController(employeeService, employeeMapper);
+        employeeController = new EmployeeController(employeeService, employeeMapper, employeeValidator);
         mockMvc = MockMvcBuilders.standaloneSetup(employeeController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -143,23 +147,48 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test getEmployees ném CustomValidationException khi Service ném lỗi")
-    void testGetEmployeesValidationException() {
-        when(employeeService.getEmployees(
-                isNull(), isNull(), eq("INVALID"), isNull(), isNull(), isNull(), isNull(), isNull()
-        )).thenThrow(new CustomValidationException(new MessageResponse("ER021", new ArrayList<>())));
+    @DisplayName("Test getEmployees ném CustomValidationException khi tham số ord không hợp lệ (ER021)")
+    void testGetEmployeesValidationExceptionInvalidOrder() {
+        when(employeeValidator.validateGetEmployeesParams(eq("INVALID"), any(), any(), any(), any()))
+                .thenReturn(new MessageResponse("ER021", new ArrayList<>()));
 
-        assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
                 null, null, "INVALID", null, null, null, null
         ));
+        assertEquals("ER021", ex.getMessageResponse().getCode());
     }
 
     @Test
-    @DisplayName("Test getEmployees với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500")
+    @DisplayName("Test getEmployees ném CustomValidationException khi offset không hợp lệ (ER018)")
+    void testGetEmployeesValidationExceptionInvalidOffset() {
+        when(employeeValidator.validateGetEmployeesParams(any(), any(), any(), eq("-1"), any()))
+                .thenReturn(new MessageResponse("ER018", List.of("オフセット")));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
+                null, null, "ASC", null, null, "-1", "5"
+        ));
+        assertEquals("ER018", ex.getMessageResponse().getCode());
+        assertEquals(List.of("オフセット"), ex.getMessageResponse().getParams());
+    }
+
+    @Test
+    @DisplayName("Test getEmployees ném CustomValidationException khi limit không hợp lệ (ER018)")
+    void testGetEmployeesValidationExceptionInvalidLimit() {
+        when(employeeValidator.validateGetEmployeesParams(any(), any(), any(), any(), eq("0")))
+                .thenReturn(new MessageResponse("ER018", List.of("リミット")));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
+                null, null, "ASC", null, null, "0", "0"
+        ));
+        assertEquals("ER018", ex.getMessageResponse().getCode());
+        assertEquals(List.of("リミット"), ex.getMessageResponse().getParams());
+    }
+
+    @Test
+    @DisplayName("Test getEmployees với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500 khi Controller validate lỗi")
     void testGetEmployeesValidationWithMockMvc() throws Exception {
-        when(employeeService.getEmployees(
-                isNull(), isNull(), eq("INVALID"), isNull(), isNull(), isNull(), isNull(), any()
-        )).thenThrow(new CustomValidationException(new MessageResponse("ER021", new ArrayList<>())));
+        when(employeeValidator.validateGetEmployeesParams(eq("INVALID"), any(), any(), any(), any()))
+                .thenReturn(new MessageResponse("ER021", new ArrayList<>()));
 
         mockMvc.perform(get("/employee").param("ord_employee_name", "INVALID"))
                 .andExpect(status().isOk())
@@ -192,12 +221,12 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test addEmployee ném CustomValidationException khi Service ném lỗi")
+    @DisplayName("Test addEmployee ném CustomValidationException khi Validator báo lỗi")
     void testAddEmployeeValidationException() {
         com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
 
-        when(employeeService.addEmployee(request))
-                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME))));
+        when(employeeValidator.validateAddEmployee(request))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME)));
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.addEmployee(request));
         assertEquals(Constants.ERROR_CODE_ER001, ex.getMessageResponse().getCode());
@@ -205,10 +234,10 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test addEmployee với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500")
+    @DisplayName("Test addEmployee với MockMvc và GlobalExceptionHandler trả về JSON lỗi code 500 khi Validator báo lỗi")
     void testAddEmployeeValidationWithMockMvc() throws Exception {
-        when(employeeService.addEmployee(any()))
-                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME))));
+        when(employeeValidator.validateAddEmployee(any()))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME)));
 
         mockMvc.perform(post("/employee")
                         .contentType("application/json")
@@ -281,10 +310,10 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test getEmployeeById trả về lỗi ER013 khi ID không tồn tại")
+    @DisplayName("Test getEmployeeById trả về lỗi ER013 khi Validator báo ID không tồn tại")
     void testGetEmployeeByIdNotFound() throws Exception {
-        when(employeeService.getEmployeeById(999L))
-                .thenThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, List.of(Constants.PARAM_ID))));
+        when(employeeValidator.validateEmployeeId(999L))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER013, List.of(Constants.PARAM_ID)));
 
         mockMvc.perform(get("/employee/999"))
                 .andExpect(status().isOk())
@@ -306,8 +335,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee trả về lỗi ER001 khi không truyền ID (/employee)")
+    @DisplayName("Test deleteEmployee trả về lỗi ER001 khi Validator báo ID rỗng")
     void testDeleteEmployeeMissingId() throws Exception {
+        when(employeeValidator.validateEmployeeIdForDelete(isNull()))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID)));
+
         mockMvc.perform(delete("/employee"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
@@ -318,8 +350,8 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test deleteEmployee trả về lỗi ER014 và employeeId khi ID không tồn tại")
     void testDeleteEmployeeNotFound() throws Exception {
-        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER014, List.of(Constants.PARAM_ID)), 999L))
-                .when(employeeService).deleteEmployee(999L);
+        when(employeeValidator.validateEmployeeIdForDelete(999L))
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER014, List.of(Constants.PARAM_ID)));
 
         mockMvc.perform(delete("/employee/999"))
                 .andExpect(status().isOk())
