@@ -8,6 +8,7 @@ package com.luvina.la.repository;
 import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -314,14 +315,14 @@ public class EmployeeNativeRepository {
             Long employeeId = row[0] != null ? ((Number) row[0]).longValue() : null;
             String employeeName = (String) row[1];
             LocalDate employeeBirthDate = row[2] != null
-                    ? ((java.sql.Date) row[2]).toLocalDate()
+                    ? ((Date) row[2]).toLocalDate()
                     : null;
             String departmentName = (String) row[3];
             String employeeEmail = (String) row[4];
             String employeeTelephone = (String) row[5];
             String certificationName = (String) row[6];
             LocalDate endDate = row[7] != null
-                    ? ((java.sql.Date) row[7]).toLocalDate()
+                    ? ((Date) row[7]).toLocalDate()
                     : null;
             BigDecimal score = row[8] != null ? (BigDecimal) row[8] : null;
 

@@ -7,6 +7,7 @@ package com.luvina.la.service;
 
 import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
+import com.luvina.la.dto.EmployeeDetailDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.repository.EmployeeNativeRepository;
@@ -14,6 +15,7 @@ import com.luvina.la.service.impl.EmployeeServiceImpl;
 import com.luvina.la.validator.EmployeeValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,10 +23,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +70,7 @@ public class EmployeeServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @org.mockito.Spy
+    @Spy
     private EmployeeValidator employeeValidator = new EmployeeValidator();
 
     private EmployeeService employeeService;
@@ -281,7 +285,7 @@ public class EmployeeServiceTest {
     void testGetEmployeeByIdSuccess() {
         Long empId = 1L;
 
-        List<Object[]> rows = new java.util.ArrayList<>();
+        List<Object[]> rows = new ArrayList<>();
         rows.add(new Object[] {
                 empId,
                 2L,
@@ -301,7 +305,7 @@ public class EmployeeServiceTest {
         });
         when(employeeEntityRepository.findEmployeeDetailWithCertifications(empId)).thenReturn(rows);
 
-        com.luvina.la.dto.EmployeeDetailDTO result = employeeService.getEmployeeById(empId);
+        EmployeeDetailDTO result = employeeService.getEmployeeById(empId);
 
         assertNotNull(result);
         assertEquals(empId, result.getEmployeeId());
@@ -341,7 +345,7 @@ public class EmployeeServiceTest {
     @DisplayName("Test deleteEmployee gặp lỗi khi xóa trong CSDL ném CustomValidationException ER015")
     void testDeleteEmployeeDatabaseErrorThrowsCustomValidationExceptionER015() {
         Long empId = 1L;
-        org.mockito.Mockito.doThrow(new RuntimeException("DB Connection Error"))
+        doThrow(new RuntimeException("DB Connection Error"))
                 .when(employeeEntityRepository).deleteById(empId);
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {

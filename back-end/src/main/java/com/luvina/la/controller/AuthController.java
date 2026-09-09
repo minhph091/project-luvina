@@ -4,6 +4,7 @@ import com.luvina.la.config.jwt.AuthUserDetails;
 import com.luvina.la.config.jwt.JwtTokenProvider;
 import com.luvina.la.config.jwt.UserDetailsServiceImpl;
 import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.LoginRequest;
 import com.luvina.la.payload.response.LoginResponse;
 import com.luvina.la.repository.EmployeeEntityRepository;
@@ -38,7 +39,7 @@ public class AuthController {
     final UserDetailsServiceImpl userDetailsService;
     final EmployeeEntityRepository employeeEntityRepository;
     final PasswordEncoder passwordEncoder;
-    final com.luvina.la.mapper.EmployeeMapper employeeMapper;
+    final EmployeeMapper employeeMapper;
 
     AuthController(
             AuthenticationManager authenticationManager,
@@ -46,7 +47,7 @@ public class AuthController {
             UserDetailsServiceImpl userDetailsService,
             EmployeeEntityRepository employeeEntityRepository,
             PasswordEncoder passwordEncoder,
-            com.luvina.la.mapper.EmployeeMapper employeeMapper) {
+            EmployeeMapper employeeMapper) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;

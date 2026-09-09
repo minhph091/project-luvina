@@ -7,14 +7,19 @@ package com.luvina.la.controller;
 
 import com.luvina.la.config.Constants;
 import com.luvina.la.dto.EmployeeDTO;
+import com.luvina.la.dto.EmployeeDetailDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.exception.CustomValidationException;
 import com.luvina.la.mapper.EmployeeMapper;
+import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.response.AddEmployeeResponse;
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.exception.GlobalExceptionHandler;
 import com.luvina.la.service.EmployeeService;
 import com.luvina.la.validator.EmployeeValidator;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -199,19 +205,19 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test addEmployee thành công trả về code 200 và employeeId")
     void testAddEmployeeSuccess() {
-        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder()
+        AddEmployeeRequest request = AddEmployeeRequest.builder()
                 .employeeLoginId("nguyenvana")
                 .employeeName("Nguyễn Văn A")
                 .build();
 
-        com.luvina.la.dto.EmployeeDTO mockDto = com.luvina.la.dto.EmployeeDTO.builder()
+        EmployeeDTO mockDto = EmployeeDTO.builder()
                 .employeeId(1L)
                 .employeeName("Nguyễn Văn A")
                 .build();
 
         when(employeeService.addEmployee(request)).thenReturn(mockDto);
 
-        com.luvina.la.payload.response.AddEmployeeResponse response = employeeController.addEmployee(request);
+        AddEmployeeResponse response = employeeController.addEmployee(request);
 
         assertNotNull(response);
         assertEquals(200, response.getCode());
@@ -223,7 +229,7 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test addEmployee ném CustomValidationException khi Validator báo lỗi")
     void testAddEmployeeValidationException() {
-        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
+        AddEmployeeRequest request = AddEmployeeRequest.builder().build();
 
         when(employeeValidator.validateAddEmployee(request))
                 .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER001, List.of(Constants.PARAM_ACCOUNT_NAME)));
@@ -251,7 +257,7 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test addEmployee ném RuntimeException khi có lỗi hệ thống")
     void testAddEmployeeGeneralException() {
-        com.luvina.la.payload.request.AddEmployeeRequest request = com.luvina.la.payload.request.AddEmployeeRequest.builder().build();
+        AddEmployeeRequest request = AddEmployeeRequest.builder().build();
 
         when(employeeService.addEmployee(request))
                 .thenThrow(new RuntimeException("Database error"));
@@ -276,10 +282,10 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test getEmployeeById trả về HTTP 200 và chi tiết nhân viên khi ID tồn tại")
     void testGetEmployeeByIdSuccess() throws Exception {
-        com.luvina.la.dto.EmployeeDetailDTO detailDTO = com.luvina.la.dto.EmployeeDetailDTO.builder()
+        EmployeeDetailDTO detailDTO = EmployeeDetailDTO.builder()
                 .employeeId(1L)
                 .employeeName("Nguyễn Văn A")
-                .employeeBirthDate(java.time.LocalDate.of(1990, 5, 20))
+                .employeeBirthDate(LocalDate.of(1990, 5, 20))
                 .departmentId(3L)
                 .departmentName("Phòng Phát Triển 1")
                 .employeeEmail("vana@luvina.net")
@@ -287,12 +293,12 @@ public class EmployeeControllerTest {
                 .employeeNameKana("名カナ")
                 .employeeLoginId("vana")
                 .certifications(List.of(
-                        com.luvina.la.dto.EmployeeDetailDTO.CertificationInfo.builder()
+                        EmployeeDetailDTO.CertificationInfo.builder()
                                 .certificationId(1L)
                                 .certificationName("Trình độ tiếng Nhật cấp 1")
-                                .startDate(java.time.LocalDate.of(2023, 1, 1))
-                                .endDate(java.time.LocalDate.of(2024, 1, 1))
-                                .score(new java.math.BigDecimal("180"))
+                                .startDate(LocalDate.of(2023, 1, 1))
+                                .endDate(LocalDate.of(2024, 1, 1))
+                                .score(new BigDecimal("180"))
                                 .build()
                 ))
                 .build();
@@ -364,7 +370,7 @@ public class EmployeeControllerTest {
     @Test
     @DisplayName("Test deleteEmployee trả về lỗi ER015 và employeeId khi gặp lỗi hệ thống trong CSDL")
     void testDeleteEmployeeDatabaseError() throws Exception {
-        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER015, List.of()), 1L))
+        doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER015, List.of()), 1L))
                 .when(employeeService).deleteEmployee(1L);
 
         mockMvc.perform(delete("/employee/1"))

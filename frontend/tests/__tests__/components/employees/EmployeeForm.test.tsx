@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import EmployeeForm from '@/components/employees/EmployeeForm';
+import EmployeeForm from '@/components/employees/adm004/EmployeeForm';
 import { EmployeeFormData } from '@/types/employee';
 import { BUTTON_LABELS, PAGE_TITLES } from '@/constants';
 

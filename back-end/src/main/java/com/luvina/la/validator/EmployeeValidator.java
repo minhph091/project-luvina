@@ -12,7 +12,11 @@ import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeEntityRepository;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,9 +163,9 @@ public class EmployeeValidator {
         return null;
     }
 
-    private static final java.time.format.DateTimeFormatter STRICT_DATE_FORMATTER =
-            java.time.format.DateTimeFormatter.ofPattern("uuuu/MM/dd")
-                    .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+    private static final DateTimeFormatter STRICT_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("uuuu/MM/dd")
+                    .withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Validate toàn bộ thông tin trong request thêm mới nhân viên sử dụng các repository được inject tự động.
@@ -315,7 +319,7 @@ public class EmployeeValidator {
         }
         String trimmed = dateStr.trim();
         if (!isValidDateFormat(trimmed)) {
-            return new MessageResponse(Constants.ERROR_CODE_ER005, java.util.Arrays.asList(paramName, Constants.DATE_FORMAT_YYYY_MM_DD));
+            return new MessageResponse(Constants.ERROR_CODE_ER005, Arrays.asList(paramName, Constants.DATE_FORMAT_YYYY_MM_DD));
         }
         if (parseStrictDate(trimmed) == null) {
             return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(paramName));
@@ -369,7 +373,7 @@ public class EmployeeValidator {
         }
         String trimmed = password.trim();
         if (trimmed.length() < 8 || trimmed.length() > 50) {
-            return new MessageResponse(Constants.ERROR_CODE_ER007, java.util.Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
+            return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
         }
         return null;
     }
@@ -431,10 +435,10 @@ public class EmployeeValidator {
             }
 
             // Check endDate > startDate (ER012)
-            java.time.LocalDate parsedStart = parseStrictDate(cert.getStartDate().trim());
-            java.time.LocalDate parsedEnd = parseStrictDate(cert.getEndDate().trim());
+            LocalDate parsedStart = parseStrictDate(cert.getStartDate().trim());
+            LocalDate parsedEnd = parseStrictDate(cert.getEndDate().trim());
             if (!parsedEnd.isAfter(parsedStart)) {
-                return new MessageResponse(Constants.ERROR_CODE_ER012, java.util.Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));
+                return new MessageResponse(Constants.ERROR_CODE_ER012, Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));
             }
 
             // 3. score
@@ -495,12 +499,12 @@ public class EmployeeValidator {
     /**
      * Parse chuỗi ngày nghiêm ngặt (strict) theo định dạng yyyy/MM/dd.
      */
-    public java.time.LocalDate parseStrictDate(String dateStr) {
+    public LocalDate parseStrictDate(String dateStr) {
         if (dateStr == null) {
             return null;
         }
         try {
-            return java.time.LocalDate.parse(dateStr, STRICT_DATE_FORMATTER);
+            return LocalDate.parse(dateStr, STRICT_DATE_FORMATTER);
         } catch (Exception ex) {
             return null;
         }

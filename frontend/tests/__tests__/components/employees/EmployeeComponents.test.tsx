@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import EmployeeSearchForm from '@/components/employees/EmployeeSearchForm';
-import EmployeeTable from '@/components/employees/EmployeeTable';
-import EmployeePagination from '@/components/employees/EmployeePagination';
+import EmployeeSearchForm from '@/components/employees/adm002/EmployeeSearchForm';
+import EmployeeTable from '@/components/employees/adm002/EmployeeTable';
+import EmployeePagination from '@/components/employees/adm002/EmployeePagination';
 import { EmployeeItem } from '@/types/employee';
 
 describe('Employee Sub-Components Tests', () => {

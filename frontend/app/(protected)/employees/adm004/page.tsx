@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useCertifications } from '@/hooks/useCertifications';
 import { useAdm004 } from '@/hooks/useAdm004';
-import EmployeeForm from '@/components/employees/EmployeeForm';
+import EmployeeForm from '@/components/employees/adm004/EmployeeForm';
 
 /**
  * Page Component của ADM004.

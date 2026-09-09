@@ -9,23 +9,11 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdm006 } from '@/hooks/useAdm006';
-import { BUTTON_LABELS } from '@/constants';
+import Adm006 from '@/components/employees/Adm006';
 
 export default function EmployeeCompletePage() {
   useAuth();
-  const { completeMessage, handleNavigateToList } = useAdm006();
+  const adm006Props = useAdm006();
 
-  return (
-    <div className="box-shadow">
-      <div className="notification-box">
-        <h1 className="msg-title">{completeMessage}</h1>
-        <div className="notification-box-btn">
-          <button type="button" onClick={handleNavigateToList} className="btn btn-primary btn-sm">
-            {BUTTON_LABELS.OK}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return <Adm006 {...adm006Props} />;
 }
-

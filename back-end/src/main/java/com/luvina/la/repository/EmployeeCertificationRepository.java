@@ -8,6 +8,8 @@ package com.luvina.la.repository;
 import com.luvina.la.entity.EmployeeCertificationEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -32,13 +34,13 @@ public interface EmployeeCertificationRepository extends JpaRepository<EmployeeC
      * @param employeeId ID của nhân viên.
      * @return Danh sách mảng Object chứa certificationId, certificationName, startDate, endDate, score.
      */
-    @org.springframework.data.jpa.repository.Query(
+    @Query(
             "SELECT ec.certificationId, c.certificationName, ec.startDate, ec.endDate, ec.score "
                     + "FROM EmployeeCertificationEntity ec, CertificationEntity c "
                     + "WHERE ec.certificationId = c.certificationId AND ec.employeeId = :employeeId "
                     + "ORDER BY c.certificationLevel ASC")
     List<Object[]> findCertificationsWithDetailsByEmployeeId(
-            @org.springframework.data.repository.query.Param("employeeId") Long employeeId);
+            @Param("employeeId") Long employeeId);
 
     /**
      * Xóa toàn bộ chứng chỉ của nhân viên theo employeeId.

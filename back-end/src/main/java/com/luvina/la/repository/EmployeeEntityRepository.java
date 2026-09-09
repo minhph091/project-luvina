@@ -6,8 +6,11 @@ package com.luvina.la.repository;
  */
 
 import com.luvina.la.entity.EmployeeEntity;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -40,7 +43,7 @@ public interface EmployeeEntityRepository extends JpaRepository<EmployeeEntity, 
      * @param employeeId ID của nhân viên cần lấy chi tiết.
      * @return Danh sách mảng Object chứa thông tin nhân viên, phòng ban và chứng chỉ.
      */
-    @org.springframework.data.jpa.repository.Query(
+    @Query(
             "SELECT e.employeeId, e.departmentId, d.departmentName, e.employeeName, e.employeeNameKana, "
                     + "e.employeeBirthDate, e.employeeEmail, e.employeeTelephone, e.employeeLoginId, e.employeeRole, "
                     + "ec.certificationId, c.certificationName, ec.startDate, ec.endDate, ec.score "
@@ -50,6 +53,6 @@ public interface EmployeeEntityRepository extends JpaRepository<EmployeeEntity, 
                     + "LEFT JOIN CertificationEntity c ON ec.certificationId = c.certificationId "
                     + "WHERE e.employeeId = :employeeId "
                     + "ORDER BY c.certificationLevel ASC")
-    java.util.List<Object[]> findEmployeeDetailWithCertifications(
-            @org.springframework.data.repository.query.Param("employeeId") Long employeeId);
+    List<Object[]> findEmployeeDetailWithCertifications(
+            @Param("employeeId") Long employeeId);
 }

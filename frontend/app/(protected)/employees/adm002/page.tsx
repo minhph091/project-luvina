@@ -10,9 +10,9 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useAdm002 } from '@/hooks/useAdm002';
-import EmployeeSearchForm from '@/components/employees/EmployeeSearchForm';
-import EmployeeTable from '@/components/employees/EmployeeTable';
-import EmployeePagination from '@/components/employees/EmployeePagination';
+import EmployeeSearchForm from '@/components/employees/adm002/EmployeeSearchForm';
+import EmployeeTable from '@/components/employees/adm002/EmployeeTable';
+import EmployeePagination from '@/components/employees/adm002/EmployeePagination';
 
 /**
  * Component trang Danh sách nhân viên (ADM002).
