@@ -85,4 +85,17 @@ export const useLogin = (): UseLoginReturn => {
   };
 };
 
+/**
+ * Hook xử lý luồng đăng xuất: xóa token xác thực, dọn dẹp bộ nhớ tìm kiếm tạm thời và chuyển hướng về /login.
+ */
+export const useLogout = (): void => {
+  const router = useRouter();
+
+  useEffect(() => {
+    removeToken();
+    clearEmployeeSearchState();
+    router.push(APP_ROUTES.LOGIN);
+  }, [router]);
+};
+
 export { storeToken, removeToken, getToken };

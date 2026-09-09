@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
-import { useAuth, useGuest, useLogin } from '@/hooks/useAuth';
-import { getToken, storeToken } from '@/lib/auth/token';
+import { useAuth, useGuest, useLogin, useLogout } from '@/hooks/useAuth';
+import { getToken, storeToken, removeToken } from '@/lib/auth/token';
 import { loginUser } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 
@@ -97,6 +97,14 @@ describe('Authentication Hooks', () => {
       expect(result.current.loginErrorMessage).toBe(
         'ログインに失敗しました。アカウント名またはパスワードを確認してください。'
       );
+    });
+  });
+
+  describe('useLogout', () => {
+    it('removes token and redirects to /login', () => {
+      renderHook(() => useLogout());
+      expect(removeToken).toHaveBeenCalledTimes(1);
+      expect(mockPush).toHaveBeenCalledWith('/login');
     });
   });
 });

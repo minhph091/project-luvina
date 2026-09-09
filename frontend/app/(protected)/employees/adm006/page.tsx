@@ -6,40 +6,14 @@
  * 21/08/2026 Pham Van Minh
  */
 
-import React, { useSyncExternalStore } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { APP_ROUTES, BUTTON_LABELS, COMPLETE_ACTION_TYPES, SYSTEM_MESSAGES } from '@/constants';
-import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
-import { getEmployeeCompleteAction, clearEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
-
-const subscribe = () => () => {};
-
-function getSnapshot(): string {
-  const action = getEmployeeCompleteAction();
-  if (action === COMPLETE_ACTION_TYPES.EDIT) {
-    return SYSTEM_MESSAGES.MSG002_USER_UPDATE_COMPLETE;
-  }
-  if (action === COMPLETE_ACTION_TYPES.DELETE) {
-    return SYSTEM_MESSAGES.MSG003_USER_DELETE_COMPLETE;
-  }
-  return SYSTEM_MESSAGES.MSG001_USER_ADD_COMPLETE;
-}
-
-function getServerSnapshot(): string {
-  return SYSTEM_MESSAGES.MSG001_USER_ADD_COMPLETE;
-}
+import { useAdm006 } from '@/hooks/useAdm006';
+import { BUTTON_LABELS } from '@/constants';
 
 export default function EmployeeCompletePage() {
   useAuth();
-  const router = useRouter();
-  const completeMessage = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  const handleNavigateToList = () => {
-    clearEmployeeCompleteAction();
-    clearEmployeeSearchState();
-    router.push(APP_ROUTES.EMPLOYEE_LIST);
-  };
+  const { completeMessage, handleNavigateToList } = useAdm006();
 
   return (
     <div className="box-shadow">

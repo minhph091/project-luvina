@@ -5,13 +5,18 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getEmployees } from '@/lib/api/employees';
 import { EmployeeItem, SortState } from '@/types/employee';
-import { DEFAULT_PAGE_SIZE, ERROR_MESSAGES, SORT_ORDERS } from '@/constants';
+import { APP_ROUTES, DEFAULT_PAGE_SIZE, ERROR_MESSAGES, SORT_ORDERS } from '@/constants';
 import {
   getEmployeeSearchState,
   saveEmployeeSearchState,
 } from '@/lib/storage/employeeSearchState';
+import {
+  clearEditEmployeeId,
+  clearEmployeeFormData,
+} from '@/lib/storage/employeeFormState';
 
 export interface UseAdm002Return {
   employees: EmployeeItem[];
@@ -25,7 +30,8 @@ export interface UseAdm002Return {
   searchDepartmentId: number | undefined;
   setSearchName: (name: string) => void;
   setSearchDepartmentId: (departmentId: number | undefined) => void;
-  handleSearch: () => void;
+  handleSearch: (event?: React.FormEvent<HTMLFormElement>) => void;
+  handleSearchSubmit: (event?: React.FormEvent<HTMLFormElement>) => void;
   handlePageChange: (page: number) => void;
   handleSort: (column: keyof SortState) => void;
   sortIcon: (column: keyof SortState) => string;
@@ -37,6 +43,7 @@ export interface UseAdm002Return {
     departmentId: number | undefined,
     sortState: SortState
   ) => Promise<void>;
+  handleNavigateToAddEmployee: () => void;
 }
 
 export type UseEmployeesReturn = UseAdm002Return;
@@ -48,6 +55,8 @@ export type UseEmployeesReturn = UseAdm002Return;
  * @returns Object chứa dữ liệu và các handler xử lý logic cho màn hình danh sách nhân viên.
  */
 export function useAdm002(): UseAdm002Return {
+  const router = useRouter();
+
   // ── Khởi tạo trạng thái từ sessionStorage nếu có ─────────────────
   const savedState = typeof window !== 'undefined' ? getEmployeeSearchState() : null;
 
@@ -156,23 +165,30 @@ export function useAdm002(): UseAdm002Return {
   }, []);
 
   /**
-   * Xử lý khi nhấn nút Tìm kiếm (Search).
+   * Xử lý khi nhấn nút Tìm kiếm (Search) hoặc submit form tìm kiếm.
+   * Hỗ trợ tự động gọi event.preventDefault() nếu được gọi từ onSubmit của form.
    */
-  const handleSearch = () => {
-    setAppliedName(searchName);
-    setAppliedDepartmentId(searchDepartmentId);
-    setCurrentPage(1);
-    saveEmployeeSearchState({
-      currentPage: 1,
-      searchName,
-      searchDepartmentId,
-      appliedName: searchName,
-      appliedDepartmentId: searchDepartmentId,
-      sort,
-      activeSortColumn,
-    });
-    fetchEmployees(1, searchName, searchDepartmentId, sort, activeSortColumn);
-  };
+  const handleSearch = useCallback(
+    (event?: React.FormEvent<HTMLFormElement>) => {
+      if (event?.preventDefault) {
+        event.preventDefault();
+      }
+      setAppliedName(searchName);
+      setAppliedDepartmentId(searchDepartmentId);
+      setCurrentPage(1);
+      saveEmployeeSearchState({
+        currentPage: 1,
+        searchName,
+        searchDepartmentId,
+        appliedName: searchName,
+        appliedDepartmentId: searchDepartmentId,
+        sort,
+        activeSortColumn,
+      });
+      fetchEmployees(1, searchName, searchDepartmentId, sort, activeSortColumn);
+    },
+    [searchName, searchDepartmentId, sort, activeSortColumn, fetchEmployees]
+  );
 
   /**
    * Xử lý khi chuyển trang.
@@ -268,6 +284,15 @@ export function useAdm002(): UseAdm002Return {
     return pages;
   };
 
+  /**
+   * Điều hướng sang màn hình thêm mới nhân viên (ADM004) đồng thời xóa state tạm thời (form & ID đang sửa) trước đó.
+   */
+  const handleNavigateToAddEmployee = useCallback(() => {
+    clearEditEmployeeId();
+    clearEmployeeFormData();
+    router.push(APP_ROUTES.EMPLOYEE_EDIT);
+  }, [router]);
+
   return {
     employees,
     totalRecords,
@@ -281,12 +306,14 @@ export function useAdm002(): UseAdm002Return {
     setSearchName,
     setSearchDepartmentId,
     handleSearch,
+    handleSearchSubmit: handleSearch,
     handlePageChange,
     handleSort,
     sortIcon,
     formatDate,
     getPageNumbers,
     fetchEmployees,
+    handleNavigateToAddEmployee,
   };
 }
 

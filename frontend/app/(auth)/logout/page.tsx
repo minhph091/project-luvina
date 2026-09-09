@@ -6,20 +6,10 @@
  * 21/08/2026 Pham Van Minh
  */
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { removeToken } from '@/lib/auth/token';
-import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
-import { APP_ROUTES } from '@/constants';
+import { useLogout } from '@/hooks/useAuth';
 
 export default function LogoutPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    removeToken();
-    clearEmployeeSearchState();
-    router.push(APP_ROUTES.LOGIN);
-  }, [router]);
+  useLogout();
 
   return <div>Logging out...</div>;
 }

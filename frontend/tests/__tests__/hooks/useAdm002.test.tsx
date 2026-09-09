@@ -5,7 +5,20 @@ import {
   saveEmployeeSearchState,
   getEmployeeSearchState,
 } from '@/lib/storage/employeeSearchState';
-import { SORT_ORDERS } from '@/constants';
+import {
+  setEditEmployeeId,
+  saveEmployeeFormData,
+  getEditEmployeeId,
+  getEmployeeFormData,
+} from '@/lib/storage/employeeFormState';
+import { APP_ROUTES, SORT_ORDERS } from '@/constants';
+
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
 
 jest.mock('@/lib/api/employees', () => ({
   getEmployees: jest.fn(),
@@ -143,6 +156,30 @@ describe('useAdm002 Hook', () => {
     expect(saved?.currentPage).toBe(1);
   });
 
+  it('calls event.preventDefault when handleSearchSubmit is passed a form event', async () => {
+    (getEmployees as jest.Mock).mockResolvedValue({
+      code: 200,
+      totalRecords: 0,
+      employees: [],
+    });
+
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
+    await act(async () => {
+      hookResult = renderHook(() => useAdm002()).result;
+    });
+
+    const mockPreventDefault = jest.fn();
+    const fakeEvent = {
+      preventDefault: mockPreventDefault,
+    } as unknown as React.FormEvent<HTMLFormElement>;
+
+    await act(async () => {
+      hookResult.current.handleSearchSubmit(fakeEvent);
+    });
+
+    expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+  });
+
   it('handles page change correctly and saves state to sessionStorage', async () => {
     (getEmployees as jest.Mock).mockResolvedValue({
       code: 200,
@@ -270,5 +307,41 @@ describe('useAdm002 Hook', () => {
     });
 
     expect(hookResult.current.getPageNumbers()).toEqual([1, '...', 4, 5, 6, '...', 10]);
+  });
+
+  it('clears form state and navigates to employee edit on handleNavigateToAddEmployee', async () => {
+    (getEmployees as jest.Mock).mockResolvedValue({
+      code: 200,
+      totalRecords: 0,
+      employees: [],
+    });
+
+    setEditEmployeeId(99);
+    saveEmployeeFormData({
+      employeeLoginId: 'test',
+      departmentId: 1,
+      employeeName: 'Test',
+      employeeNameKana: 'テスト',
+      employeeBirthDate: '1990/01/01',
+      employeeEmail: 'test@example.com',
+      employeeTelephone: '0123456789',
+      certificationId: 1,
+      certificationStartDate: '2020/01/01',
+      certificationEndDate: '2021/01/01',
+      score: '100',
+    });
+
+    let hookResult!: { current: ReturnType<typeof useAdm002> };
+    await act(async () => {
+      hookResult = renderHook(() => useAdm002()).result;
+    });
+
+    act(() => {
+      hookResult.current.handleNavigateToAddEmployee();
+    });
+
+    expect(getEditEmployeeId()).toBeNull();
+    expect(getEmployeeFormData()).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
   });
 });

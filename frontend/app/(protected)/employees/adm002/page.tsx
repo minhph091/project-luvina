@@ -7,12 +7,9 @@
  */
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useAdm002 } from '@/hooks/useAdm002';
-import { APP_ROUTES } from '@/constants';
-import { clearEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import EmployeeSearchForm from '@/components/employees/EmployeeSearchForm';
 import EmployeeTable from '@/components/employees/EmployeeTable';
 import EmployeePagination from '@/components/employees/EmployeePagination';
@@ -24,7 +21,6 @@ import EmployeePagination from '@/components/employees/EmployeePagination';
 export default function EmployeeListPage() {
   // Bảo vệ route: kiểm tra token xác thực
   useAuth();
-  const router = useRouter();
 
   // Custom hook lấy danh sách phòng ban cho dropdown
   const { departments, departmentErrorMessage } = useDepartments();
@@ -40,32 +36,14 @@ export default function EmployeeListPage() {
     searchDepartmentId,
     setSearchName,
     setSearchDepartmentId,
-    handleSearch,
+    handleSearchSubmit,
     handlePageChange,
     handleSort,
     sortIcon,
     formatDate,
     getPageNumbers,
+    handleNavigateToAddEmployee,
   } = useAdm002();
-
-  /**
-   * Xử lý submit form tìm kiếm nhân viên.
-   *
-   * @param event Form event
-   */
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    handleSearch();
-  };
-
-  /**
-   * Điều hướng sang màn hình thêm mới nhân viên (ADM004).
-   */
-  const handleNavigateToAddEmployee = () => {
-    clearEditEmployeeId();
-    clearEmployeeFormData();
-    router.push(APP_ROUTES.EMPLOYEE_EDIT);
-  };
 
   // Thông báo lỗi chung (ưu tiên lỗi nhân viên, sau đó đến lỗi phòng ban)
   const displayErrorMessage = errorMessage || departmentErrorMessage;
