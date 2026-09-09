@@ -342,20 +342,28 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteEmployee(Long employeeId) {
-        // 1. Validate employeeId
-        MessageResponse validationError = employeeValidator.validateEmployeeId(employeeId, employeeEntityRepository);
+        // 1. Validate employeeId (ER001 nếu rỗng, ER014 nếu không tồn tại trong CSDL)
+        MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(employeeId, employeeEntityRepository);
         if (validationError != null) {
-            throw new CustomValidationException(validationError);
+            throw new CustomValidationException(validationError, employeeId);
         }
 
-        // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
-        if (employeeCertificationRepository != null) {
-            employeeCertificationRepository.deleteByEmployeeId(employeeId);
-        }
+        try {
+            // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
+            if (employeeCertificationRepository != null) {
+                employeeCertificationRepository.deleteByEmployeeId(employeeId);
+            }
 
-        // 3. Xóa nhân viên trong bảng employees
-        if (employeeEntityRepository != null) {
-            employeeEntityRepository.deleteById(employeeId);
+            // 3. Xóa nhân viên trong bảng employees
+            if (employeeEntityRepository != null) {
+                employeeEntityRepository.deleteById(employeeId);
+            }
+        } catch (Exception ex) {
+            log.error("Lỗi khi xóa nhân viên có employeeId = {}", employeeId, ex);
+            throw new CustomValidationException(
+                    new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()),
+                    employeeId
+            );
         }
     }
 }

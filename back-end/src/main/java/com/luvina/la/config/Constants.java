@@ -68,6 +68,7 @@ public class Constants {
     public static final String ERROR_CODE_ER011 = "ER011";
     public static final String ERROR_CODE_ER012 = "ER012";
     public static final String ERROR_CODE_ER013 = "ER013";
+    public static final String ERROR_CODE_ER014 = "ER014";
     public static final String ERROR_CODE_ER015 = "ER015";
     public static final String ERROR_CODE_ER018 = "ER018";
     public static final String ERROR_CODE_ER019 = "ER019";

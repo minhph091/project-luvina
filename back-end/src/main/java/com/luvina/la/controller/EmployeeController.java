@@ -15,7 +15,9 @@ import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.service.EmployeeService;
+import com.luvina.la.exception.CustomValidationException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -218,13 +220,19 @@ public class EmployeeController {
     }
 
     /**
-     * Xóa một nhân viên theo ID trong CSDL theo tài liệu thiết kế (DELETE /employee/{id}).
+     * Xóa một nhân viên theo ID trong CSDL theo tài liệu thiết kế (DELETE /employee/{id} hoặc DELETE /employee).
      *
      * @param id ID của nhân viên cần xóa.
      * @return DeleteEmployeeResponse chứa mã kết quả 200 và message thành công MSG003.
      */
-    @DeleteMapping("/employee/{id}")
-    public DeleteEmployeeResponse deleteEmployee(@PathVariable("id") Long id) {
+    @DeleteMapping(value = {"/employee", "/employee/{id}"})
+    public DeleteEmployeeResponse deleteEmployee(@PathVariable(name = "id", required = false) Long id) {
+        if (id == null) {
+            throw new CustomValidationException(
+                    new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID)),
+                    null
+            );
+        }
         employeeService.deleteEmployee(id);
         return DeleteEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)

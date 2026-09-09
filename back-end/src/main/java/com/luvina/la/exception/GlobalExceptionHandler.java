@@ -40,6 +40,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .code(Constants.RESPONSE_CODE_ERROR)
+                .employeeId(ex.getEmployeeId())
                 .message(ex.getMessageResponse())
                 .build();
 

@@ -19,9 +19,15 @@ public class CustomValidationException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private final MessageResponse messageResponse;
+    private final Long employeeId;
 
     public CustomValidationException(MessageResponse messageResponse) {
+        this(messageResponse, null);
+    }
+
+    public CustomValidationException(MessageResponse messageResponse, Long employeeId) {
         super(messageResponse != null ? messageResponse.getCode() : "Validation Error");
         this.messageResponse = messageResponse;
+        this.employeeId = employeeId;
     }
 }

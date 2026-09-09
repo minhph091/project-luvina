@@ -394,7 +394,7 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee thất bại khi ID không tồn tại ném CustomValidationException ER013")
+    @DisplayName("Test deleteEmployee thất bại khi ID không tồn tại ném CustomValidationException ER014")
     void testDeleteEmployeeNotFoundThrowsCustomValidationException() {
         Long empId = 999L;
         when(employeeEntityRepository.existsById(empId)).thenReturn(false);
@@ -404,7 +404,25 @@ public class EmployeeServiceTest {
         });
 
         assertNotNull(ex.getMessageResponse());
-        assertEquals("ER013", ex.getMessageResponse().getCode());
+        assertEquals("ER014", ex.getMessageResponse().getCode());
         assertEquals(List.of("ＩＤ"), ex.getMessageResponse().getParams());
+        assertEquals(empId, ex.getEmployeeId());
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee gặp lỗi khi xóa trong CSDL ném CustomValidationException ER015")
+    void testDeleteEmployeeDatabaseErrorThrowsCustomValidationExceptionER015() {
+        Long empId = 1L;
+        when(employeeEntityRepository.existsById(empId)).thenReturn(true);
+        org.mockito.Mockito.doThrow(new RuntimeException("DB Connection Error"))
+                .when(employeeEntityRepository).deleteById(empId);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.deleteEmployee(empId);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals("ER015", ex.getMessageResponse().getCode());
+        assertEquals(empId, ex.getEmployeeId());
     }
 }

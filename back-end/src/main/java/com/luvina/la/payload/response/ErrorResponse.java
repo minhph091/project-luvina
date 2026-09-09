@@ -33,6 +33,11 @@ public class ErrorResponse implements Serializable {
     private Integer code;
 
     /**
+     * ID của nhân viên (nếu có trong API delete/update).
+     */
+    private Long employeeId;
+
+    /**
      * Thông tin chi tiết lỗi gồm mã lỗi và danh sách tham số.
      */
     private MessageResponse message;

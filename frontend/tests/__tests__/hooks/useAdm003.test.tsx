@@ -224,4 +224,30 @@ describe('useAdm003 Hook', () => {
 
     confirmSpy.mockRestore();
   });
+
+  test('displays error message when delete API returns ER014 (user not found)', async () => {
+    (getEmployeeById as jest.Mock).mockResolvedValue(MOCK_API_EMPLOYEE_RESPONSE);
+    (deleteEmployee as jest.Mock).mockResolvedValue({
+      code: 500,
+      employeeId: 1,
+      message: { code: 'ER014', params: ['ＩＤ'] },
+    });
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const { result } = renderHook(() => useAdm003());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.handleDelete();
+    });
+
+    expect(result.current.apiError).toBe(VALIDATION_MESSAGES.ER014_USER_NOT_FOUND);
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+
+    confirmSpy.mockRestore();
+  });
 });

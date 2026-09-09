@@ -1075,3 +1075,186 @@ Nếu request **có truyền** parameter này thì cần check chi tiết bên d
 |-----|---------------|---------------------|
 | - | - | - |
 
+# Thiết kế API - Delete employee
+
+| Thông tin | Giá trị |
+|-----------|---------|
+| **Tên system** | Manager User |
+| **Loại system** | Thiết kế API |
+| **TKCB** | |
+| **Người tạo** | ThanhPD |
+| **Ngày tạo** | 2023-01-04 |
+| **Người update** | ThanhPD |
+| **Ngày update** | 2023-01-04 |
+| **Version** | 0.1 |
+| **Category chức năng** | |
+| **Hạng mục** | Delete employee |
+
+---
+
+## Lịch sử thay đổi
+
+| Date | Người update | Version | Nội dung thay đổi | Ngày phê chuẩn | Người phê chuẩn |
+|------|--------------|---------|-------------------|----------------|-----------------|
+| 2023-01-04 | ThanhPD | 0.1 | Tạo mới tài liệu | | |
+
+---
+
+## 1. Khái quát
+
+Lấy thông tin chi tiết nhân viên *(ghi chú: tiêu đề khái quát trong tài liệu gốc có vẻ không khớp với chức năng Delete employee)*
+
+### 2. Request
+
+#### Request URL
+
+| No. | Service | API name | Method HTTP | Note |
+|-----|---------|----------|-------------|------|
+| 1 | employee | Delete employee | DELETE | |
+
+#### Request Parameter
+
+| No. | Parameter | Bắt buộc | Kiểu | Giá trị default | Tên hạng mục | Note |
+|-----|-----------|----------|------|-----------------|--------------|------|
+| 1 | employeeId | ○ | number | {} | id của employee cần xóa | |
+
+**Sample**
+
+```
+/employee/1
+```
+
+### 3. Response
+
+#### Trường hợp API trả về response bình thường
+
+| No. | json key name | Kiểu | Tên hạng mục | Note |
+|-----|---------------|------|--------------|------|
+| 1 | code | number | | |
+| 2 | employeeId | number | | |
+| 3 | message | object | | |
+
+**Sample**
+
+```json
+{
+  "code": "200",
+  "employeeId": "1",
+  "message": {
+    "code": "MSG003",
+    "params": []
+  }
+}
+```
+
+#### Trường hợp API trả về lỗi
+
+**Sample**
+
+```json
+{
+  "code": "500",
+  "employeeId": "1",
+  "message": {
+    "code": "ER015",
+    "params": []
+  }
+}
+```
+
+---
+
+## Flow xử lý
+
+
+
+---
+
+## Chi tiết xử lý
+
+### Xử lý common
+
+`<Không có>`
+
+### Xử lý chi tiết
+
+#### 1. Validate parameter
+
+##### 1.1 Validate parameter [employeeId]
+
+- Nếu **không tồn tại** parameter này thì trả về lỗi có mã code **ER001**, tham số `"ＩＤ"`.
+- Nếu **không tồn tại** trong bảng `employees.employee_id` thì trả về lỗi có mã code **ER014**, tham số `"ＩＤ"`.
+- Nếu có lỗi thì chuyển sang bước **[4. Tạo dữ liệu response cho API]**.
+
+#### Khởi tạo transaction
+
+#### 2. Xóa thông tin trình độ tiếng Nhật của nhân viên
+
+**Danh sách bảng sử dụng**
+
+| No | Tên bảng logic | ID bảng vật lý | Create | Refer | Update | Xóa |
+|----|----------------|----------------|--------|-------|--------|-----|
+| 1 | Thông tin chứng chỉ tiếng Nhật của nhân viên | employees_certifications | | | | ○ |
+
+**Table access**
+
+① **Điều kiện xóa**
+
+| No | Tên bảng | Tên hạng mục | Giá trị |
+|----|----------|--------------|---------|
+| 1 | employees_certifications | employee_id | = employee_id từ parameter [employeeId] |
+
+- Nếu có lỗi khi xóa thì trả về lỗi và chuyển sang bước **[4. Tạo dữ liệu response cho API]**.
+
+#### 3. Xóa thông tin nhân viên
+
+**Danh sách bảng sử dụng**
+
+| No | Tên bảng logic | ID bảng vật lý | Create | Refer | Update | Xóa |
+|----|----------------|----------------|--------|-------|--------|-----|
+| 1 | Thông tin nhân viên | employees | | | | ○ |
+
+**Table access**
+
+① **Điều kiện xóa**
+
+| No | Tên bảng | Tên hạng mục | Giá trị |
+|----|----------|--------------|---------|
+| 1 | employees | employee_id | = employee_id từ parameter [employeeId] |
+
+- Nếu **không có lỗi** gì xảy ra thì **Commit transaction**.
+- Nếu **có lỗi** xảy ra thì **Rollback transaction**.
+- Nếu có lỗi khi xóa thì trả về lỗi với mã lỗi **ER015** và chuyển sang bước **[4. Tạo dữ liệu response cho API]**.
+
+#### 4. Tạo dữ liệu response cho API
+
+**Trường hợp không có lỗi xảy ra**
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | 200 | |
+| 2 | employeeId | Lấy giá trị từ parameter [employeeId] | |
+| 3 | message | `{code: "MSG003", params: []}` | |
+
+**Trường hợp có lỗi xảy ra**
+
+| No. | Key | Giá trị | Note |
+|-----|-----|---------|------|
+| 1 | code | 500 | |
+| 2 | employeeId | Lấy giá trị từ parameter [employeeId] | |
+| 3 | message | Lấy giá trị từ No 1, No 2, No 3. Format `{code: "", params: []}` | |
+
+- Kết thúc xử lý.
+
+---
+
+## Tham chiếu
+
+### Danh sách tài liệu tham chiếu
+
+| No. | Mã tham chiếu | Tài liệu tham chiếu |
+|-----|---------------|---------------------|
+| | | |
+
+---
+

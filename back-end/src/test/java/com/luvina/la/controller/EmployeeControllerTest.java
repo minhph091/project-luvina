@@ -306,15 +306,39 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee trả về lỗi ER013 khi ID không tồn tại")
+    @DisplayName("Test deleteEmployee trả về lỗi ER001 khi không truyền ID (/employee)")
+    void testDeleteEmployeeMissingId() throws Exception {
+        mockMvc.perform(delete("/employee"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER001"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee trả về lỗi ER014 và employeeId khi ID không tồn tại")
     void testDeleteEmployeeNotFound() throws Exception {
-        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER013, List.of(Constants.PARAM_ID))))
+        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER014, List.of(Constants.PARAM_ID)), 999L))
                 .when(employeeService).deleteEmployee(999L);
 
         mockMvc.perform(delete("/employee/999"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message.code").value("ER013"))
+                .andExpect(jsonPath("$.employeeId").value(999))
+                .andExpect(jsonPath("$.message.code").value("ER014"))
                 .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee trả về lỗi ER015 và employeeId khi gặp lỗi hệ thống trong CSDL")
+    void testDeleteEmployeeDatabaseError() throws Exception {
+        org.mockito.Mockito.doThrow(new CustomValidationException(new MessageResponse(Constants.ERROR_CODE_ER015, List.of()), 1L))
+                .when(employeeService).deleteEmployee(1L);
+
+        mockMvc.perform(delete("/employee/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.employeeId").value(1))
+                .andExpect(jsonPath("$.message.code").value("ER015"));
     }
 }
