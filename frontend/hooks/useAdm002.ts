@@ -142,7 +142,14 @@ export function useAdm002(): UseAdm002Return {
     [activeSortColumn]
   );
 
-  // Tải danh sách nhân viên lần đầu khi hook được mount (khôi phục từ savedState nếu có)
+  /**
+   * [Thời điểm kích hoạt useEffect / gọi hàm tải dữ liệu]:
+   * - Kích hoạt 1 lần duy nhất khi màn hình ADM002 mount lần đầu tiên (initial render).
+   * - Luồng xử lý:
+   *   + Kiểm tra xem có `savedState` (trạng thái tìm kiếm, phân trang, sắp xếp đã lưu trong session) hay không.
+   *   + Nếu có: Khôi phục lại trạng thái cũ và gọi `fetchEmployees()` với các tham số đã lưu.
+   *   + Nếu không: Gọi `fetchEmployees()` với các tham số mặc định (trang 1, không lọc điều kiện).
+   */
   useEffect(() => {
     const currentSavedState = getEmployeeSearchState();
     if (currentSavedState) {

@@ -43,11 +43,15 @@ export function setupInterceptors(client: AxiosInstance): void {
   client.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
           sessionStorage.removeItem(STORAGE_KEYS.TOKEN_TYPE);
           window.location.href = APP_ROUTES.LOGIN;
+        }
+      } else if (error.response?.status && error.response.status >= 500) {
+        if (typeof window !== 'undefined') {
+          window.location.href = `${APP_ROUTES.SYSTEM_ERROR}?message=System%20Error`;
         }
       }
       return Promise.reject(error);

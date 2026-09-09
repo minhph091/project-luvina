@@ -25,6 +25,11 @@ export function useCertifications(): UseCertificationsReturn {
   const [loadingCertifications, setLoadingCertifications] = useState(false);
   const [certificationErrorMessage, setCertificationErrorMessage] = useState<string | null>(null);
 
+  /**
+   * [Thời điểm kích hoạt useEffect / gọi hàm tải dữ liệu]:
+   * - Kích hoạt 1 lần duy nhất khi component mount lần đầu tiên (initial render).
+   * - Luồng xử lý: Tự động gọi `fetchCertificationList()` (API `getCertifications`) để tải danh sách chứng chỉ tiếng Nhật dùng cho dropdown/select.
+   */
   useEffect(() => {
     let isMounted = true;
 

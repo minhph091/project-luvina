@@ -95,7 +95,14 @@ export function useAdm004(): UseAdm004Return {
   const [loading, setLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Khởi tạo mode và form data khi load trang
+  /**
+   * - Được kích hoạt 1 lần duy nhất khi màn hình ADM004 mount lần đầu tiên (initial render).
+   * - Luồng xử lý trong `initForm()`:
+   *   + Xác định chế độ `ADD` hoặc `EDIT` dựa trên `editId` lưu trong storage.
+   *   + Nếu quay lại từ màn hình xác nhận ADM005: Khôi phục lại dữ liệu `savedFormData` từ storage mà không cần gọi lại API.
+   *   + Nếu là chế độ `EDIT` và chưa có dữ liệu tạm: Gọi API `getEmployeeById` để tải thông tin nhân viên cần chỉnh sửa.
+   *   + Nếu là chế độ `ADD`: Khởi tạo dữ liệu form rỗng mặc định.
+   */
   useEffect(() => {
     let isMounted = true;
 
@@ -149,12 +156,12 @@ export function useAdm004(): UseAdm004Return {
                 score: emp.score !== null && emp.score !== undefined ? String(emp.score) : '',
               });
             } else {
-              setApiError('従業員情報を取得できませんでした。');
+              router.push(APP_ROUTES.SYSTEM_ERROR);
             }
           }
         } catch {
           if (isMounted) {
-            setApiError('従業員情報の取得に失敗しました。');
+            router.push(APP_ROUTES.SYSTEM_ERROR);
           }
         } finally {
           if (isMounted) {

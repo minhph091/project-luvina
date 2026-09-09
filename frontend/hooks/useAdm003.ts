@@ -69,15 +69,23 @@ export function useAdm003(): UseAdm003Return {
     return null;
   }, [searchParams]);
 
-  // 2. Tải dữ liệu nhân viên từ API khi mount
+  /**
+   * [Thời điểm kích hoạt useEffect / gọi hàm tải dữ liệu]:
+   * 1. Khi component mount lần đầu tiên (initial render khi người dùng truy cập màn hình ADM003).
+   * 2. Khi `getParamId` thay đổi tham chiếu (xảy ra khi `searchParams` / URL query thay đổi, ví dụ đổi `id` nhân viên).
+   * 
+   * [Điều kiện gọi API `fetchDetail`]:
+   * - Hàm `fetchDetail()` chỉ được gọi khi xác định được `employeeId` hợp lệ (từ URL hoặc storage).
+   * - Nếu không có `employeeId`, effect dừng lại ngay và hiển thị lỗi ER013 (User not found) mà không gửi request API.
+   */
   useEffect(() => {
     let isMounted = true;
     const employeeId = getParamId();
 
     if (!employeeId) {
-      // Nếu không có ID hợp lệ trên router, báo lỗi theo thiết kế màn hình
+      // Nếu không có ID hợp lệ trên router, chuyển sang màn hình System Error theo mục 4.1 thiết kế
       if (isMounted) {
-        setApiError(VALIDATION_MESSAGES.ER013_USER_NOT_FOUND);
+        router.push(APP_ROUTES.SYSTEM_ERROR);
         setLoading(false);
       }
       return;
@@ -119,18 +127,12 @@ export function useAdm003(): UseAdm003Return {
             score: firstCert && firstCert.score !== null && firstCert.score !== undefined ? Number(firstCert.score) : null,
           });
         } else {
-          const errCode = response?.message?.code;
-          const params = response?.message?.params;
-          setApiError(formatApiErrorMessage(errCode, params));
+          // Nếu API trả về lỗi hoặc ko tồn tại employee data di chuyển sang MH system error
+          router.push(APP_ROUTES.SYSTEM_ERROR);
         }
-      } catch (error: unknown) {
+      } catch {
         if (!isMounted) return;
-        if (axios.isAxiosError(error) && error.response?.data?.message?.code) {
-          const respData = error.response.data as { message?: { code?: string; params?: string[] } };
-          setApiError(formatApiErrorMessage(respData.message?.code, respData.message?.params));
-        } else {
-          setApiError(VALIDATION_MESSAGES.ER015_SYSTEM_ERROR);
-        }
+        router.push(APP_ROUTES.SYSTEM_ERROR);
       } finally {
         if (isMounted) {
           setLoading(false);

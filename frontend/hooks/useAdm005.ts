@@ -36,6 +36,15 @@ export function useAdm005(): UseAdm005Return {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  /**
+   * [Thời điểm kích hoạt useEffect / kiểm tra & khởi tạo dữ liệu xác nhận]:
+   * - Kích hoạt 1 lần duy nhất khi màn hình xác nhận ADM005 mount lần đầu tiên (initial render).
+   * - Luồng xử lý:
+   *   + Xác định mode thao tác (`ADD` hoặc `EDIT`) từ storage.
+   *   + Lấy dữ liệu tạm `savedData` vừa nhập từ màn hình ADM004.
+   *   + Nếu không có dữ liệu (truy cập URL trực tiếp trái phép): Tự động redirect người dùng quay về màn hình nhập liệu ADM004.
+   *   + Nếu có dữ liệu: Lưu vào state `formData` để hiển thị trên màn hình xác nhận.
+   */
   useEffect(() => {
     const editId = getEditEmployeeId();
     setMode(editId ? 'EDIT' : 'ADD');

@@ -77,15 +77,13 @@ describe('useAdm003 Hook', () => {
     sessionStorage.clear();
   });
 
-  test('sets error when ID parameter is missing or invalid', async () => {
+  test('redirects to SYSTEM_ERROR when ID parameter is missing or invalid', async () => {
     mockGetSearchParams.mockReturnValue(null);
 
-    const { result } = renderHook(() => useAdm003());
+    renderHook(() => useAdm003());
 
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-      expect(result.current.apiError).toBe(VALIDATION_MESSAGES.ER013_USER_NOT_FOUND);
-      expect(result.current.employee).toBeNull();
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
     });
   });
 
@@ -109,16 +107,14 @@ describe('useAdm003 Hook', () => {
     expect(result.current.apiError).toBeNull();
   });
 
-  test('handles API error when fetching employee details fails', async () => {
+  test('handles API error when fetching employee details fails by redirecting to SYSTEM_ERROR', async () => {
     (getEmployeeById as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-    const { result } = renderHook(() => useAdm003());
+    renderHook(() => useAdm003());
 
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
     });
-
-    expect(result.current.apiError).toBe(VALIDATION_MESSAGES.ER015_SYSTEM_ERROR);
   });
 
   test('navigates to EDIT page with saved editId and cleared form data', async () => {

@@ -25,6 +25,11 @@ export function useDepartments(): UseDepartmentsReturn {
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [departmentErrorMessage, setDepartmentErrorMessage] = useState<string | null>(null);
 
+  /**
+   * [Thời điểm kích hoạt useEffect / gọi hàm tải dữ liệu]:
+   * - Kích hoạt 1 lần duy nhất khi component mount lần đầu tiên (initial render).
+   * - Luồng xử lý: Tự động gọi `fetchDepartmentList()` (API `getDepartments`) để tải danh sách phòng ban dùng cho dropdown/select.
+   */
   useEffect(() => {
     let isMounted = true;
 

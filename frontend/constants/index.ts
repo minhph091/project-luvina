@@ -44,6 +44,7 @@ export const APP_ROUTES = {
   EMPLOYEE_EDIT: '/employees/adm004',
   EMPLOYEE_CONFIRM: '/employees/adm005',
   EMPLOYEE_COMPLETE: '/employees/adm006',
+  SYSTEM_ERROR: '/system-error',
 } as const;
 
 /**
@@ -57,6 +58,14 @@ export const ERROR_MESSAGES = {
   REQUIRED_USERNAME: 'Username is required',
   REQUIRED_PASSWORD: 'Password is required',
   NO_DATA_FOUND: '検索条件に該当するユーザが見つかりません。',
+} as const;
+
+/**
+ * Các thông điệp lỗi cho màn hình System Error (theo thiết kế ER022, ER023).
+ */
+export const SYSTEM_ERROR_MESSAGES = {
+  PAGE_NOT_FOUND: 'Page not found',
+  SYSTEM_ERROR: 'System Error',
 } as const;
 
 /**

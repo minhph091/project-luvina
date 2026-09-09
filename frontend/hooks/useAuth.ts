@@ -19,6 +19,11 @@ import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
 export const useAuth = (): void => {
   const router = useRouter();
 
+  /**
+   * [Thời điểm kích hoạt useEffect / kiểm tra xác thực đăng nhập]:
+   * - Kích hoạt khi component sử dụng hook mount lần đầu hoặc router thay đổi.
+   * - Luồng xử lý: Kiểm tra access token; nếu không có hoặc đã hết hạn thì chuyển hướng về trang đăng nhập (/login).
+   */
   useEffect(() => {
     const token = getToken();
     if (!token || isTokenExpired(token?.accessToken)) {
@@ -35,6 +40,11 @@ export const useAuth = (): void => {
 export const useGuest = (): void => {
   const router = useRouter();
 
+  /**
+   * [Thời điểm kích hoạt useEffect / kiểm tra trạng thái khách (guest)]:
+   * - Kích hoạt khi component sử dụng hook mount lần đầu hoặc router thay đổi.
+   * - Luồng xử lý: Kiểm tra nếu đã có access token hợp lệ thì chuyển hướng thẳng vào màn hình danh sách nhân viên (/employees).
+   */
   useEffect(() => {
     const token = getToken();
     if (token && !isTokenExpired(token?.accessToken)) {
@@ -91,6 +101,11 @@ export const useLogin = (): UseLoginReturn => {
 export const useLogout = (): void => {
   const router = useRouter();
 
+  /**
+   * [Thời điểm kích hoạt useEffect / thực hiện đăng xuất]:
+   * - Kích hoạt ngay khi hook / component logout được mount.
+   * - Luồng xử lý: Xóa access token, xóa trạng thái tìm kiếm lưu trữ và điều hướng về trang đăng nhập (/login).
+   */
   useEffect(() => {
     removeToken();
     clearEmployeeSearchState();
