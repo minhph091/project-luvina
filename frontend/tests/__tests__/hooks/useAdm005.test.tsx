@@ -4,7 +4,7 @@
  * 05/09/2026 Pham Van Minh
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAdm005 } from '@/hooks/useAdm005';
 import {
   setEditEmployeeId,
@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { APP_ROUTES, COMPLETE_ACTION_TYPES } from '@/constants';
 import { getEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { EmployeeFormData } from '@/types/employee';
-import { addEmployee, updateEmployee } from '@/lib/api/employees';
+import { addEmployee, updateEmployee, getEmployeeById } from '@/lib/api/employees';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
@@ -26,6 +26,7 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/lib/api/employees', () => ({
   addEmployee: jest.fn(),
   updateEmployee: jest.fn(),
+  getEmployeeById: jest.fn(),
 }));
 
 const MOCK_FORM_DATA: EmployeeFormData = {
@@ -50,6 +51,13 @@ describe('useAdm005 Hook', () => {
     sessionStorage.clear();
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
+    });
+    (getEmployeeById as jest.Mock).mockResolvedValue({
+      code: 200,
+      employee: {
+        employeeId: 10,
+        employeeName: 'Phạm Văn Minh',
+      },
     });
   });
 
@@ -76,16 +84,55 @@ describe('useAdm005 Hook', () => {
     expect(result.current.mode).toBe('ADD');
     expect(result.current.formData).toEqual(MOCK_FORM_DATA);
     expect(result.current.hasCertification).toBe(true);
+    expect(getEmployeeById).not.toHaveBeenCalled();
   });
 
-  test('initializes in EDIT mode when edit_employee_id is present', () => {
+  test('initializes in EDIT mode when edit_employee_id is present, calls getEmployeeById and binds form data', async () => {
     setEditEmployeeId(10);
     saveEmployeeFormData(MOCK_FORM_DATA);
 
     const { result } = renderHook(() => useAdm005());
 
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(getEmployeeById).toHaveBeenCalledWith(10);
     expect(result.current.mode).toBe('EDIT');
     expect(result.current.formData?.employeeLoginId).toBe('minhpv');
+  });
+
+  test('redirects to SYSTEM_ERROR in EDIT mode when getEmployeeById returns null employee', async () => {
+    (getEmployeeById as jest.Mock).mockResolvedValueOnce({
+      code: 200,
+      employee: null,
+    });
+
+    setEditEmployeeId(10);
+    saveEmployeeFormData(MOCK_FORM_DATA);
+
+    renderHook(() => useAdm005());
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
+    });
+
+    expect(getEmployeeById).toHaveBeenCalledWith(10);
+  });
+
+  test('redirects to SYSTEM_ERROR in EDIT mode when getEmployeeById throws error', async () => {
+    (getEmployeeById as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+
+    setEditEmployeeId(10);
+    saveEmployeeFormData(MOCK_FORM_DATA);
+
+    renderHook(() => useAdm005());
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
+    });
+
+    expect(getEmployeeById).toHaveBeenCalledWith(10);
   });
 
   test('correctly identifies hasCertification = false when no certificationId is selected', () => {
@@ -184,6 +231,10 @@ describe('useAdm005 Hook', () => {
 
     const { result } = renderHook(() => useAdm005());
 
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
     await act(async () => {
       await result.current.handleConfirmSubmit();
     });
@@ -204,6 +255,10 @@ describe('useAdm005 Hook', () => {
     saveEmployeeFormData({ ...MOCK_FORM_DATA, employeeId: 10 });
 
     const { result } = renderHook(() => useAdm005());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
 
     await act(async () => {
       await result.current.handleConfirmSubmit();

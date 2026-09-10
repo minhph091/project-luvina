@@ -99,6 +99,31 @@ describe('useAdm004 Hook', () => {
     expect(result.current.errors.employeeLoginId).toBeUndefined();
   });
 
+  test('redirects to SYSTEM_ERROR in EDIT mode when getEmployeeById returns null employee or non-200', async () => {
+    setEditEmployeeId(5);
+    (getEmployeeById as jest.Mock).mockResolvedValue({
+      code: 200,
+      employee: null,
+    });
+
+    renderHook(() => useAdm004());
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
+    });
+  });
+
+  test('redirects to SYSTEM_ERROR in EDIT mode when getEmployeeById throws error', async () => {
+    setEditEmployeeId(5);
+    (getEmployeeById as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+    renderHook(() => useAdm004());
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.SYSTEM_ERROR);
+    });
+  });
+
   test('restores form data from sessionStorage when returning from ADM005', async () => {
     const savedData: EmployeeFormData = {
       employeeLoginId: 'restoredUser',

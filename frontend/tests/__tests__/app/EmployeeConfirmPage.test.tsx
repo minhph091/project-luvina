@@ -24,6 +24,8 @@ jest.mock('@/hooks/useAuth', () => ({
 
 jest.mock('@/lib/api/employees', () => ({
   addEmployee: jest.fn(),
+  updateEmployee: jest.fn(),
+  getEmployeeById: jest.fn(),
 }));
 
 const MOCK_FORM_DATA: EmployeeFormData = {

@@ -11,7 +11,7 @@ import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
 import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
-import { addEmployee, updateEmployee } from '@/lib/api/employees';
+import { getEmployeeById, addEmployee, updateEmployee } from '@/lib/api/employees';
 
 export interface UseAdm005Return {
   mode: EmployeeFormMode;
@@ -39,25 +39,59 @@ export function useAdm005(): UseAdm005Return {
   /**
    * [Thời điểm kích hoạt useEffect / kiểm tra & khởi tạo dữ liệu xác nhận]:
    * - Kích hoạt 1 lần duy nhất khi màn hình xác nhận ADM005 mount lần đầu tiên (initial render).
-   * - Luồng xử lý:
-   *   + Xác định mode thao tác (`ADD` hoặc `EDIT`) từ storage.
+   * - Luồng xử lý theo tài liệu thiết kế (Mục 6.1):
+   *   + Xác định mode thao tác (`ADD` hoặc `EDIT`) từ storage (`getEditEmployeeId()`).
    *   + Lấy dữ liệu tạm `savedData` vừa nhập từ màn hình ADM004.
    *   + Nếu không có dữ liệu (truy cập URL trực tiếp trái phép): Tự động redirect người dùng quay về màn hình nhập liệu ADM004.
-   *   + Nếu có dữ liệu: Lưu vào state `formData` để hiển thị trên màn hình xác nhận.
+   *   + Nếu là mode `EDIT`: Gọi API `getEmployeeById(editId)` tương ứng. Nếu API trả về lỗi hoặc không tồn tại employee data thì chuyển sang MH System Error.
+   *   + Binding data từ MH edit/add gửi sang lên màn hình xác nhận.
    */
   useEffect(() => {
-    const editId = getEditEmployeeId();
-    setMode(editId ? 'EDIT' : 'ADD');
+    let isMounted = true;
 
-    const savedData = getEmployeeFormData();
-    if (!savedData) {
-      // Nếu không có dữ liệu form (ví dụ truy cập trực tiếp URL), điều hướng về màn hình edit/add
-      router.push(APP_ROUTES.EMPLOYEE_EDIT);
-      return;
+    async function initConfirm() {
+      const editId = getEditEmployeeId();
+      const currentMode: EmployeeFormMode = editId ? 'EDIT' : 'ADD';
+      if (isMounted) {
+        setMode(currentMode);
+      }
+
+      const savedData = getEmployeeFormData();
+      if (!savedData) {
+        // Nếu không có dữ liệu form (ví dụ truy cập trực tiếp URL), điều hướng về màn hình edit/add
+        router.push(APP_ROUTES.EMPLOYEE_EDIT);
+        return;
+      }
+
+      // Nếu là mode EDIT: Gọi API get employee tương ứng với ID để xác thực tồn tại
+      if (currentMode === 'EDIT' && editId) {
+        try {
+          const response = await getEmployeeById(editId);
+          if (!response || !response.employee) {
+            if (isMounted) {
+              router.push(APP_ROUTES.SYSTEM_ERROR);
+            }
+            return;
+          }
+        } catch {
+          if (isMounted) {
+            router.push(APP_ROUTES.SYSTEM_ERROR);
+          }
+          return;
+        }
+      }
+
+      if (isMounted) {
+        setFormData(savedData);
+        setLoading(false);
+      }
     }
 
-    setFormData(savedData);
-    setLoading(false);
+    initConfirm();
+
+    return () => {
+      isMounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -131,7 +131,7 @@ export function useAdm004(): UseAdm004Return {
         try {
           const response = await getEmployeeById(editId);
           if (isMounted) {
-            if (response && response.employee) {
+            if (response && Number(response.code) === 200 && response.employee) {
               const emp = response.employee;
               setFormData({
                 employeeId: emp.employeeId,
