@@ -25,6 +25,7 @@ import com.luvina.la.entity.EmployeeEntity;
 import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeCertificationRepository;
@@ -356,6 +357,101 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw cve;
         } catch (Exception ex) {
             log.error("Lỗi khi xóa nhân viên có employeeId = {}", employeeId, ex);
+            throw new CustomValidationException(
+                    new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()),
+                    employeeId
+            );
+        }
+    }
+
+    /**
+     * Cập nhật thông tin nhân viên và chứng chỉ tiếng Nhật theo tài liệu thiết kế API (PUT /employee).
+     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu xảy ra lỗi.
+     *
+     * @param request Thông tin nhân viên và chứng chỉ cần cập nhật từ client.
+     * @return EmployeeDTO chứa thông tin nhân viên sau khi cập nhật thành công.
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public EmployeeDTO updateEmployee(UpdateEmployeeRequest request) {
+        Long employeeId = request.getEmployeeId();
+        try {
+            // 1. Tìm thông tin nhân viên cần update trong CSDL
+            EmployeeEntity employeeEntity = null;
+            if (employeeEntityRepository != null) {
+                employeeEntity = employeeEntityRepository.findById(employeeId).orElse(null);
+            }
+            if (employeeEntity == null) {
+                throw new CustomValidationException(
+                        new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID)),
+                        employeeId
+                );
+            }
+
+            // 2.1 Update các trường thông tin nhân viên vào table employees
+            employeeEntity.setDepartmentId(Long.parseLong(request.getDepartmentId().trim()));
+            employeeEntity.setEmployeeName(request.getEmployeeName().trim());
+            employeeEntity.setEmployeeNameKana(request.getEmployeeNameKana().trim());
+            employeeEntity.setEmployeeBirthDate(employeeValidator.parseStrictDate(request.getEmployeeBirthDate().trim()));
+            employeeEntity.setEmployeeEmail(request.getEmployeeEmail().trim());
+            employeeEntity.setEmployeeTelephone(request.getEmployeeTelephone().trim());
+            employeeEntity.setEmployeeLoginId(request.getEmployeeLoginId().trim());
+
+            // Chỉ update password nếu có truyền password khác rỗng
+            if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
+                String rawPassword = request.getEmployeeLoginPassword().trim();
+                if (passwordEncoder != null) {
+                    employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(rawPassword));
+                } else {
+                    employeeEntity.setEmployeeLoginPassword(rawPassword);
+                }
+            }
+
+            EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
+
+            // 3.1 Xóa thông tin chứng chỉ hiện có của nhân viên
+            if (employeeCertificationRepository != null) {
+                employeeCertificationRepository.deleteByEmployeeId(employeeId);
+            }
+
+            // 3.2 Nếu tồn tại parameter certifications thì insert thông tin chứng chỉ mới
+            if (request.getCertifications() != null && !request.getCertifications().isEmpty() && employeeCertificationRepository != null) {
+                for (CertificationItemRequest certReq : request.getCertifications()) {
+                    if (certReq == null || certReq.getCertificationId() == null || certReq.getCertificationId().trim().isEmpty()) {
+                        continue;
+                    }
+                    EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
+                            .employeeId(employeeId)
+                            .certificationId(Long.parseLong(certReq.getCertificationId().trim()))
+                            .startDate(employeeValidator.parseStrictDate(certReq.getStartDate().trim()))
+                            .endDate(employeeValidator.parseStrictDate(certReq.getEndDate().trim()))
+                            .score(new BigDecimal(certReq.getScore().trim()))
+                            .build();
+
+                    employeeCertificationRepository.save(certEntity);
+                }
+            }
+
+            // 4. Chuyển đổi sang EmployeeDTO và trả về
+            if (employeeMapper != null) {
+                return employeeMapper.toDto(savedEmployee);
+            }
+            return EmployeeDTO.builder()
+                    .employeeId(employeeId)
+                    .departmentId(savedEmployee.getDepartmentId())
+                    .employeeName(savedEmployee.getEmployeeName())
+                    .employeeNameKana(savedEmployee.getEmployeeNameKana())
+                    .employeeBirthDate(savedEmployee.getEmployeeBirthDate())
+                    .employeeEmail(savedEmployee.getEmployeeEmail())
+                    .employeeTelephone(savedEmployee.getEmployeeTelephone())
+                    .employeeLoginId(savedEmployee.getEmployeeLoginId())
+                    .employeeRole(savedEmployee.getEmployeeRole())
+                    .build();
+
+        } catch (CustomValidationException cve) {
+            throw cve;
+        } catch (Exception ex) {
+            log.error("Lỗi khi cập nhật nhân viên có employeeId = {}", employeeId, ex);
             throw new CustomValidationException(
                     new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()),
                     employeeId

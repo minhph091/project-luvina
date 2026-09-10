@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -392,5 +393,58 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$.employeeId").value(2))
                 .andExpect(jsonPath("$.message.code").value("ER014"))
                 .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee thành công trả về code 200, employeeId và MSG002")
+    void testUpdateEmployeeSuccess() throws Exception {
+        when(employeeValidator.validateUpdateEmployee(any())).thenReturn(null);
+        when(employeeService.updateEmployee(any())).thenReturn(EmployeeDTO.builder().employeeId(1L).build());
+
+        String requestJson = "{"
+                + "\"employeeId\": 1,"
+                + "\"departmentId\": \"1\","
+                + "\"employeeName\": \"Nguyen Van A\","
+                + "\"employeeNameKana\": \"ｱｲｳｴｵ\","
+                + "\"employeeBirthDate\": \"1990/01/01\","
+                + "\"employeeEmail\": \"vana@luvina.net\","
+                + "\"employeeTelephone\": \"0123456789\","
+                + "\"employeeLoginId\": \"vana\","
+                + "\"employeeLoginPassword\": \"newpass123\""
+                + "}";
+
+        mockMvc.perform(put("/employee")
+                        .contentType("application/json")
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.employeeId").value(1))
+                .andExpect(jsonPath("$.message.code").value("MSG002"));
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee thất bại khi validate lỗi trả về code 500 và mã lỗi")
+    void testUpdateEmployeeValidationError() throws Exception {
+        when(employeeValidator.validateUpdateEmployee(any()))
+                .thenReturn(new MessageResponse("ER003", List.of(Constants.PARAM_ACCOUNT_NAME)));
+
+        String requestJson = "{"
+                + "\"employeeId\": 1,"
+                + "\"departmentId\": \"1\","
+                + "\"employeeName\": \"Nguyen Van A\","
+                + "\"employeeNameKana\": \"ｱｲｳｴｵ\","
+                + "\"employeeBirthDate\": \"1990/01/01\","
+                + "\"employeeEmail\": \"vana@luvina.net\","
+                + "\"employeeTelephone\": \"0123456789\","
+                + "\"employeeLoginId\": \"existing_user\""
+                + "}";
+
+        mockMvc.perform(put("/employee")
+                        .contentType("application/json")
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message.code").value("ER003"))
+                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ACCOUNT_NAME));
     }
 }

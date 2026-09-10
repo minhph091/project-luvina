@@ -66,8 +66,8 @@ describe('EmployeeCompletePage (ADM006)', () => {
       searchDepartmentId: 1,
       appliedName: 'Minh',
       appliedDepartmentId: 1,
-      sort: { employee_id: 'ASC', employee_name: 'ASC', end_date: 'ASC', score: 'ASC' },
-      activeSortColumn: 'employee_id',
+      sort: { employeeNameOrder: 'ASC', certificationNameOrder: 'ASC', endDateOrder: 'ASC' },
+      activeSortColumn: 'employeeNameOrder',
     });
 
     render(<EmployeeCompletePage />);

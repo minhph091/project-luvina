@@ -8,6 +8,7 @@ package com.luvina.la.validator;
 import com.luvina.la.config.Constants;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
@@ -252,6 +253,133 @@ public class EmployeeValidator {
             return certsError;
         }
 
+        return null;
+    }
+
+    /**
+     * Validate toàn bộ thông tin trong request cập nhật nhân viên sử dụng các repository được inject tự động.
+     *
+     * @param request Request DTO chứa thông tin nhân viên cần cập nhật.
+     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     */
+    public MessageResponse validateUpdateEmployee(UpdateEmployeeRequest request) {
+        return validateUpdateEmployee(request, this.employeeEntityRepository, this.departmentRepository, this.certificationRepository);
+    }
+
+    /**
+     * Validate toàn bộ thông tin trong request cập nhật nhân viên theo tài liệu thiết kế (PUT /employee).
+     *
+     * @param request           Request DTO chứa thông tin cập nhật nhân viên.
+     * @param employeeRepo      Repository nhân viên để kiểm tra tồn tại và trùng lặp tài khoản.
+     * @param departmentRepo    Repository phòng ban để kiểm tra tồn tại phòng ban.
+     * @param certificationRepo Repository chứng chỉ để kiểm tra tồn tại chứng chỉ.
+     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     */
+    public MessageResponse validateUpdateEmployee(
+            UpdateEmployeeRequest request,
+            EmployeeEntityRepository employeeRepo,
+            DepartmentRepository departmentRepo,
+            CertificationRepository certificationRepo) {
+
+        if (request == null) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
+        }
+
+        // 1.1 Validate parameter [employeeId]
+        Long empId = request.getEmployeeId();
+        if (empId == null || empId <= 0) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
+        }
+        if (employeeRepo != null && !employeeRepo.existsById(empId)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID));
+        }
+
+        // 1.2 Validate parameter [employeeLoginId]
+        MessageResponse loginIdError = validateEmployeeLoginIdForUpdate(request.getEmployeeLoginId(), empId, employeeRepo);
+        if (loginIdError != null) {
+            return loginIdError;
+        }
+
+        // 1.3 Validate parameter [employeeName]
+        MessageResponse nameError = validateEmployeeName(request.getEmployeeName());
+        if (nameError != null) {
+            return nameError;
+        }
+
+        // 1.4 Validate parameter [employeeNameKana]
+        MessageResponse kanaError = validateEmployeeNameKana(request.getEmployeeNameKana());
+        if (kanaError != null) {
+            return kanaError;
+        }
+
+        // 1.5 Validate parameter [employeeBirthDate]
+        MessageResponse birthDateError = validateEmployeeBirthDate(request.getEmployeeBirthDate());
+        if (birthDateError != null) {
+            return birthDateError;
+        }
+
+        // 1.6 Validate parameter [employeeEmail]
+        MessageResponse emailError = validateEmployeeEmail(request.getEmployeeEmail());
+        if (emailError != null) {
+            return emailError;
+        }
+
+        // 1.7 Validate parameter [employeeTelephone]
+        MessageResponse telephoneError = validateEmployeeTelephone(request.getEmployeeTelephone());
+        if (telephoneError != null) {
+            return telephoneError;
+        }
+
+        // 1.8 Validate parameter [employeeLoginPassword] (chỉ khi khác rỗng)
+        if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
+            String trimmedPass = request.getEmployeeLoginPassword().trim();
+            if (trimmedPass.length() < 8 || trimmedPass.length() > 50) {
+                return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
+            }
+        }
+
+        // 1.9 Validate parameter [departmentId]
+        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId(), departmentRepo);
+        if (departmentError != null) {
+            return departmentError;
+        }
+
+        // 1.10 Validate parameter [certifications]
+        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
+            MessageResponse certsError = validateCertifications(request.getCertifications(), certificationRepo);
+            if (certsError != null) {
+                return certsError;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate employeeLoginId khi cập nhật: Cho phép giữ nguyên loginId của chính mình,
+     * báo lỗi ER003 nếu trùng với nhân viên khác trong hệ thống.
+     */
+    public MessageResponse validateEmployeeLoginIdForUpdate(
+            String loginId,
+            Long currentEmployeeId,
+            EmployeeEntityRepository employeeRepo) {
+        if (loginId == null || loginId.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        String trimmed = loginId.trim();
+        if (trimmed.length() > 50) {
+            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        // Chỉ chứa ký tự a-z, A-Z, 0-9, _ và ký tự đầu tiên không phải là số
+        if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+            return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        if (employeeRepo != null) {
+            Optional<EmployeeEntity> existingOpt = employeeRepo.findByEmployeeLoginId(trimmed);
+            if (existingOpt.isPresent() && !existingOpt.get().getEmployeeId().equals(currentEmployeeId)) {
+                return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+            }
+        }
         return null;
     }
 

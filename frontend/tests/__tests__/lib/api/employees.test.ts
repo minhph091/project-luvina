@@ -88,4 +88,78 @@ describe('Employees API Service', () => {
       },
     });
   });
+
+  it('calls PUT /employee with proper body including certifications', async () => {
+    const mockResponseData = { code: 200, employeeId: 5, message: { code: 'MSG002', params: [] } };
+    mockedApiClient.put.mockResolvedValue({ data: mockResponseData });
+
+    const formData = {
+      employeeId: 5,
+      employeeLoginId: 'testuser',
+      employeeLoginPassword: 'newpassword',
+      employeeName: 'Nguyễn Văn B',
+      employeeNameKana: 'ｱｲｳｴｵ',
+      employeeBirthDate: '1995/05/10',
+      employeeEmail: 'b@luvina.net',
+      employeeTelephone: '0987654321',
+      departmentId: 2,
+      certificationId: 3,
+      certificationStartDate: '2023/01/01',
+      certificationEndDate: '2024/01/01',
+      score: '800',
+    };
+
+    const result = await (await import('@/lib/api/employees')).updateEmployee(formData);
+
+    expect(mockedApiClient.put).toHaveBeenCalledWith('/employee', {
+      employeeId: 5,
+      employeeLoginId: 'testuser',
+      employeeLoginPassword: 'newpassword',
+      employeeName: 'Nguyễn Văn B',
+      employeeNameKana: 'ｱｲｳｴｵ',
+      employeeBirthDate: '1995/05/10',
+      employeeEmail: 'b@luvina.net',
+      employeeTelephone: '0987654321',
+      departmentId: '2',
+      certifications: {
+        certificationId: '3',
+        startDate: '2023/01/01',
+        endDate: '2024/01/01',
+        score: '800',
+      },
+    });
+    expect(result).toEqual(mockResponseData);
+  });
+
+  it('calls PUT /employee without password if empty, and without certifications if none', async () => {
+    const mockResponseData = { code: 200, employeeId: 5, message: { code: 'MSG002', params: [] } };
+    mockedApiClient.put.mockResolvedValue({ data: mockResponseData });
+
+    const formData: import('@/types/employee').EmployeeFormData = {
+      employeeId: 5,
+      employeeLoginId: 'testuser',
+      employeeLoginPassword: '',
+      employeeName: 'Nguyễn Văn B',
+      employeeNameKana: 'ｱｲｳｴｵ',
+      employeeBirthDate: '1995/05/10',
+      employeeEmail: 'b@luvina.net',
+      employeeTelephone: '0987654321',
+      departmentId: 2,
+      certificationId: '',
+    };
+
+    await (await import('@/lib/api/employees')).updateEmployee(formData);
+
+    expect(mockedApiClient.put).toHaveBeenCalledWith('/employee', {
+      employeeId: 5,
+      employeeLoginId: 'testuser',
+      employeeName: 'Nguyễn Văn B',
+      employeeNameKana: 'ｱｲｳｴｵ',
+      employeeBirthDate: '1995/05/10',
+      employeeEmail: 'b@luvina.net',
+      employeeTelephone: '0987654321',
+      departmentId: '2',
+    });
+  });
 });
+

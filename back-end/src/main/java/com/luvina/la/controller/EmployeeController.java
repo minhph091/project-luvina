@@ -10,10 +10,12 @@ import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 import com.luvina.la.payload.response.AddEmployeeResponse;
 import com.luvina.la.payload.response.EmployeeResponse;
 import com.luvina.la.payload.response.ListEmployeesResponse;
 import com.luvina.la.payload.response.MessageResponse;
+import com.luvina.la.payload.response.UpdateEmployeeResponse;
 import com.luvina.la.service.EmployeeService;
 import com.luvina.la.exception.CustomValidationException;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -273,6 +276,36 @@ public class EmployeeController {
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(id)
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG003, new ArrayList<>()))
+                .build();
+    }
+
+    /**
+     * Cập nhật thông tin một nhân viên theo tài liệu thiết kế API (PUT /employee hoặc PUT /employee/{id}).
+     *
+     * @param id      ID nhân viên từ path variable (nếu có).
+     * @param request Payload chứa thông tin nhân viên và chứng chỉ cần cập nhật.
+     * @return UpdateEmployeeResponse chứa mã kết quả 200, employeeId và thông báo MSG002.
+     */
+    @PutMapping(value = {"/employee", "/employee/{id}"})
+    public UpdateEmployeeResponse updateEmployee(
+            @PathVariable(name = "id", required = false) Long id,
+            @RequestBody UpdateEmployeeRequest request) {
+
+        if (request != null && id != null && request.getEmployeeId() == null) {
+            request.setEmployeeId(id);
+        }
+
+        // Validate dữ liệu request cập nhật nhân viên theo thiết kế
+        MessageResponse validationError = employeeValidator.validateUpdateEmployee(request);
+        if (validationError != null) {
+            throw new CustomValidationException(validationError, request != null ? request.getEmployeeId() : id);
+        }
+
+        EmployeeDTO updatedEmployee = employeeService.updateEmployee(request);
+        return UpdateEmployeeResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
+                .employeeId(updatedEmployee != null ? updatedEmployee.getEmployeeId() : (request != null ? request.getEmployeeId() : id))
+                .message(new MessageResponse(Constants.MESSAGE_CODE_MSG002, new ArrayList<>()))
                 .build();
     }
 }

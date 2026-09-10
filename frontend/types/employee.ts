@@ -189,4 +189,43 @@ export interface AddEmployeeApiResponse {
   };
 }
 
+/**
+ * Cấu trúc request gửi lên API PUT /employee khi cập nhật nhân viên
+ */
+export interface UpdateEmployeeApiRequest {
+  employeeId?: number | string;
+  employeeLoginId: string;
+  employeeLoginPassword?: string;
+  employeeName: string;
+  employeeNameKana: string;
+  employeeBirthDate: string;
+  employeeEmail: string;
+  employeeTelephone: string;
+  departmentId: string | number;
+  certifications?: {
+    certificationId: string | number;
+    startDate?: string;
+    endDate?: string;
+    score?: string | number;
+  } | Array<{
+    certificationId: string | number;
+    startDate?: string;
+    endDate?: string;
+    score?: string | number;
+  }>;
+}
+
+/**
+ * Phản hồi từ API PUT /employee
+ */
+export interface UpdateEmployeeApiResponse {
+  code: number;
+  employeeId?: number;
+  message?: {
+    code?: string;
+    params?: string[];
+  };
+}
+
+
 

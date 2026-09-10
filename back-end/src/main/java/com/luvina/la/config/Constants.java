@@ -53,6 +53,7 @@ public class Constants {
 
     // Success Message Codes
     public static final String MESSAGE_CODE_MSG001 = "MSG001";
+    public static final String MESSAGE_CODE_MSG002 = "MSG002";
     public static final String MESSAGE_CODE_MSG003 = "MSG003";
 
     // Error Codes

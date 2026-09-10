@@ -16,6 +16,7 @@ import {
 } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES } from '@/constants';
+import { EmployeeFormData } from '@/types/employee';
 
 jest.mock('@/lib/api/employees', () => ({
   getEmployeeById: jest.fn(),
@@ -84,10 +85,22 @@ describe('useAdm004 Hook', () => {
       expect(result.current.formData.score).toBe('160');
       expect(result.current.isCertSelected).toBe(true);
     });
+
+    // In EDIT mode, attempting to update employeeLoginId must be ignored
+    act(() => {
+      result.current.handleFieldChange('employeeLoginId', 'should_not_change');
+    });
+    expect(result.current.formData.employeeLoginId).toBe('emp005');
+
+    // In EDIT mode, blurring employeeLoginId should not trigger errors
+    act(() => {
+      result.current.handleBlur('employeeLoginId');
+    });
+    expect(result.current.errors.employeeLoginId).toBeUndefined();
   });
 
   test('restores form data from sessionStorage when returning from ADM005', async () => {
-    const savedData = {
+    const savedData: EmployeeFormData = {
       employeeLoginId: 'restoredUser',
       departmentId: 3,
       employeeName: 'Lê Văn C',

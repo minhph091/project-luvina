@@ -18,6 +18,8 @@ import {
   EmployeeFormMode,
   AddEmployeeApiResponse,
   AddEmployeeApiRequest,
+  UpdateEmployeeApiResponse,
+  UpdateEmployeeApiRequest,
 } from '@/types/employee';
 
 /**
@@ -188,6 +190,53 @@ export async function addEmployee(formData: EmployeeFormData): Promise<AddEmploy
   return response.data;
 }
 
+/**
+ * Gọi API PUT /employee để cập nhật nhân viên theo tài liệu thiết kế API.
+ *
+ * @param formData Dữ liệu form chỉnh sửa nhân viên từ ADM004/ADM005.
+ * @returns Promise chứa phản hồi từ server (UpdateEmployeeApiResponse).
+ */
+export async function updateEmployee(
+  formData: EmployeeFormData
+): Promise<UpdateEmployeeApiResponse> {
+  const hasCert =
+    formData.certificationId !== '' &&
+    formData.certificationId !== null &&
+    formData.certificationId !== undefined &&
+    Number(formData.certificationId) > 0;
+
+  const certifications = hasCert
+    ? {
+        certificationId: String(formData.certificationId),
+        startDate: formData.certificationStartDate || '',
+        endDate: formData.certificationEndDate || '',
+        score: String(formData.score || ''),
+      }
+    : undefined;
+
+  const requestBody: Record<string, unknown> = {
+    employeeId: formData.employeeId,
+    employeeLoginId: formData.employeeLoginId,
+    employeeName: formData.employeeName,
+    employeeNameKana: formData.employeeNameKana,
+    employeeBirthDate: formData.employeeBirthDate,
+    employeeEmail: formData.employeeEmail,
+    employeeTelephone: formData.employeeTelephone,
+    departmentId: String(formData.departmentId),
+  };
+
+  if (formData.employeeLoginPassword && formData.employeeLoginPassword.trim() !== '') {
+    requestBody.employeeLoginPassword = formData.employeeLoginPassword.trim();
+  }
+
+  if (certifications) {
+    requestBody.certifications = certifications;
+  }
+
+  const response = await apiClient.put<UpdateEmployeeApiResponse>('/employee', requestBody);
+  return response.data;
+}
+
 export type {
   EmployeeItem,
   GetEmployeesApiResponse,
@@ -200,6 +249,11 @@ export type {
   EmployeeFormErrors,
   EmployeeFormMode,
 };
-export type { AddEmployeeApiRequest, AddEmployeeApiResponse } from '@/types/employee';
+export type {
+  AddEmployeeApiRequest,
+  AddEmployeeApiResponse,
+  UpdateEmployeeApiRequest,
+  UpdateEmployeeApiResponse,
+} from '@/types/employee';
 
 

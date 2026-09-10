@@ -49,7 +49,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
         <label className="col-form-label col-sm-2" htmlFor="employee-login-id">
           <i className="relative">
             {FIELD_LABELS.ACCOUNT_NAME_COLON}
-            <span className="note-red">*</span>
+            {mode === 'ADD' && <span className="note-red">*</span>}
           </i>
         </label>
         <div className="col-sm col-sm-10">
@@ -58,9 +58,14 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             name="employeeLoginId"
             type="text"
             className={`form-control ${errors.employeeLoginId ? 'is-invalid' : ''}`}
-            style={errors.employeeLoginId ? { borderColor: '#c00' } : undefined}
+            style={{
+              ...(errors.employeeLoginId ? { borderColor: '#c00' } : {}),
+              ...(mode === 'EDIT' ? { backgroundColor: '#e9ecef', cursor: 'not-allowed' } : {}),
+            }}
             value={formData.employeeLoginId}
             maxLength={50}
+            disabled={mode === 'EDIT'}
+            readOnly={mode === 'EDIT'}
             onChange={(e) => onFieldChange('employeeLoginId', e.target.value)}
             onBlur={() => onBlur('employeeLoginId')}
           />

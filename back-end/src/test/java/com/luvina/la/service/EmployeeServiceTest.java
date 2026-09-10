@@ -38,6 +38,7 @@ import com.luvina.la.entity.EmployeeCertificationEntity;
 import com.luvina.la.entity.EmployeeEntity;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 import com.luvina.la.payload.response.AddEmployeeResponse;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
@@ -379,5 +380,131 @@ public class EmployeeServiceTest {
 
         verify(employeeCertificationRepository, never()).deleteByEmployeeId(anyLong());
         verify(employeeEntityRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee thành công có đổi mật khẩu và cập nhật chứng chỉ mới")
+    void testUpdateEmployeeSuccessWithPasswordAndCert() {
+        Long empId = 1L;
+        EmployeeEntity existing = new EmployeeEntity();
+        existing.setEmployeeId(empId);
+        existing.setEmployeeLoginPassword("old_encoded_password");
+
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(existing));
+        when(passwordEncoder.encode("newpass123")).thenReturn("encoded_newpass");
+        when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CertificationItemRequest cert = CertificationItemRequest.builder()
+                .certificationId("2")
+                .startDate("2023/01/01")
+                .endDate("2024/01/01")
+                .score("850")
+                .build();
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(empId)
+                .departmentId("1")
+                .employeeName("Nguyen Van Updated")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1992/08/20")
+                .employeeEmail("updated@luvina.net")
+                .employeeTelephone("0987654321")
+                .employeeLoginId("updated_login")
+                .employeeLoginPassword("newpass123")
+                .certifications(List.of(cert))
+                .build();
+
+        EmployeeDTO result = employeeService.updateEmployee(request);
+
+        assertNotNull(result);
+        assertEquals(empId, result.getEmployeeId());
+        assertEquals("Nguyen Van Updated", result.getEmployeeName());
+        assertEquals(LocalDate.of(1992, 8, 20), result.getEmployeeBirthDate());
+
+        verify(employeeCertificationRepository).deleteByEmployeeId(empId);
+        verify(employeeCertificationRepository).save(any(EmployeeCertificationEntity.class));
+        verify(employeeEntityRepository).save(existing);
+        assertEquals("encoded_newpass", existing.getEmployeeLoginPassword());
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee thành công giữ nguyên mật khẩu cũ và xóa chứng chỉ")
+    void testUpdateEmployeeSuccessKeepPasswordAndNoCert() {
+        Long empId = 1L;
+        EmployeeEntity existing = new EmployeeEntity();
+        existing.setEmployeeId(empId);
+        existing.setEmployeeLoginPassword("keep_this_password");
+
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(existing));
+        when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(empId)
+                .departmentId("1")
+                .employeeName("Nguyen Van Updated")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1992/08/20")
+                .employeeEmail("updated@luvina.net")
+                .employeeTelephone("0987654321")
+                .employeeLoginId("updated_login")
+                .employeeLoginPassword("") // để trống
+                .certifications(null) // không có cert
+                .build();
+
+        EmployeeDTO result = employeeService.updateEmployee(request);
+
+        assertNotNull(result);
+        assertEquals("keep_this_password", existing.getEmployeeLoginPassword());
+        verify(employeeCertificationRepository).deleteByEmployeeId(empId);
+        verify(employeeCertificationRepository, never()).save(any(EmployeeCertificationEntity.class));
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee ném CustomValidationException ER013 khi không tìm thấy nhân viên")
+    void testUpdateEmployeeNotFoundThrowsER013() {
+        Long empId = 999L;
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.empty());
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(empId)
+                .build();
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.updateEmployee(request);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals(Constants.ERROR_CODE_ER013, ex.getMessageResponse().getCode());
+        assertEquals(List.of(Constants.PARAM_ID), ex.getMessageResponse().getParams());
+    }
+
+    @Test
+    @DisplayName("Test updateEmployee gặp lỗi CSDL ném CustomValidationException ER015")
+    void testUpdateEmployeeDatabaseErrorThrowsER015() {
+        Long empId = 1L;
+        EmployeeEntity existing = new EmployeeEntity();
+        existing.setEmployeeId(empId);
+
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(existing));
+        when(employeeEntityRepository.save(any(EmployeeEntity.class))).thenThrow(new RuntimeException("DB error on save"));
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(empId)
+                .departmentId("1")
+                .employeeName("Nguyen Van Updated")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1992/08/20")
+                .employeeEmail("updated@luvina.net")
+                .employeeTelephone("0987654321")
+                .employeeLoginId("updated_login")
+                .build();
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.updateEmployee(request);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals(Constants.ERROR_CODE_ER015, ex.getMessageResponse().getCode());
+        assertEquals(empId, ex.getEmployeeId());
     }
 }

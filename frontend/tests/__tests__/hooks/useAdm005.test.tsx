@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { APP_ROUTES, COMPLETE_ACTION_TYPES } from '@/constants';
 import { getEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { EmployeeFormData } from '@/types/employee';
-import { addEmployee } from '@/lib/api/employees';
+import { addEmployee, updateEmployee } from '@/lib/api/employees';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
@@ -25,6 +25,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/lib/api/employees', () => ({
   addEmployee: jest.fn(),
+  updateEmployee: jest.fn(),
 }));
 
 const MOCK_FORM_DATA: EmployeeFormData = {
@@ -169,5 +170,47 @@ describe('useAdm005 Hook', () => {
     });
 
     expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+  });
+
+  test('handleConfirmSubmit calls updateEmployee in EDIT mode and navigates to EMPLOYEE_COMPLETE on success', async () => {
+    (updateEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 200,
+      employeeId: 10,
+      message: { code: 'MSG002', params: [] },
+    });
+
+    setEditEmployeeId(10);
+    saveEmployeeFormData({ ...MOCK_FORM_DATA, employeeId: 10 });
+
+    const { result } = renderHook(() => useAdm005());
+
+    await act(async () => {
+      await result.current.handleConfirmSubmit();
+    });
+
+    expect(updateEmployee).toHaveBeenCalledWith({ ...MOCK_FORM_DATA, employeeId: 10 });
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(getEmployeeCompleteAction()).toBe(COMPLETE_ACTION_TYPES.EDIT);
+    expect(result.current.apiError).toBeNull();
+  });
+
+  test('handleConfirmSubmit sets apiError when updateEmployee fails in EDIT mode', async () => {
+    (updateEmployee as jest.Mock).mockResolvedValueOnce({
+      code: 500,
+      message: { code: 'ER003', params: ['アカウント名'] },
+    });
+
+    setEditEmployeeId(10);
+    saveEmployeeFormData({ ...MOCK_FORM_DATA, employeeId: 10 });
+
+    const { result } = renderHook(() => useAdm005());
+
+    await act(async () => {
+      await result.current.handleConfirmSubmit();
+    });
+
+    expect(updateEmployee).toHaveBeenCalledWith({ ...MOCK_FORM_DATA, employeeId: 10 });
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+    expect(result.current.apiError).toBe('「アカウント名」は既に存在しています。');
   });
 });

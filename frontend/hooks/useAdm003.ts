@@ -37,14 +37,7 @@ export interface UseAdm003Return {
  */
 export function useAdm003(): UseAdm003Return {
   const router = useRouter();
-  let searchParams: ReturnType<typeof useSearchParams> | null = null;
-  try {
-    if (typeof useSearchParams === 'function') {
-      searchParams = useSearchParams();
-    }
-  } catch {
-    searchParams = null;
-  }
+  const searchParams = useSearchParams();
 
   const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

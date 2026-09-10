@@ -206,7 +206,16 @@ export function useAdm004(): UseAdm004Return {
       value?: EmployeeFormData[keyof EmployeeFormData]
     ) => {
       const updates: Partial<EmployeeFormData> =
-        typeof fieldOrUpdates === 'object' ? fieldOrUpdates : { [fieldOrUpdates]: value };
+        typeof fieldOrUpdates === 'object' ? { ...fieldOrUpdates } : { [fieldOrUpdates]: value };
+
+      // Không cho phép chỉnh sửa tài khoản (employeeLoginId) ở chế độ EDIT
+      if (mode === 'EDIT' && 'employeeLoginId' in updates) {
+        delete updates.employeeLoginId;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return;
+      }
 
       setFormData((prev) => {
         const next = { ...prev, ...updates };
@@ -289,6 +298,11 @@ export function useAdm004(): UseAdm004Return {
    */
   const handleBlur = useCallback(
     (field: keyof EmployeeFormData) => {
+      // Không validate khi blur account name ở chế độ EDIT vì trường này không cho phép chỉnh sửa
+      if (mode === 'EDIT' && field === 'employeeLoginId') {
+        return;
+      }
+
       setTouched((prev) => ({ ...prev, [field]: true }));
 
       const err = validateField(field, formData, mode);

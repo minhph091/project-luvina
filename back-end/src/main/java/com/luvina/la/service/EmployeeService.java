@@ -9,6 +9,7 @@ import com.luvina.la.dto.EmployeeDTO;
 import com.luvina.la.dto.EmployeeDetailDTO;
 import com.luvina.la.dto.EmployeeListDTO;
 import com.luvina.la.payload.request.AddEmployeeRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 
 /**
  * Interface xử lý nghiệp vụ liên quan đến nhân viên.
@@ -84,5 +85,13 @@ public interface EmployeeService {
      * @param employeeId ID của nhân viên cần xóa.
      */
     void deleteEmployee(Long employeeId);
+
+    /**
+     * Cập nhật thông tin nhân viên và chứng chỉ tiếng Nhật theo tài liệu thiết kế API.
+     *
+     * @param request Thông tin nhân viên và chứng chỉ cần cập nhật.
+     * @return EmployeeDTO chứa thông tin nhân viên sau khi cập nhật.
+     */
+    EmployeeDTO updateEmployee(UpdateEmployeeRequest request);
 }
 

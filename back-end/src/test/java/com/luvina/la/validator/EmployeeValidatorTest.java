@@ -8,6 +8,7 @@ package com.luvina.la.validator;
 import com.luvina.la.config.Constants;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
+import com.luvina.la.payload.request.UpdateEmployeeRequest;
 import com.luvina.la.payload.response.MessageResponse;
 import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
@@ -512,6 +513,141 @@ public class EmployeeValidatorTest {
 
         MessageResponse valid = employeeValidator.validateEmployeeIdForDelete(1L, mockEmpRepo);
         assertNull(valid);
+    }
+
+    @Test
+    @DisplayName("Test validateUpdateEmployee thành công khi dữ liệu hợp lệ (có đổi password, có cert)")
+    void testValidateUpdateEmployeeSuccess() {
+        EmployeeEntityRepository mockEmpRepo = mock(EmployeeEntityRepository.class);
+        DepartmentRepository mockDeptRepo = mock(DepartmentRepository.class);
+        CertificationRepository mockCertRepo = mock(CertificationRepository.class);
+
+        when(mockEmpRepo.existsById(1L)).thenReturn(true);
+        when(mockEmpRepo.findByEmployeeLoginId("valid_user")).thenReturn(Optional.empty());
+        when(mockDeptRepo.existsById(1L)).thenReturn(true);
+        when(mockCertRepo.existsById(2L)).thenReturn(true);
+
+        CertificationItemRequest cert = CertificationItemRequest.builder()
+                .certificationId("2")
+                .startDate("2023/01/01")
+                .endDate("2024/01/01")
+                .score("950")
+                .build();
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(1L)
+                .employeeLoginId("valid_user")
+                .employeeLoginPassword("newpassword123")
+                .employeeName("Nguyễn Văn B")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1990/05/15")
+                .employeeEmail("vanb@luvina.net")
+                .employeeTelephone("0987654321")
+                .departmentId("1")
+                .certifications(List.of(cert))
+                .build();
+
+        MessageResponse error = employeeValidator.validateUpdateEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertNull(error);
+    }
+
+    @Test
+    @DisplayName("Test validateUpdateEmployee thành công khi không đổi password và không có cert")
+    void testValidateUpdateEmployeeSuccessWithoutPasswordAndCert() {
+        EmployeeEntityRepository mockEmpRepo = mock(EmployeeEntityRepository.class);
+        DepartmentRepository mockDeptRepo = mock(DepartmentRepository.class);
+        CertificationRepository mockCertRepo = mock(CertificationRepository.class);
+
+        when(mockEmpRepo.existsById(1L)).thenReturn(true);
+        // LoginId giữ nguyên của chính mình
+        EmployeeEntity currentEmp = new EmployeeEntity();
+        currentEmp.setEmployeeId(1L);
+        currentEmp.setEmployeeLoginId("my_login_id");
+        when(mockEmpRepo.findByEmployeeLoginId("my_login_id")).thenReturn(Optional.of(currentEmp));
+        when(mockDeptRepo.existsById(1L)).thenReturn(true);
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(1L)
+                .employeeLoginId("my_login_id")
+                .employeeLoginPassword("") // password rỗng
+                .employeeName("Nguyễn Văn B")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1990/05/15")
+                .employeeEmail("vanb@luvina.net")
+                .employeeTelephone("0987654321")
+                .departmentId("1")
+                .certifications(null) // không có cert
+                .build();
+
+        MessageResponse error = employeeValidator.validateUpdateEmployee(request, mockEmpRepo, mockDeptRepo, mockCertRepo);
+        assertNull(error);
+    }
+
+    @Test
+    @DisplayName("Test validateUpdateEmployee lỗi employeeId không tồn tại (ER013)")
+    void testValidateUpdateEmployeeNotFoundId() {
+        EmployeeEntityRepository mockEmpRepo = mock(EmployeeEntityRepository.class);
+        when(mockEmpRepo.existsById(999L)).thenReturn(false);
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(999L)
+                .employeeLoginId("user1")
+                .build();
+
+        MessageResponse error = employeeValidator.validateUpdateEmployee(request, mockEmpRepo, null, null);
+        assertNotNull(error);
+        assertEquals(Constants.ERROR_CODE_ER013, error.getCode());
+        assertEquals(List.of(Constants.PARAM_ID), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateUpdateEmployee lỗi trùng loginId với nhân viên khác (ER003)")
+    void testValidateUpdateEmployeeDuplicateLoginIdWithOther() {
+        EmployeeEntityRepository mockEmpRepo = mock(EmployeeEntityRepository.class);
+        when(mockEmpRepo.existsById(1L)).thenReturn(true);
+
+        EmployeeEntity otherEmp = new EmployeeEntity();
+        otherEmp.setEmployeeId(2L); // ID khác
+        otherEmp.setEmployeeLoginId("existing_user");
+        when(mockEmpRepo.findByEmployeeLoginId("existing_user")).thenReturn(Optional.of(otherEmp));
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(1L)
+                .employeeLoginId("existing_user")
+                .build();
+
+        MessageResponse error = employeeValidator.validateUpdateEmployee(request, mockEmpRepo, null, null);
+        assertNotNull(error);
+        assertEquals(Constants.ERROR_CODE_ER003, error.getCode());
+        assertEquals(List.of(Constants.PARAM_ACCOUNT_NAME), error.getParams());
+    }
+
+    @Test
+    @DisplayName("Test validateUpdateEmployee lỗi password ngắn hơn 8 ký tự khi update (ER007)")
+    void testValidateUpdateEmployeePasswordTooShort() {
+        EmployeeEntityRepository mockEmpRepo = mock(EmployeeEntityRepository.class);
+        DepartmentRepository mockDeptRepo = mock(DepartmentRepository.class);
+
+        when(mockEmpRepo.existsById(1L)).thenReturn(true);
+        when(mockEmpRepo.findByEmployeeLoginId("valid_user")).thenReturn(Optional.empty());
+        when(mockDeptRepo.existsById(1L)).thenReturn(true);
+
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .employeeId(1L)
+                .employeeLoginId("valid_user")
+                .employeeLoginPassword("short") // ngắn hơn 8 ký tự
+                .employeeName("Nguyễn Văn B")
+                .employeeNameKana("ｱｲｳｴｵ")
+                .employeeBirthDate("1990/05/15")
+                .employeeEmail("vanb@luvina.net")
+                .employeeTelephone("0987654321")
+                .departmentId("1")
+                .build();
+
+        MessageResponse error = employeeValidator.validateUpdateEmployee(request, mockEmpRepo, mockDeptRepo, null);
+        assertNotNull(error);
+        assertEquals(Constants.ERROR_CODE_ER007, error.getCode());
+        assertEquals(List.of(Constants.PARAM_PASSWORD, "8", "50"), error.getParams());
     }
 }
 

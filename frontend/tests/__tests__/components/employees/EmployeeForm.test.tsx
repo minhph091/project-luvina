@@ -182,4 +182,57 @@ describe('EmployeeForm Component', () => {
     fireEvent.click(backBtn);
     expect(handleBack).toHaveBeenCalled();
   });
+
+  test('disables account name input in EDIT mode and enables it in ADD mode', () => {
+    const { rerender } = render(
+      <EmployeeForm
+        mode="EDIT"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={false}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    const accountInput = document.getElementById('employee-login-id') as HTMLInputElement;
+    expect(accountInput).toBeInTheDocument();
+    expect(accountInput).toBeDisabled();
+    expect(accountInput).toHaveAttribute('readonly');
+
+    rerender(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={false}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    expect(accountInput).not.toBeDisabled();
+    expect(accountInput).not.toHaveAttribute('readonly');
+  });
 });
+

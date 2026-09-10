@@ -11,7 +11,7 @@ import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
 import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
 import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
-import { addEmployee } from '@/lib/api/employees';
+import { addEmployee, updateEmployee } from '@/lib/api/employees';
 
 export interface UseAdm005Return {
   mode: EmployeeFormMode;
@@ -95,9 +95,17 @@ export function useAdm005(): UseAdm005Return {
           setApiError(formatApiErrorMessage(errCode, params));
         }
       } else {
-        // Mode EDIT (dự phòng cho chức năng update employee khi triển khai)
-        setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
-        router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
+        // Mode EDIT
+        const response = await updateEmployee(formData);
+        if (response.code === 200) {
+          clearEmployeeFormData();
+          setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
+          router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
+        } else {
+          const errCode = response.message?.code;
+          const params = response.message?.params;
+          setApiError(formatApiErrorMessage(errCode, params));
+        }
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.data?.message?.code) {
