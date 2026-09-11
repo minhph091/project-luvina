@@ -614,6 +614,11 @@ grid-template-rows: auto auto auto;
   border-bottom: 1px dotted #e3e3e3;
 }
 
+.show-data .col-sm-10 {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 .show-data li.title {
   border: none;
 }

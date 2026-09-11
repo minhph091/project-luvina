@@ -34,6 +34,7 @@
 | Date       | Người update | Version | Nội dung thay đổi   | Ngày phê chuẩn | Người phê chuẩn |
 |------------|--------------|---------|---------------------|----------------|-----------------|
 | 2023-01-04 | ThanhPD      | 0.1     | Tạo mới tài liệu    |                |                 |
+| 2026-09-11 | Phạm Văn Minh | 0.2     | Bổ sung validate employeeBirthDate: Ngày sinh không được lớn hơn ngày hiện tại, trả về lỗi ER011 ("生年月日") |                |                 |
 
 ---
 
@@ -931,7 +932,7 @@ Tạo mới nhân viên
 ##### 1.4. Validate parameter `[employeeBirthDate]`
 
 - Nếu **không tồn tại** parameter này **hoặc giá trị parameter là rỗng** thì trả về lỗi có mã code **ER001**, tham số `"生年月日"`
-- Nếu **không phải giá trị ngày tháng hợp lệ** thì trả về lỗi có mã code **ER011**, tham số `"生年月日"`
+- Nếu **không phải giá trị ngày tháng hợp lệ hoặc ngày lớn hơn ngày hiện tại** thì trả về lỗi có mã code **ER011**, tham số `"生年月日"` (message: `「生年月日」は無効になっています。`)
 - Nếu **không thỏa mãn định dạng `yyyy/MM/dd`** thì trả về lỗi có mã code **ER005**, tham số `"生年月日"`, `"yyyy/MM/dd"`
 
 ##### 1.5. Validate parameter `[employeeEmail]`
@@ -1403,7 +1404,7 @@ Không có
 
 ##### 1.5 Validate parameter `[employeeBirthDate]`
 - Nếu không tồn tại parameter này hoặc giá trị rỗng → trả về lỗi mã **ER001**, tham số `"生年月日"`
-- Nếu không phải giá trị ngày tháng hợp lệ → trả về lỗi mã **ER011**, tham số `"生年月日"`
+- Nếu không phải giá trị ngày tháng hợp lệ hoặc ngày lớn hơn ngày hiện tại → trả về lỗi mã **ER011**, tham số `"生年月日"` (message: `「生年月日」は無効になっています。`)
 - Nếu không thỏa mãn định dạng `yyyy/MM/dd` → trả về lỗi mã **ER005**, tham số `"生年月日"`, `"yyyy/MM/dd"`
 
 ##### 1.6 Validate parameter `[employeeEmail]`

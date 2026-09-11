@@ -261,6 +261,13 @@ public class EmployeeValidatorTest {
         request.setEmployeeBirthDate("2023/02/29"); // Năm không nhuận
         error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
         assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
+
+        // Ngày lớn hơn ngày hiện tại -> ER011
+        String futureDate = java.time.LocalDate.now().plusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        request.setEmployeeBirthDate(futureDate);
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
+        assertEquals(List.of(Constants.PARAM_BIRTHDAY), error.getParams());
     }
 
     @Test

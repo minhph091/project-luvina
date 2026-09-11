@@ -172,6 +172,26 @@ describe('validateEmployeeForm - Mode ADD', () => {
     );
   });
 
+  test('validates telephone halfsize requirement (ER008)', () => {
+    const fullwidthTelForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeTelephone: '０９８７６５４３２１', // Fullwidth
+    };
+    const result = validateEmployeeForm(fullwidthTelForm, 'ADD');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.employeeTelephone).toBe(
+      VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.TEL)
+    );
+
+    // Should accept hyphens and standard telephone numbers
+    const hyphenTelForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeTelephone: '090-1234-5678',
+    };
+    const resultHyphen = validateEmployeeForm(hyphenTelForm, 'ADD');
+    expect(resultHyphen.errors.employeeTelephone).toBeUndefined();
+  });
+
   test('validates max length for all text fields (ER006)', () => {
     // 1. Account name > 50 chars
     const longAccountForm: EmployeeFormData = {
@@ -248,6 +268,23 @@ describe('validateEmployeeForm - Mode ADD', () => {
       employeeBirthDate: '2026/02/30', // Invalid day
     };
     const result = validateEmployeeForm(invalidDateForm, 'ADD');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.employeeBirthDate).toBe(
+      VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY)
+    );
+  });
+
+  test('validates future date for birthday (ER011)', () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 1);
+    const yyyy = futureDate.getFullYear();
+    const mm = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(futureDate.getDate()).padStart(2, '0');
+    const futureDateForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeBirthDate: `${yyyy}/${mm}/${dd}`,
+    };
+    const result = validateEmployeeForm(futureDateForm, 'ADD');
     expect(result.isValid).toBe(false);
     expect(result.errors.employeeBirthDate).toBe(
       VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY)

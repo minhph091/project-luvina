@@ -458,10 +458,18 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeBirthDate (định dạng yyyy/MM/dd và ngày hợp lệ).
+     * Validate employeeBirthDate (định dạng yyyy/MM/dd, ngày hợp lệ và không lớn hơn ngày hiện tại).
      */
     public MessageResponse validateEmployeeBirthDate(String birthDate) {
-        return validateDateField(birthDate, Constants.PARAM_BIRTHDAY);
+        MessageResponse dateError = validateDateField(birthDate, Constants.PARAM_BIRTHDAY);
+        if (dateError != null) {
+            return dateError;
+        }
+        LocalDate date = parseStrictDate(birthDate.trim());
+        if (date != null && date.isAfter(LocalDate.now())) {
+            return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_BIRTHDAY));
+        }
+        return null;
     }
 
     /**

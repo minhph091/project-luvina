@@ -218,6 +218,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
               onChange={(date: Date | null) => onDateChange('employeeBirthDate', date)}
               onBlur={() => onBlur('employeeBirthDate')}
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
+              maxDate={new Date()}
               className={`form-control ${errors.employeeBirthDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
               preventOpenOnFocus

@@ -61,6 +61,19 @@ export function isValidDateString(val: string): boolean {
 }
 
 /**
+ * Helper kiểm tra chuỗi ngày có hợp lệ và không lớn hơn ngày hiện tại không
+ */
+export function isNotFutureDateString(val: string): boolean {
+  if (!isValidDateString(val)) return false;
+  const parts = val.trim().split(/[/-]/).map(Number);
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return date.getTime() <= today.getTime();
+}
+
+/**
  * Helper chuẩn hóa chuỗi ngày sang Date object để so sánh
  */
 export function parseDateString(val: string | null | undefined): Date | null {
@@ -118,7 +131,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.BIRTHDAY))
-        .refine((val) => isValidDateString(val), {
+        .refine((val) => isNotFutureDateString(val), {
           message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY),
         }),
 
@@ -139,7 +152,10 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.TEL))
         .max(50, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, 50))
-        .regex(HALFSIZE_NUMERIC_REGEX, VALIDATION_MESSAGES.ER018_HALF_NUMBER(FIELD_LABELS.TEL)),
+        .regex(
+          HALFSIZE_ASCII_REGEX,
+          VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.TEL)
+        ),
 
       // 8. employeeLoginPassword
       employeeLoginPassword: z.string().optional(),

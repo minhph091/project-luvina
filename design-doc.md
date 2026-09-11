@@ -15,6 +15,7 @@
 | 2023-06-01 | LongLD | 0.1 | Tạo mới |
 | 2026-08-25 | Phạm Văn Minh | 0.2 | Quy chuẩn thiết kế UI: Toàn bộ nhãn (Labels), tiêu đề (Titles), nút bấm (Buttons) và thông điệp sử dụng thường xuyên phải được định nghĩa dưới dạng Constants để tái sử dụng |
 | 2026-08-25 | Phạm Văn Minh | 0.3 | Quy chuẩn bảo lưu trạng thái: Làm rõ cơ chế lưu trữ (sessionStorage), bảo lưu điều kiện Tìm kiếm (Search), Sắp xếp (Sort) và Phân trang (Page) khi quay lại màn hình danh sách nhân viên ADM002 |
+| 2026-09-11 | Phạm Văn Minh | 0.4 | Bổ sung validate ngày sinh (生年月日): Không cho phép chọn/nhập ngày lớn hơn ngày hiện tại, hiển thị thông báo lỗi ER011 (「生年月日」は無効になっています。) |
 
 ---
 
@@ -492,6 +493,8 @@
 - Các hạng mục nhập có yêu cầu validate thì thực hiện validate ngay khi user tương tác
 - Khi hạng mục lỗi, message lỗi hiển thị ngay dưới hạng mục, tô màu đỏ, khi ko có lỗi thì clear message lỗi
 - Chú ý các validate đặc biệt
+- Validate ngày sinh (生年月日):
+  - Ngày sinh không được lớn hơn ngày hiện tại. Nếu người dùng chọn/nhập ngày lớn hơn ngày hiện tại (hoặc ngày không hợp lệ trong lịch) thì hiển thị thông báo lỗi: `「生年月日」は無効になっています。` (ER011).
 - Validate ngày hiệu lực/hết hạn của chứng chỉ:
 - Validate từng hạng mục theo như sheet Định nghĩa hạng mục
 - Khi 2 ngày tháng đã hợp lệ thì validate sao cho ngày hết hạn phải lớn hơn ngày hiệu lực, nếu có lỗi highlight hạng mục ngày hết hạn, và message lỗi nằm dưới ngày hết hạn
