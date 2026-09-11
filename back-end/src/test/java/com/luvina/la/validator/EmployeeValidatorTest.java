@@ -311,6 +311,12 @@ public class EmployeeValidatorTest {
         error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
         assertEquals(Constants.ERROR_CODE_ER006, error.getCode());
 
+        // Email chứa ký tự non-halfsize (ER008)
+        request.setEmployeeEmail("ｔｅｓｔ＠ｇｍａｉｌ．ｃｏｍ");
+        error = employeeValidator.validateAddEmployee(request, mockEmpRepo, null, null);
+        assertEquals(Constants.ERROR_CODE_ER008, error.getCode());
+        assertEquals(List.of(Constants.PARAM_EMAIL), error.getParams());
+
         // Telephone rỗng
         request = createValidAddRequest();
         request.setEmployeeTelephone("");

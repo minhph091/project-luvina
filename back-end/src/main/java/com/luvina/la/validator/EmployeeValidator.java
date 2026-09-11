@@ -465,14 +465,21 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeEmail.
+     * Validate employeeEmail (bắt buộc, độ dài tối đa 125, chỉ chứa ký tự 1 byte nửa chữ).
+     *
+     * @param email Địa chỉ email cần validate.
+     * @return MessageResponse nếu không hợp lệ, null nếu hợp lệ.
      */
     public MessageResponse validateEmployeeEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_EMAIL));
         }
-        if (email.trim().length() > 125) {
+        String trimmed = email.trim();
+        if (trimmed.length() > 125) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_EMAIL));
+        }
+        if (!trimmed.chars().allMatch(c -> c >= 33 && c <= 126)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER008, Collections.singletonList(Constants.PARAM_EMAIL));
         }
         return null;
     }

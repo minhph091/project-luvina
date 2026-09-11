@@ -120,7 +120,7 @@ export const VALIDATION_MESSAGES = {
   ER002_REQUIRED_SELECT: (field: string) => `「${field}」を選択してください`,
   ER003_ALREADY_EXISTS: (field: string) => `「${field}」は既に存在しています。`,
   ER004_NOT_EXISTS: (field: string) => `「${field}」は存在していません。`,
-  ER005_INVALID_FORMAT: (field: string, format = 'email') => `「${field}」を${format}形式で入力してください`,
+  ER005_INVALID_FORMAT: (field: string, format = 'yyyy/MM/dd') => `「${field}」を${format}形式で入力してください`,
   ER006_MAX_LENGTH: (field: string, max: number) => `${max}桁以内の「${field}」を入力してください`,
   ER007_LENGTH_RANGE: (field: string, min: number, max: number) => `「${field}」を${min}<= 桁数、<=${max} 桁で入力してください`,
   ER008_BYTE_HALFSIZE: (field: string) => `「${field}」に半角英数を入力してください`,

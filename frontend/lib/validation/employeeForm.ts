@@ -29,6 +29,11 @@ export const HALFSIZE_ALPHANUMERIC_REGEX = /^[a-zA-Z0-9_]+$/;
 export const LOGIN_ID_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 /**
+ * Regex kiểm tra ký tự tiếng Anh nửa chữ (1-byte halfsize ASCII printable, không khoảng trắng: 33 - 126)
+ */
+export const HALFSIZE_ASCII_REGEX = /^[\x21-\x7E]+$/;
+
+/**
  * Regex kiểm tra email chuẩn
  */
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -117,13 +122,16 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
           message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY),
         }),
 
-      // 6. employeeEmail
+      // 6. employeeEmail (ER001, ER006, ER008)
       employeeEmail: z
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.EMAIL))
         .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, 125))
-        .regex(EMAIL_REGEX, VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.EMAIL)),
+        .regex(
+          HALFSIZE_ASCII_REGEX,
+          VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.EMAIL)
+        ),
 
       // 7. employeeTelephone
       employeeTelephone: z

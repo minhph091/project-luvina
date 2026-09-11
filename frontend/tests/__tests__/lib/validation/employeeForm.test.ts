@@ -140,15 +140,25 @@ describe('validateEmployeeForm - Mode ADD', () => {
     );
   });
 
-  test('validates email format and max length (ER005, ER006)', () => {
-    const invalidEmailForm: EmployeeFormData = {
+  test('validates email halfsize requirement and max length (ER008, ER006)', () => {
+    const nonHalfsizeEmailForm: EmployeeFormData = {
       ...validAddFormData,
-      employeeEmail: 'invalid-email',
+      employeeEmail: 'ｔｅｓｔ＠ｇｍａｉｌ．ｃｏｍ', // Fullwidth
     };
-    const resultInvalid = validateEmployeeForm(invalidEmailForm, 'ADD');
+    const resultInvalid = validateEmployeeForm(nonHalfsizeEmailForm, 'ADD');
     expect(resultInvalid.isValid).toBe(false);
     expect(resultInvalid.errors.employeeEmail).toBe(
-      VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.EMAIL)
+      VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.EMAIL)
+    );
+
+    const spaceEmailForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeEmail: 'test email@luvina.net', // Chứa khoảng trắng
+    };
+    const resultSpace = validateEmployeeForm(spaceEmailForm, 'ADD');
+    expect(resultSpace.isValid).toBe(false);
+    expect(resultSpace.errors.employeeEmail).toBe(
+      VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.EMAIL)
     );
 
     const longEmailForm: EmployeeFormData = {
