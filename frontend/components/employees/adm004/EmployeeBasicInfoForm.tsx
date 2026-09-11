@@ -6,7 +6,7 @@
  * 04/09/2026 Pham Van Minh
  */
 
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DepartmentItem } from '@/types/department';
@@ -41,6 +41,28 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
   onBlur,
 }) => {
   const birthDateRef = useRef<DatePicker>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const firstSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (mode === 'ADD') {
+      firstInputRef.current?.focus();
+    } else {
+      firstSelectRef.current?.focus();
+    }
+  }, [mode]);
+
+  const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
+    if (!ref.current) return;
+    const dp = ref.current as any;
+    if (typeof dp.toggleCalendar === 'function') {
+      dp.toggleCalendar();
+    } else if (typeof dp.setOpen === 'function') {
+      dp.setOpen(true);
+    } else {
+      ref.current.setFocus();
+    }
+  };
 
   return (
     <>
@@ -54,9 +76,11 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
         </label>
         <div className="col-sm col-sm-10">
           <input
+            ref={firstInputRef}
             id="employee-login-id"
             name="employeeLoginId"
             type="text"
+            tabIndex={mode === 'EDIT' ? -1 : 1}
             className={`form-control ${errors.employeeLoginId ? 'is-invalid' : ''}`}
             style={{
               ...(errors.employeeLoginId ? { borderColor: '#c00' } : {}),
@@ -87,8 +111,10 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
         </label>
         <div className="col-sm col-sm-10">
           <select
+            ref={firstSelectRef}
             id="employee-department-id"
             name="departmentId"
+            tabIndex={2}
             className={`form-control ${errors.departmentId ? 'is-invalid' : ''}`}
             style={errors.departmentId ? { borderColor: '#c00' } : undefined}
             value={formData.departmentId ?? ''}
@@ -131,6 +157,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-name"
             name="employeeName"
             type="text"
+            tabIndex={3}
             className={`form-control ${errors.employeeName ? 'is-invalid' : ''}`}
             style={errors.employeeName ? { borderColor: '#c00' } : undefined}
             value={formData.employeeName}
@@ -159,6 +186,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-name-kana"
             name="employeeNameKana"
             type="text"
+            tabIndex={4}
             className={`form-control ${errors.employeeNameKana ? 'is-invalid' : ''}`}
             style={errors.employeeNameKana ? { borderColor: '#c00' } : undefined}
             value={formData.employeeNameKana}
@@ -187,6 +215,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             <DatePicker
               id="employee-birth-date"
               ref={birthDateRef}
+              tabIndex={5}
               placeholderText={COMMON_LABELS.DATE_PLACEHOLDER}
               selected={birthDateObj}
               onChange={(date: Date | null) => onDateChange('employeeBirthDate', date)}
@@ -194,10 +223,19 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
               className={`form-control ${errors.employeeBirthDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
+              preventOpenOnFocus
+              onKeyDown={(e) => {
+                if (e.key !== 'Tab') {
+                  e.preventDefault();
+                }
+              }}
+              onChangeRaw={(e) => {
+                e?.preventDefault();
+              }}
             />
             <span
               className="glyphicon glyphicon-calendar"
-              onClick={() => birthDateRef.current?.setFocus()}
+              onClick={() => toggleCalendar(birthDateRef)}
             ></span>
           </div>
           {errors.employeeBirthDate && (
@@ -221,6 +259,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-email"
             name="employeeEmail"
             type="text"
+            tabIndex={6}
             className={`form-control ${errors.employeeEmail ? 'is-invalid' : ''}`}
             style={errors.employeeEmail ? { borderColor: '#c00' } : undefined}
             value={formData.employeeEmail}
@@ -249,6 +288,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-telephone"
             name="employeeTelephone"
             type="text"
+            tabIndex={7}
             className={`form-control ${errors.employeeTelephone ? 'is-invalid' : ''}`}
             style={errors.employeeTelephone ? { borderColor: '#c00' } : undefined}
             value={formData.employeeTelephone}
@@ -277,6 +317,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-login-password"
             name="employeeLoginPassword"
             type="password"
+            tabIndex={8}
             className={`form-control ${errors.employeeLoginPassword ? 'is-invalid' : ''}`}
             style={errors.employeeLoginPassword ? { borderColor: '#c00' } : undefined}
             value={formData.employeeLoginPassword ?? ''}
@@ -305,6 +346,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             id="employee-login-password-confirm"
             name="employeeLoginPasswordConfirm"
             type="password"
+            tabIndex={9}
             className={`form-control ${errors.employeeLoginPasswordConfirm ? 'is-invalid' : ''}`}
             style={errors.employeeLoginPasswordConfirm ? { borderColor: '#c00' } : undefined}
             value={formData.employeeLoginPasswordConfirm ?? ''}

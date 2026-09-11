@@ -18,6 +18,7 @@ exports[`Page Snapshots renders EmployeeCompletePage unchanged 1`] = `
       >
         <button
           class="btn btn-primary btn-sm"
+          tabindex="1"
           type="button"
         >
           OK
@@ -221,6 +222,7 @@ exports[`Page Snapshots renders EmployeeConfirmPage unchanged 1`] = `
             <button
               class="btn btn-primary btn-sm"
               id="btn-confirm-submit"
+              tabindex="1"
               type="button"
             >
               OK
@@ -228,6 +230,7 @@ exports[`Page Snapshots renders EmployeeConfirmPage unchanged 1`] = `
             <button
               class="btn btn-secondary btn-sm"
               id="btn-confirm-back"
+              tabindex="2"
               type="button"
             >
               戻る
@@ -296,6 +299,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-login-id"
               maxlength="50"
               name="employeeLoginId"
+              tabindex="1"
               type="text"
               value=""
             />
@@ -326,6 +330,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               class="form-control "
               id="employee-department-id"
               name="departmentId"
+              tabindex="2"
             >
               <option
                 value=""
@@ -361,6 +366,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-name"
               maxlength="100"
               name="employeeName"
+              tabindex="3"
               type="text"
               value=""
             />
@@ -392,6 +398,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-name-kana"
               maxlength="100"
               name="employeeNameKana"
+              tabindex="4"
               type="text"
               value=""
             />
@@ -431,6 +438,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
                     class="form-control "
                     id="employee-birth-date"
                     placeholder="yyyy/MM/dd"
+                    tabindex="5"
                     type="text"
                     value=""
                   />
@@ -468,6 +476,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-email"
               maxlength="100"
               name="employeeEmail"
+              tabindex="6"
               type="text"
               value=""
             />
@@ -499,6 +508,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-telephone"
               maxlength="14"
               name="employeeTelephone"
+              tabindex="7"
               type="text"
               value=""
             />
@@ -530,6 +540,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-login-password"
               maxlength="50"
               name="employeeLoginPassword"
+              tabindex="8"
               type="password"
               value=""
             />
@@ -561,6 +572,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               id="employee-login-password-confirm"
               maxlength="50"
               name="employeeLoginPasswordConfirm"
+              tabindex="9"
               type="password"
               value=""
             />
@@ -595,6 +607,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               class="form-control"
               id="employee-certification-id"
               name="certificationId"
+              tabindex="10"
             >
               <option
                 value=""
@@ -634,6 +647,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
                     disabled=""
                     id="employee-certification-start-date"
                     placeholder="yyyy/MM/dd"
+                    tabindex="11"
                     type="text"
                     value=""
                   />
@@ -641,7 +655,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               </div>
               <span
                 class="glyphicon glyphicon-calendar"
-                style="cursor: not-allowed; opacity: 0.5;"
+                style="cursor: not-allowed; opacity: 0.5; pointer-events: none;"
               />
             </div>
           </div>
@@ -676,6 +690,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
                     disabled=""
                     id="employee-certification-end-date"
                     placeholder="yyyy/MM/dd"
+                    tabindex="12"
                     type="text"
                     value=""
                   />
@@ -683,7 +698,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               </div>
               <span
                 class="glyphicon glyphicon-calendar"
-                style="cursor: not-allowed; opacity: 0.5;"
+                style="cursor: not-allowed; opacity: 0.5; pointer-events: none;"
               />
             </div>
           </div>
@@ -709,6 +724,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
               disabled=""
               id="employee-score"
               name="score"
+              tabindex="13"
               type="text"
               value=""
             />
@@ -723,6 +739,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <button
               class="btn btn-primary btn-sm"
               id="btn-confirm"
+              tabindex="14"
               type="submit"
             >
               確認
@@ -730,6 +747,7 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <button
               class="btn btn-secondary btn-sm"
               id="btn-back"
+              tabindex="15"
               type="button"
             >
               戻る
@@ -772,6 +790,7 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
             <input
               id="search-name"
               maxlength="125"
+              tabindex="1"
               type="text"
               value=""
             />
@@ -790,6 +809,7 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
           >
             <select
               id="search-department"
+              tabindex="2"
             >
               <option
                 value=""
@@ -809,6 +829,7 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
               class="btn btn-primary btn-sm"
               disabled=""
               id="btn-search"
+              tabindex="3"
               type="submit"
             >
               検索
@@ -816,6 +837,7 @@ exports[`Page Snapshots renders EmployeeListPage unchanged 1`] = `
             <button
               class="btn btn-secondary btn-sm"
               id="btn-add"
+              tabindex="4"
               type="button"
             >
               新規追加

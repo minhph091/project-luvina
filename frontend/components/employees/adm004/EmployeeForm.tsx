@@ -120,6 +120,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 type="submit"
                 className="btn btn-primary btn-sm"
                 disabled={loading}
+                tabIndex={14}
               >
                 {BUTTON_LABELS.CONFIRM}
               </button>
@@ -128,6 +129,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={onBack}
+                tabIndex={15}
               >
                 {BUTTON_LABELS.BACK}
               </button>

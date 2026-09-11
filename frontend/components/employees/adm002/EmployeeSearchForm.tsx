@@ -50,6 +50,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
               <input
                 id="search-name"
                 type="text"
+                tabIndex={1}
                 value={searchName}
                 onChange={(event) => onSearchNameChange(event.target.value)}
                 maxLength={125}
@@ -65,6 +66,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
             <div className="col-sm">
               <select
                 id="search-department"
+                tabIndex={2}
                 value={searchDepartmentId ?? ''}
                 onChange={(event) =>
                   onSearchDepartmentIdChange(
@@ -90,6 +92,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
                 type="submit"
                 className="btn btn-primary btn-sm"
                 disabled={loading}
+                tabIndex={3}
               >
                 {BUTTON_LABELS.SEARCH}
               </button>
@@ -98,6 +101,7 @@ export const EmployeeSearchForm: React.FC<EmployeeSearchFormProps> = ({
                 type="button"
                 onClick={onNavigateToAdd}
                 className="btn btn-secondary btn-sm"
+                tabIndex={4}
               >
                 {BUTTON_LABELS.ADD_NEW}
               </button>

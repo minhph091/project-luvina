@@ -155,6 +155,7 @@ export const Adm003: React.FC<Adm003Props> = ({
                 onClick={handleNavigateToEdit}
                 disabled={!employee}
                 className="btn btn-primary btn-sm"
+                tabIndex={1}
               >
                 {BUTTON_LABELS.EDIT}
               </button>
@@ -164,6 +165,7 @@ export const Adm003: React.FC<Adm003Props> = ({
                 onClick={handleDelete}
                 disabled={!employee || deleting}
                 className="btn btn-secondary btn-sm"
+                tabIndex={2}
               >
                 {BUTTON_LABELS.DELETE}
               </button>
@@ -172,6 +174,7 @@ export const Adm003: React.FC<Adm003Props> = ({
                 id="btn-detail-back"
                 onClick={handleNavigateToList}
                 className="btn btn-secondary btn-sm"
+                tabIndex={3}
               >
                 {BUTTON_LABELS.BACK}
               </button>

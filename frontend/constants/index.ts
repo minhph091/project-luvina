@@ -19,7 +19,8 @@ export const STORAGE_KEYS = {
   EDIT_EMPLOYEE_ID: 'edit_employee_id',
   EMPLOYEE_FORM_DATA: 'employee_form_data',
   EMPLOYEE_COMPLETE_ACTION: 'employee_complete_action',
-} as const;
+  INITIAL_CERT_DATA: 'initial_cert_data',
+};
 
 /**
  * Các loại hành động hoàn tất hiển thị trên ADM006.

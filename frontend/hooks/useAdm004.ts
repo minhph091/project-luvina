@@ -4,7 +4,7 @@
  * 04/09/2026 Pham Van Minh
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES } from '@/constants';
 import { EmployeeFormData, EmployeeFormErrors, EmployeeFormMode } from '@/types/employee';
@@ -14,6 +14,10 @@ import {
   getEmployeeFormData,
   saveEmployeeFormData,
   clearEmployeeFormData,
+  saveInitialCertData,
+  getInitialCertData,
+  clearInitialCertData,
+  InitialCertData,
 } from '@/lib/storage/employeeFormState';
 import { validateField, validateEmployeeForm } from '@/lib/validation/employeeForm';
 
@@ -95,6 +99,9 @@ export function useAdm004(): UseAdm004Return {
   const [loading, setLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  // Lưu trữ dữ liệu chứng chỉ ban đầu từ API (ở chế độ EDIT) để khôi phục khi user chọn lại dropdown
+  const initialCertDataRef = useRef<InitialCertData | null>(null);
+
   /**
    * - Được kích hoạt 1 lần duy nhất khi màn hình ADM004 mount lần đầu tiên (initial render).
    * - Luồng xử lý trong `initForm()`:
@@ -120,6 +127,9 @@ export function useAdm004(): UseAdm004Return {
       const savedFormData = getEmployeeFormData();
       if (savedFormData) {
         if (isMounted) {
+          if (currentMode === 'EDIT') {
+            initialCertDataRef.current = getInitialCertData();
+          }
           setFormData(savedFormData);
           setLoading(false);
         }
@@ -133,6 +143,28 @@ export function useAdm004(): UseAdm004Return {
           if (isMounted) {
             if (response && Number(response.code) === 200 && response.employee) {
               const emp = response.employee;
+              const certStartDate = emp.certificationStartDate
+                ? emp.certificationStartDate.replace(/-/g, '/')
+                : '';
+              const certEndDate = emp.certificationEndDate
+                ? emp.certificationEndDate.replace(/-/g, '/')
+                : '';
+              const certScore =
+                emp.score !== null && emp.score !== undefined ? String(emp.score) : '';
+
+              if (emp.certificationId) {
+                const initCert: InitialCertData = {
+                  certificationStartDate: certStartDate,
+                  certificationEndDate: certEndDate,
+                  score: certScore,
+                };
+                initialCertDataRef.current = initCert;
+                saveInitialCertData(initCert);
+              } else {
+                initialCertDataRef.current = null;
+                clearInitialCertData();
+              }
+
               setFormData({
                 employeeId: emp.employeeId,
                 employeeLoginId: emp.employeeLoginId || '',
@@ -147,13 +179,9 @@ export function useAdm004(): UseAdm004Return {
                 employeeLoginPasswordConfirm: '',
                 certificationId: emp.certificationId ?? '',
                 certificationName: emp.certificationName || '',
-                certificationStartDate: emp.certificationStartDate
-                  ? emp.certificationStartDate.replace(/-/g, '/')
-                  : '',
-                certificationEndDate: emp.certificationEndDate
-                  ? emp.certificationEndDate.replace(/-/g, '/')
-                  : '',
-                score: emp.score !== null && emp.score !== undefined ? String(emp.score) : '',
+                certificationStartDate: certStartDate,
+                certificationEndDate: certEndDate,
+                score: certScore,
               });
             } else {
               router.push(APP_ROUTES.SYSTEM_ERROR);
@@ -171,6 +199,8 @@ export function useAdm004(): UseAdm004Return {
       } else {
         // Mode ADD: Form rỗng
         if (isMounted) {
+          initialCertDataRef.current = null;
+          clearInitialCertData();
           setFormData(INITIAL_FORM_DATA);
           setLoading(false);
         }
@@ -225,8 +255,15 @@ export function useAdm004(): UseAdm004Return {
           const certId = updates.certificationId;
           const hasCert =
             certId !== '' && certId !== null && certId !== undefined && Number(certId) > 0;
+          const prevHasCert =
+            prev.certificationId !== '' &&
+            prev.certificationId !== null &&
+            prev.certificationId !== undefined &&
+            Number(prev.certificationId) > 0;
+
           if (!hasCert) {
-            // Disable & clear các trường tiếng Nhật
+            // Khi dropdown tên loại chứng chỉ thay đổi từ có giá trị về rỗng:
+            // Disable & clear 3 hạng mục trên, và clear hết data, highlight, message lỗi
             next.certificationName = '';
             next.certificationStartDate = '';
             next.certificationEndDate = '';
@@ -239,6 +276,15 @@ export function useAdm004(): UseAdm004Return {
               delete nextErr.score;
               return nextErr;
             });
+          } else if (!prevHasCert && mode === 'EDIT') {
+            // Khi dropdown tên loại chứng chỉ thay đổi từ giá trị rỗng về có giá trị:
+            // Đối với edit: set giá trị ban đầu cho 3 hạng mục (từ API) nếu có giá trị
+            const initCert = initialCertDataRef.current || getInitialCertData();
+            if (initCert) {
+              next.certificationStartDate = initCert.certificationStartDate || '';
+              next.certificationEndDate = initCert.certificationEndDate || '';
+              next.score = initCert.score || '';
+            }
           }
         }
 
@@ -363,6 +409,7 @@ export function useAdm004(): UseAdm004Return {
   const handleBack = useCallback(() => {
     // Xóa form data tạm
     clearEmployeeFormData();
+    clearInitialCertData();
 
     if (mode === 'EDIT') {
       router.push(APP_ROUTES.EMPLOYEE_DETAIL);

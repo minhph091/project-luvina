@@ -47,6 +47,26 @@ describe('Employee Sub-Components Tests', () => {
       fireEvent.click(addBtn);
       expect(handleAdd).toHaveBeenCalled();
     });
+
+    it('has sequential tabIndex on form controls (1 to 4)', () => {
+      render(
+        <EmployeeSearchForm
+          searchName=""
+          searchDepartmentId={undefined}
+          departments={mockDepartments}
+          loading={false}
+          onSearchNameChange={jest.fn()}
+          onSearchDepartmentIdChange={jest.fn()}
+          onSearchSubmit={jest.fn()}
+          onNavigateToAdd={jest.fn()}
+        />
+      );
+
+      expect(document.getElementById('search-name')).toHaveAttribute('tabindex', '1');
+      expect(document.getElementById('search-department')).toHaveAttribute('tabindex', '2');
+      expect(document.getElementById('btn-search')).toHaveAttribute('tabindex', '3');
+      expect(document.getElementById('btn-add')).toHaveAttribute('tabindex', '4');
+    });
   });
 
   describe('EmployeeTable', () => {

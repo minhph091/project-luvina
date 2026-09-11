@@ -128,6 +128,7 @@ export const Adm005: React.FC<Adm005Props> = ({
                 onClick={handleConfirmSubmit}
                 disabled={submitting}
                 className="btn btn-primary btn-sm"
+                tabIndex={1}
               >
                 {BUTTON_LABELS.OK}
               </button>
@@ -136,6 +137,7 @@ export const Adm005: React.FC<Adm005Props> = ({
                 id="btn-confirm-back"
                 onClick={handleNavigateToEdit}
                 className="btn btn-secondary btn-sm"
+                tabIndex={2}
               >
                 {BUTTON_LABELS.BACK}
               </button>

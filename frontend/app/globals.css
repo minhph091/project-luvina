@@ -838,6 +838,7 @@ cursor: pointer;
   border: 1px solid #d8e2ef;
   border-radius: 8px;
   padding-left: 8px;
+  cursor: default;
 }
 
 .datepicker-wrapper .glyphicon-calendar {

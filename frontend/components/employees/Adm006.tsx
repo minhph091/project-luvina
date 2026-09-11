@@ -27,6 +27,7 @@ export const Adm006: React.FC<Adm006Props> = ({
             type="button"
             onClick={handleNavigateToList}
             className="btn btn-primary btn-sm"
+            tabIndex={1}
           >
             {BUTTON_LABELS.OK}
           </button>

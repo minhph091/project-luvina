@@ -48,6 +48,18 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
   const startDateRef = useRef<DatePicker>(null);
   const endDateRef = useRef<DatePicker>(null);
 
+  const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
+    if (!ref.current) return;
+    const dp = ref.current as any;
+    if (typeof dp.toggleCalendar === 'function') {
+      dp.toggleCalendar();
+    } else if (typeof dp.setOpen === 'function') {
+      dp.setOpen(true);
+    } else {
+      ref.current.setFocus();
+    }
+  };
+
   return (
     <>
       {/* Tiêu đề khối tiếng Nhật */}
@@ -64,6 +76,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
           <select
             id="employee-certification-id"
             name="certificationId"
+            tabIndex={10}
             className="form-control"
             value={formData.certificationId ?? ''}
             onChange={(e) => {
@@ -100,6 +113,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
             <DatePicker
               id="employee-certification-start-date"
               ref={startDateRef}
+              tabIndex={11}
               disabled={!isCertSelected}
               placeholderText={COMMON_LABELS.DATE_PLACEHOLDER}
               selected={startDateObj}
@@ -108,13 +122,22 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
               className={`form-control ${errors.certificationStartDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
+              preventOpenOnFocus
+              onKeyDown={(e) => {
+                if (e.key !== 'Tab') {
+                  e.preventDefault();
+                }
+              }}
+              onChangeRaw={(e) => {
+                e?.preventDefault();
+              }}
             />
             <span
               className="glyphicon glyphicon-calendar"
               onClick={() => {
-                if (isCertSelected) startDateRef.current?.setFocus();
+                if (isCertSelected) toggleCalendar(startDateRef);
               }}
-              style={!isCertSelected ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
+              style={!isCertSelected ? { cursor: 'not-allowed', opacity: 0.5, pointerEvents: 'none' } : undefined}
             ></span>
           </div>
           {errors.certificationStartDate && (
@@ -142,6 +165,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
             <DatePicker
               id="employee-certification-end-date"
               ref={endDateRef}
+              tabIndex={12}
               disabled={!isCertSelected}
               placeholderText={COMMON_LABELS.DATE_PLACEHOLDER}
               selected={endDateObj}
@@ -150,13 +174,22 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
               className={`form-control ${errors.certificationEndDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
+              preventOpenOnFocus
+              onKeyDown={(e) => {
+                if (e.key !== 'Tab') {
+                  e.preventDefault();
+                }
+              }}
+              onChangeRaw={(e) => {
+                e?.preventDefault();
+              }}
             />
             <span
               className="glyphicon glyphicon-calendar"
               onClick={() => {
-                if (isCertSelected) endDateRef.current?.setFocus();
+                if (isCertSelected) toggleCalendar(endDateRef);
               }}
-              style={!isCertSelected ? { cursor: 'not-allowed', opacity: 0.5 } : undefined}
+              style={!isCertSelected ? { cursor: 'not-allowed', opacity: 0.5, pointerEvents: 'none' } : undefined}
             ></span>
           </div>
           {errors.certificationEndDate && (
@@ -184,6 +217,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
             id="employee-score"
             name="score"
             type="text"
+            tabIndex={13}
             disabled={!isCertSelected}
             className={`form-control ${errors.score ? 'is-invalid' : ''}`}
             style={errors.score ? { borderColor: '#c00' } : undefined}

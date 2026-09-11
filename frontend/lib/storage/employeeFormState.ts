@@ -93,3 +93,48 @@ export function clearEditEmployeeId(): void {
     // Ignore error
   }
 }
+
+export interface InitialCertData {
+  certificationStartDate: string;
+  certificationEndDate: string;
+  score: string;
+}
+
+/**
+ * Lưu dữ liệu chứng chỉ ban đầu từ API (Mode EDIT) để khôi phục khi user chọn lại dropdown chứng chỉ.
+ */
+export function saveInitialCertData(data: InitialCertData): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(STORAGE_KEYS.INITIAL_CERT_DATA, JSON.stringify(data));
+  } catch {
+    // Ignore error
+  }
+}
+
+/**
+ * Lấy dữ liệu chứng chỉ ban đầu từ sessionStorage.
+ */
+export function getInitialCertData(): InitialCertData | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEYS.INITIAL_CERT_DATA);
+    if (!raw) return null;
+    return JSON.parse(raw) as InitialCertData;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Xóa dữ liệu chứng chỉ ban đầu trong sessionStorage.
+ */
+export function clearInitialCertData(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(STORAGE_KEYS.INITIAL_CERT_DATA);
+  } catch {
+    // Ignore error
+  }
+}
+

@@ -49,6 +49,8 @@ export default function LoginForm() {
           className="input100"
           type="text"
           placeholder={FIELD_LABELS.ACCOUNT_NAME_COLON}
+          autoFocus
+          tabIndex={1}
           {...register('username')}
         />
         <span className="focus-input100"></span>
@@ -67,6 +69,7 @@ export default function LoginForm() {
           className="input100"
           type="password"
           placeholder={FIELD_LABELS.PASSWORD_COLON}
+          tabIndex={2}
           {...register('password')}
         />
         <span className="focus-input100"></span>
@@ -81,7 +84,7 @@ export default function LoginForm() {
       )}
 
       <div className="container-login100-form-btn">
-        <button type="submit" className="login100-form-btn" disabled={loading}>
+        <button type="submit" className="login100-form-btn" disabled={loading} tabIndex={3}>
           {loading ? BUTTON_LABELS.LOGGING_IN : BUTTON_LABELS.LOGIN}
         </button>
       </div>

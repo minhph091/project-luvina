@@ -234,5 +234,192 @@ describe('EmployeeForm Component', () => {
     expect(accountInput).not.toBeDisabled();
     expect(accountInput).not.toHaveAttribute('readonly');
   });
+
+  test('focuses employee-login-id in ADD mode and employee-department-id in EDIT mode', () => {
+    const { rerender } = render(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={false}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    const loginIdInput = document.getElementById('employee-login-id');
+    expect(loginIdInput).toHaveFocus();
+
+    rerender(
+      <EmployeeForm
+        mode="EDIT"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={false}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    const deptSelect = document.getElementById('employee-department-id');
+    expect(deptSelect).toHaveFocus();
+  });
+
+  test('assigns sequential tabIndex across form controls (1 to 15)', () => {
+    render(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={true}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    expect(document.getElementById('employee-login-id')).toHaveAttribute('tabindex', '1');
+    expect(document.getElementById('employee-department-id')).toHaveAttribute('tabindex', '2');
+    expect(document.getElementById('employee-name')).toHaveAttribute('tabindex', '3');
+    expect(document.getElementById('employee-name-kana')).toHaveAttribute('tabindex', '4');
+    expect(document.getElementById('employee-birth-date')).toHaveAttribute('tabindex', '5');
+    expect(document.getElementById('employee-email')).toHaveAttribute('tabindex', '6');
+    expect(document.getElementById('employee-telephone')).toHaveAttribute('tabindex', '7');
+    expect(document.getElementById('employee-login-password')).toHaveAttribute('tabindex', '8');
+    expect(document.getElementById('employee-login-password-confirm')).toHaveAttribute('tabindex', '9');
+    expect(document.getElementById('employee-certification-id')).toHaveAttribute('tabindex', '10');
+    expect(document.getElementById('employee-certification-start-date')).toHaveAttribute('tabindex', '11');
+    expect(document.getElementById('employee-certification-end-date')).toHaveAttribute('tabindex', '12');
+    expect(document.getElementById('employee-score')).toHaveAttribute('tabindex', '13');
+    expect(document.getElementById('btn-confirm')).toHaveAttribute('tabindex', '14');
+    expect(document.getElementById('btn-back')).toHaveAttribute('tabindex', '15');
+  });
+
+  test('prevents direct keyboard typing on date fields while allowing Tab navigation', () => {
+    render(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={true}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    const birthDateInput = document.getElementById('employee-birth-date') as HTMLInputElement;
+    expect(birthDateInput).toBeInTheDocument();
+
+    // Keydown other than Tab should be prevented
+    const charAllowed = fireEvent.keyDown(birthDateInput, { key: 'a' });
+    expect(charAllowed).toBe(false);
+
+    // Tab key should not be prevented
+    const tabAllowed = fireEvent.keyDown(birthDateInput, { key: 'Tab' });
+    expect(tabAllowed).toBe(true);
+  });
+
+  test('calendar icons can be clicked when enabled and are disabled when certification is not selected', () => {
+    const { rerender } = render(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={false}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    const icons = document.querySelectorAll('.glyphicon-calendar');
+    expect(icons.length).toBe(3);
+
+    // Birth date icon is always enabled
+    expect(icons[0]).not.toHaveStyle('pointer-events: none');
+    fireEvent.click(icons[0]);
+
+    // Certification icons are disabled when isCertSelected is false
+    expect(icons[1]).toHaveStyle('pointer-events: none');
+    expect(icons[1]).toHaveStyle('cursor: not-allowed');
+    expect(icons[2]).toHaveStyle('pointer-events: none');
+    expect(icons[2]).toHaveStyle('cursor: not-allowed');
+
+    // When isCertSelected is true, certification icons are enabled
+    rerender(
+      <EmployeeForm
+        mode="ADD"
+        formData={initialFormData}
+        errors={{}}
+        departments={mockDepartments}
+        certifications={mockCertifications}
+        isCertSelected={true}
+        birthDateObj={null}
+        startDateObj={null}
+        endDateObj={null}
+        apiError={null}
+        loading={false}
+        onFieldChange={jest.fn()}
+        onDateChange={jest.fn()}
+        onBlur={jest.fn()}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+      />
+    );
+
+    expect(icons[1]).not.toHaveStyle('pointer-events: none');
+    expect(icons[2]).not.toHaveStyle('pointer-events: none');
+    fireEvent.click(icons[1]);
+    fireEvent.click(icons[2]);
+  });
 });
+
 

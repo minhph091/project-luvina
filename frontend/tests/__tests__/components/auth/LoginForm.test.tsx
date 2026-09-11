@@ -24,9 +24,11 @@ describe('LoginForm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the login form correctly', () => {
+  it('renders the login form correctly with autoFocus on username field', () => {
     render(<LoginForm />);
-    expect(screen.getByPlaceholderText('アカウント名:')).toBeInTheDocument();
+    const usernameInput = screen.getByPlaceholderText('アカウント名:');
+    expect(usernameInput).toBeInTheDocument();
+    expect(usernameInput).toHaveFocus();
     expect(screen.getByPlaceholderText('パスワード:')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /ログイン/i })).toBeInTheDocument();
   });

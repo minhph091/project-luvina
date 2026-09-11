@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION_TYPES } from '@/constants';
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
-import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
+import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData, clearInitialCertData } from '@/lib/storage/employeeFormState';
 import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { getEmployeeById, addEmployee, updateEmployee } from '@/lib/api/employees';
 
@@ -67,7 +67,7 @@ export function useAdm005(): UseAdm005Return {
       if (currentMode === 'EDIT' && editId) {
         try {
           const response = await getEmployeeById(editId);
-          if (!response || !response.employee) {
+          if (!response || Number(response.code) !== 200 || !response.employee) {
             if (isMounted) {
               router.push(APP_ROUTES.SYSTEM_ERROR);
             }
@@ -121,6 +121,7 @@ export function useAdm005(): UseAdm005Return {
         const response = await addEmployee(formData);
         if (response.code === 200) {
           clearEmployeeFormData();
+          clearInitialCertData();
           setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.ADD);
           router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
         } else {
@@ -133,6 +134,7 @@ export function useAdm005(): UseAdm005Return {
         const response = await updateEmployee(formData);
         if (response.code === 200) {
           clearEmployeeFormData();
+          clearInitialCertData();
           setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
           router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
         } else {

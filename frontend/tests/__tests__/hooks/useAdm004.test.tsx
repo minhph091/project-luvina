@@ -219,6 +219,59 @@ describe('useAdm004 Hook', () => {
     expect(result.current.formData.score).toBe('');
   });
 
+  test('restores initial certification data from API in EDIT mode when toggling certification dropdown from empty back to a value', async () => {
+    setEditEmployeeId(10);
+    (getEmployeeById as jest.Mock).mockResolvedValueOnce({
+      code: 200,
+      employee: {
+        employeeId: 10,
+        employeeLoginId: 'minhpv',
+        departmentId: 1,
+        employeeName: 'Phạm Văn Minh',
+        employeeNameKana: 'ﾐﾝ',
+        employeeBirthDate: '1995-05-15',
+        employeeEmail: 'minhpv@luvina.net',
+        employeeTelephone: '0987654321',
+        certificationId: 2,
+        certificationName: 'Trình độ tiếng Nhật N2',
+        certificationStartDate: '2020-01-01',
+        certificationEndDate: '2025-01-01',
+        score: 140,
+      },
+    });
+
+    const { result } = renderHook(() => useAdm004());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.formData.certificationId).toBe(2);
+    expect(result.current.formData.certificationStartDate).toBe('2020/01/01');
+    expect(result.current.formData.certificationEndDate).toBe('2025/01/01');
+    expect(result.current.formData.score).toBe('140');
+
+    // 1. Change certification to empty -> clears cert fields
+    act(() => {
+      result.current.handleFieldChange('certificationId', '');
+    });
+
+    expect(result.current.isCertSelected).toBe(false);
+    expect(result.current.formData.certificationStartDate).toBe('');
+    expect(result.current.formData.certificationEndDate).toBe('');
+    expect(result.current.formData.score).toBe('');
+
+    // 2. Change certification back to a selected value -> restores initial API data
+    act(() => {
+      result.current.handleFieldChange('certificationId', 1);
+    });
+
+    expect(result.current.isCertSelected).toBe(true);
+    expect(result.current.formData.certificationStartDate).toBe('2020/01/01');
+    expect(result.current.formData.certificationEndDate).toBe('2025/01/01');
+    expect(result.current.formData.score).toBe('140');
+  });
+
   test('prevents submission and marks fields when form is invalid', async () => {
     const { result } = renderHook(() => useAdm004());
 
