@@ -162,8 +162,11 @@ export function formatApiErrorMessage(code?: string, params: string[] = []): str
       return VALIDATION_MESSAGES.ER004_NOT_EXISTS(p0);
     case ERROR_CODES.ER005:
       return VALIDATION_MESSAGES.ER005_INVALID_FORMAT(p0, p1);
-    case ERROR_CODES.ER006:
-      return VALIDATION_MESSAGES.ER006_MAX_LENGTH(p0, Number(p1) || 125);
+    case ERROR_CODES.ER006: {
+      const maxParam = Number(p1);
+      const max = maxParam || (p0 === FIELD_LABELS.ACCOUNT_NAME || p0 === FIELD_LABELS.TEL ? 50 : 125);
+      return VALIDATION_MESSAGES.ER006_MAX_LENGTH(p0, max);
+    }
     case ERROR_CODES.ER007:
       return VALIDATION_MESSAGES.ER007_LENGTH_RANGE(p0, Number(p1) || 8, Number(p2) || 50);
     case ERROR_CODES.ER008:

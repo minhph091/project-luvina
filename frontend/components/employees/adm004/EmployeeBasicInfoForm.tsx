@@ -87,7 +87,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
               ...(mode === 'EDIT' ? { backgroundColor: '#e9ecef', cursor: 'not-allowed' } : {}),
             }}
             value={formData.employeeLoginId}
-            maxLength={50}
             disabled={mode === 'EDIT'}
             readOnly={mode === 'EDIT'}
             onChange={(e) => onFieldChange('employeeLoginId', e.target.value)}
@@ -161,7 +160,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeName ? 'is-invalid' : ''}`}
             style={errors.employeeName ? { borderColor: '#c00' } : undefined}
             value={formData.employeeName}
-            maxLength={100}
             onChange={(e) => onFieldChange('employeeName', e.target.value)}
             onBlur={() => onBlur('employeeName')}
           />
@@ -190,7 +188,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeNameKana ? 'is-invalid' : ''}`}
             style={errors.employeeNameKana ? { borderColor: '#c00' } : undefined}
             value={formData.employeeNameKana}
-            maxLength={100}
             onChange={(e) => onFieldChange('employeeNameKana', e.target.value)}
             onBlur={() => onBlur('employeeNameKana')}
           />
@@ -263,7 +260,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeEmail ? 'is-invalid' : ''}`}
             style={errors.employeeEmail ? { borderColor: '#c00' } : undefined}
             value={formData.employeeEmail}
-            maxLength={100}
             onChange={(e) => onFieldChange('employeeEmail', e.target.value)}
             onBlur={() => onBlur('employeeEmail')}
           />
@@ -292,7 +288,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeTelephone ? 'is-invalid' : ''}`}
             style={errors.employeeTelephone ? { borderColor: '#c00' } : undefined}
             value={formData.employeeTelephone}
-            maxLength={14}
             onChange={(e) => onFieldChange('employeeTelephone', e.target.value)}
             onBlur={() => onBlur('employeeTelephone')}
           />
@@ -321,7 +316,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeLoginPassword ? 'is-invalid' : ''}`}
             style={errors.employeeLoginPassword ? { borderColor: '#c00' } : undefined}
             value={formData.employeeLoginPassword ?? ''}
-            maxLength={50}
             onChange={(e) => onFieldChange('employeeLoginPassword', e.target.value)}
             onBlur={() => onBlur('employeeLoginPassword')}
           />
@@ -350,7 +344,6 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
             className={`form-control ${errors.employeeLoginPasswordConfirm ? 'is-invalid' : ''}`}
             style={errors.employeeLoginPasswordConfirm ? { borderColor: '#c00' } : undefined}
             value={formData.employeeLoginPasswordConfirm ?? ''}
-            maxLength={50}
             onChange={(e) => onFieldChange('employeeLoginPasswordConfirm', e.target.value)}
             onBlur={() => onBlur('employeeLoginPasswordConfirm')}
           />

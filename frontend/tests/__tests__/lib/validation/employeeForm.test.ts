@@ -150,6 +150,74 @@ describe('validateEmployeeForm - Mode ADD', () => {
     expect(resultInvalid.errors.employeeEmail).toBe(
       VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.EMAIL)
     );
+
+    const longEmailForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeEmail: `${'a'.repeat(120)}@test.com`, // 129 chars > 125
+    };
+    const resultLong = validateEmployeeForm(longEmailForm, 'ADD');
+    expect(resultLong.isValid).toBe(false);
+    expect(resultLong.errors.employeeEmail).toBe(
+      VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, 125)
+    );
+  });
+
+  test('validates max length for all text fields (ER006)', () => {
+    // 1. Account name > 50 chars
+    const longAccountForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeLoginId: 'a'.repeat(51),
+    };
+    const resultAccount = validateEmployeeForm(longAccountForm, 'ADD');
+    expect(resultAccount.isValid).toBe(false);
+    expect(resultAccount.errors.employeeLoginId).toBe(
+      VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.ACCOUNT_NAME, 50)
+    );
+
+    // 2. Name > 125 chars
+    const longNameForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeName: 'a'.repeat(126),
+    };
+    const resultName = validateEmployeeForm(longNameForm, 'ADD');
+    expect(resultName.isValid).toBe(false);
+    expect(resultName.errors.employeeName).toBe(
+      VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.NAME, 125)
+    );
+
+    // 3. Name kana > 125 chars
+    const longKanaForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeNameKana: 'ｱ'.repeat(126),
+    };
+    const resultKana = validateEmployeeForm(longKanaForm, 'ADD');
+    expect(resultKana.isValid).toBe(false);
+    expect(resultKana.errors.employeeNameKana).toBe(
+      VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, 125)
+    );
+
+    // 4. Telephone > 50 chars
+    const longTelForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeTelephone: '1'.repeat(51),
+    };
+    const resultTel = validateEmployeeForm(longTelForm, 'ADD');
+    expect(resultTel.isValid).toBe(false);
+    expect(resultTel.errors.employeeTelephone).toBe(
+      VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, 50)
+    );
+
+    // 5. Password > 50 chars (ER007)
+    const longPasswordForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeLoginPassword: 'A1'.repeat(26), // 52 chars > 50
+      employeeLoginPasswordConfirm: 'A1'.repeat(26),
+    };
+    const resultPassword = validateEmployeeForm(longPasswordForm, 'ADD');
+    expect(resultPassword.isValid).toBe(false);
+    expect(resultPassword.errors.employeeLoginPassword).toBe(
+      VALIDATION_MESSAGES.ER007_LENGTH_RANGE(FIELD_LABELS.PASSWORD, 8, 50)
+    );
   });
 
   test('validates katakana halfsize requirement (ER009)', () => {

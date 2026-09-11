@@ -95,14 +95,14 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.NAME))
-        .max(100, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.NAME, 100)),
+        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.NAME, 125)),
 
       // 4. employeeNameKana
       employeeNameKana: z
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.KATAKANA_NAME))
-        .max(100, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, 100))
+        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, 125))
         .regex(
           HALFSIZE_KATAKANA_REGEX,
           VALIDATION_MESSAGES.ER009_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
@@ -122,7 +122,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.EMAIL))
-        .max(100, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, 100))
+        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, 125))
         .regex(EMAIL_REGEX, VALIDATION_MESSAGES.ER005_INVALID_FORMAT(FIELD_LABELS.EMAIL)),
 
       // 7. employeeTelephone
@@ -130,7 +130,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.TEL))
-        .max(14, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, 14))
+        .max(50, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, 50))
         .regex(HALFSIZE_NUMERIC_REGEX, VALIDATION_MESSAGES.ER018_HALF_NUMBER(FIELD_LABELS.TEL)),
 
       // 8. employeeLoginPassword

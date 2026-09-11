@@ -297,7 +297,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-login-id"
-              maxlength="50"
               name="employeeLoginId"
               tabindex="1"
               type="text"
@@ -364,7 +363,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-name"
-              maxlength="100"
               name="employeeName"
               tabindex="3"
               type="text"
@@ -396,7 +394,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-name-kana"
-              maxlength="100"
               name="employeeNameKana"
               tabindex="4"
               type="text"
@@ -474,7 +471,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-email"
-              maxlength="100"
               name="employeeEmail"
               tabindex="6"
               type="text"
@@ -506,7 +502,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-telephone"
-              maxlength="14"
               name="employeeTelephone"
               tabindex="7"
               type="text"
@@ -538,7 +533,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-login-password"
-              maxlength="50"
               name="employeeLoginPassword"
               tabindex="8"
               type="password"
@@ -570,7 +564,6 @@ exports[`Page Snapshots renders EmployeeEditPage unchanged 1`] = `
             <input
               class="form-control "
               id="employee-login-password-confirm"
-              maxlength="50"
               name="employeeLoginPasswordConfirm"
               tabindex="9"
               type="password"
