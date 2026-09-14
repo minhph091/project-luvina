@@ -14,7 +14,7 @@ export interface Adm005Props {
   formData: EmployeeFormData | null;
   loading: boolean;
   submitting: boolean;
-  apiError: string | null;
+  apiError?: string | null;
   hasCertification?: boolean;
   handleConfirmSubmit: () => Promise<void> | void;
   handleNavigateToEdit: () => void;
@@ -24,7 +24,6 @@ export const Adm005: React.FC<Adm005Props> = ({
   formData,
   loading,
   submitting,
-  apiError,
   handleConfirmSubmit,
   handleNavigateToEdit,
 }) => {
@@ -41,15 +40,6 @@ export const Adm005: React.FC<Adm005Props> = ({
             <p>{PAGE_TITLES.INFO_CONFIRM}</p>
             <p>{PAGE_TITLES.CONFIRM_DESCRIPTION}</p>
           </li>
-
-          {/* Vùng hiển thị thông báo lỗi từ API nếu có */}
-          {apiError && (
-            <li className="box-err">
-              <div id="api-error-box" className="box-err-content">
-                {apiError}
-              </div>
-            </li>
-          )}
 
           {/* Tài khoản */}
           <li className="form-group row d-flex">

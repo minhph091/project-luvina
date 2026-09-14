@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/constants';
 import { CertificationItem, GetCertificationsApiResponse } from '@/types/certification';
 
 /**
@@ -13,7 +14,7 @@ import { CertificationItem, GetCertificationsApiResponse } from '@/types/certifi
  * @returns Promise chứa danh sách chứng chỉ từ backend.
  */
 export async function getCertifications(): Promise<GetCertificationsApiResponse> {
-  const response = await apiClient.get<GetCertificationsApiResponse>('/certification');
+  const response = await apiClient.get<GetCertificationsApiResponse>(API_ENDPOINTS.CERTIFICATIONS);
   return response.data;
 }
 

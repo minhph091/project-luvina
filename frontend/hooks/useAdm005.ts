@@ -7,9 +7,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION_TYPES } from '@/constants';
+import { APP_ROUTES, formatApiErrorMessage, VALIDATION_MESSAGES, COMPLETE_ACTION_TYPES, API_RESPONSE_CODES } from '@/constants';
 import { EmployeeFormData, EmployeeFormMode } from '@/types/employee';
-import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData, clearInitialCertData } from '@/lib/storage/employeeFormState';
+import { getEmployeeFormData, getEditEmployeeId, clearEmployeeFormData, clearInitialCertData, saveEmployeeFormError } from '@/lib/storage/employeeFormState';
 import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 import { getEmployeeById, addEmployee, updateEmployee } from '@/lib/api/employees';
 
@@ -67,7 +67,7 @@ export function useAdm005(): UseAdm005Return {
       if (currentMode === 'EDIT' && editId) {
         try {
           const response = await getEmployeeById(editId);
-          if (!response || Number(response.code) !== 200 || !response.employee) {
+          if (!response || Number(response.code) !== API_RESPONSE_CODES.SUCCESS || !response.employee) {
             if (isMounted) {
               router.push(APP_ROUTES.SYSTEM_ERROR);
             }
@@ -103,6 +103,7 @@ export function useAdm005(): UseAdm005Return {
   /**
    * Xử lý xác nhận lưu thông tin nhân viên (Nút OK)
    * Gọi API backend tương ứng (thêm mới hoặc cập nhật).
+   * Nếu có lỗi: lưu lỗi vào sessionStorage và quay về ADM004 hiển thị ở phần lỗi chung.
    */
   const handleConfirmSubmit = useCallback(async () => {
     if (!formData || submitting) {
@@ -115,7 +116,7 @@ export function useAdm005(): UseAdm005Return {
 
       if (mode === 'ADD') {
         const response = await addEmployee(formData);
-        if (response.code === 200) {
+        if (response.code === API_RESPONSE_CODES.SUCCESS) {
           clearEmployeeFormData();
           clearInitialCertData();
           setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.ADD);
@@ -123,12 +124,14 @@ export function useAdm005(): UseAdm005Return {
         } else {
           const errCode = response.message?.code;
           const params = response.message?.params;
-          setApiError(formatApiErrorMessage(errCode, params));
+          const errorMsg = formatApiErrorMessage(errCode, params);
+          saveEmployeeFormError(errorMsg);
+          router.push(APP_ROUTES.EMPLOYEE_EDIT);
         }
       } else {
         // Mode EDIT
         const response = await updateEmployee(formData);
-        if (response.code === 200) {
+        if (response.code === API_RESPONSE_CODES.SUCCESS) {
           clearEmployeeFormData();
           clearInitialCertData();
           setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.EDIT);
@@ -136,16 +139,19 @@ export function useAdm005(): UseAdm005Return {
         } else {
           const errCode = response.message?.code;
           const params = response.message?.params;
-          setApiError(formatApiErrorMessage(errCode, params));
+          const errorMsg = formatApiErrorMessage(errCode, params);
+          saveEmployeeFormError(errorMsg);
+          router.push(APP_ROUTES.EMPLOYEE_EDIT);
         }
       }
     } catch (error: unknown) {
+      let errorMsg: string = VALIDATION_MESSAGES.ER015_SYSTEM_ERROR;
       if (axios.isAxiosError(error) && error.response?.data?.message?.code) {
         const respData = error.response.data as { message?: { code?: string; params?: string[] } };
-        setApiError(formatApiErrorMessage(respData.message?.code, respData.message?.params));
-      } else {
-        setApiError(VALIDATION_MESSAGES.ER015_SYSTEM_ERROR);
+        errorMsg = formatApiErrorMessage(respData.message?.code, respData.message?.params);
       }
+      saveEmployeeFormError(errorMsg);
+      router.push(APP_ROUTES.EMPLOYEE_EDIT);
     } finally {
       setSubmitting(false);
     }

@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/constants';
 import { DepartmentItem, GetDepartmentsApiResponse } from '@/types/department';
 
 /**
@@ -13,7 +14,7 @@ import { DepartmentItem, GetDepartmentsApiResponse } from '@/types/department';
  * @returns Promise chứa danh sách phòng ban từ backend.
  */
 export async function getDepartments(): Promise<GetDepartmentsApiResponse> {
-  const response = await apiClient.get<GetDepartmentsApiResponse>('/department');
+  const response = await apiClient.get<GetDepartmentsApiResponse>(API_ENDPOINTS.DEPARTMENTS);
   return response.data;
 }
 

@@ -130,7 +130,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e.preventDefault();
+                e?.preventDefault();
               }}
             />
             <span
@@ -190,7 +190,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e.preventDefault();
+                e?.preventDefault();
               }}
             />
             <span

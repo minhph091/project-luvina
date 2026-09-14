@@ -138,3 +138,43 @@ export function clearInitialCertData(): void {
   }
 }
 
+/**
+ * Lưu thông báo lỗi trả về từ API (khi submit ở ADM005 thất bại) vào sessionStorage để ADM004 hiển thị.
+ *
+ * @param error Thông báo lỗi cần hiển thị
+ */
+export function saveEmployeeFormError(error: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(STORAGE_KEYS.EMPLOYEE_FORM_API_ERROR, error);
+  } catch {
+    // Ignore error
+  }
+}
+
+/**
+ * Lấy thông báo lỗi trả về từ API từ sessionStorage.
+ *
+ * @returns Thông báo lỗi hoặc null nếu không có
+ */
+export function getEmployeeFormError(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return sessionStorage.getItem(STORAGE_KEYS.EMPLOYEE_FORM_API_ERROR);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Xóa thông báo lỗi form nhân viên trong sessionStorage.
+ */
+export function clearEmployeeFormError(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(STORAGE_KEYS.EMPLOYEE_FORM_API_ERROR);
+  } catch {
+    // Ignore error
+  }
+}
+

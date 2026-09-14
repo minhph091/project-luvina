@@ -18,6 +18,7 @@ export const STORAGE_KEYS = {
   EMPLOYEE_SEARCH_STATE: 'employee_search_state',
   EDIT_EMPLOYEE_ID: 'edit_employee_id',
   EMPLOYEE_FORM_DATA: 'employee_form_data',
+  EMPLOYEE_FORM_API_ERROR: 'employee_form_api_error',
   EMPLOYEE_COMPLETE_ACTION: 'employee_complete_action',
   INITIAL_CERT_DATA: 'initial_cert_data',
 };
@@ -46,6 +47,29 @@ export const APP_ROUTES = {
   EMPLOYEE_CONFIRM: '/employees/adm005',
   EMPLOYEE_COMPLETE: '/employees/adm006',
   SYSTEM_ERROR: '/system-error',
+} as const;
+
+/**
+ * Các đường dẫn API (endpoints) gọi tới backend.
+ */
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: '/login',
+  },
+  DEPARTMENTS: '/department',
+  CERTIFICATIONS: '/certification',
+  EMPLOYEES: {
+    BASE: '/employee',
+    DETAIL: (id: number | string) => `/employee/${id}`,
+  },
+} as const;
+
+/**
+ * Mã trạng thái phản hồi chuẩn từ API backend.
+ */
+export const API_RESPONSE_CODES = {
+  SUCCESS: 200,
+  ERROR: 500,
 } as const;
 
 /**

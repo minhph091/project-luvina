@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/constants';
 import { LoginRequest, LoginResponse } from '@/types/auth';
 
 /**
@@ -14,6 +15,6 @@ import { LoginRequest, LoginResponse } from '@/types/auth';
  * @returns Promise chứa dữ liệu token trả về từ máy chủ.
  */
 export async function loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await apiClient.post<LoginResponse>('/login', credentials);
+  const response = await apiClient.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
   return response.data;
 }

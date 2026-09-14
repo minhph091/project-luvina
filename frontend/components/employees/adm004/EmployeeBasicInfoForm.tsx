@@ -229,7 +229,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e.preventDefault();
+                e?.preventDefault();
               }}
             />
             <span

@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { APP_ROUTES } from '@/constants';
+import { APP_ROUTES, API_RESPONSE_CODES } from '@/constants';
 import { EmployeeFormData, EmployeeFormErrors, EmployeeFormMode } from '@/types/employee';
 import { getEmployeeById } from '@/lib/api/employees';
 import {
@@ -17,6 +17,8 @@ import {
   saveInitialCertData,
   getInitialCertData,
   clearInitialCertData,
+  getEmployeeFormError,
+  clearEmployeeFormError,
   InitialCertData,
 } from '@/lib/storage/employeeFormState';
 import { validateField, validateEmployeeForm } from '@/lib/validation/employeeForm';
@@ -123,7 +125,16 @@ export function useAdm004(): UseAdm004Return {
         setMode(currentMode);
       }
 
-      // 1. Kiểm tra xem có dữ liệu tạm lưu từ ADM005 quay lại không
+      // 1. Kiểm tra xem có thông báo lỗi từ ADM005 trả về không
+      const savedError = getEmployeeFormError();
+      if (savedError) {
+        if (isMounted) {
+          setApiError(savedError);
+        }
+        clearEmployeeFormError();
+      }
+
+      // 2. Kiểm tra xem có dữ liệu tạm lưu từ ADM005 quay lại không
       const savedFormData = getEmployeeFormData();
       if (savedFormData) {
         if (isMounted) {
@@ -141,7 +152,7 @@ export function useAdm004(): UseAdm004Return {
         try {
           const response = await getEmployeeById(editId);
           if (isMounted) {
-            if (response && Number(response.code) === 200 && response.employee) {
+            if (response && Number(response.code) === API_RESPONSE_CODES.SUCCESS && response.employee) {
               const emp = response.employee;
               const certStartDate = emp.certificationStartDate
                 ? emp.certificationStartDate.replace(/-/g, '/')

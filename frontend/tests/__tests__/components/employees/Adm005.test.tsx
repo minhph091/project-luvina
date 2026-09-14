@@ -90,21 +90,6 @@ describe('Adm005 Component', () => {
     expect(mockHandleNavigateToEdit).toHaveBeenCalledTimes(1);
   });
 
-  test('displays api error when present', () => {
-    render(
-      <Adm005
-        formData={MOCK_FORM_DATA}
-        loading={false}
-        submitting={false}
-        apiError="Lỗi hệ thống khi xác nhận"
-        hasCertification={false}
-        handleConfirmSubmit={mockHandleConfirmSubmit}
-        handleNavigateToEdit={mockHandleNavigateToEdit}
-      />
-    );
-
-    expect(screen.getByText('Lỗi hệ thống khi xác nhận')).toBeInTheDocument();
-  });
 
   test('renders Japanese certification section even when formData has no certification', () => {
     const dataWithoutCert: EmployeeFormData = {

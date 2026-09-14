@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from '@/constants';
 import {
   EmployeeItem,
   GetEmployeesApiResponse,
@@ -88,7 +89,7 @@ export async function getEmployees(
     queryParams.department_id = String(departmentId);
   }
 
-  const response = await apiClient.get<GetEmployeesApiResponse>('/employee', {
+  const response = await apiClient.get<GetEmployeesApiResponse>(API_ENDPOINTS.EMPLOYEES.BASE, {
     params: queryParams,
   });
 
@@ -102,7 +103,7 @@ export async function getEmployees(
  * @returns Promise chứa dữ liệu chi tiết nhân viên từ backend.
  */
 export async function getEmployeeById(id: number | string): Promise<GetEmployeeDetailApiResponse> {
-  const response = await apiClient.get<GetEmployeeDetailApiResponse>(`/employee/${id}`);
+  const response = await apiClient.get<GetEmployeeDetailApiResponse>(API_ENDPOINTS.EMPLOYEES.DETAIL(id));
   const data = response.data;
   if (data?.employeeId) {
     const firstCert = data.certifications?.[0] ?? null;
@@ -133,7 +134,7 @@ export async function getEmployeeById(id: number | string): Promise<GetEmployeeD
  * @returns Promise chứa phản hồi từ server (DeleteEmployeeApiResponse).
  */
 export async function deleteEmployee(id: number | string): Promise<DeleteEmployeeApiResponse> {
-  const response = await apiClient.delete<DeleteEmployeeApiResponse>(`/employee/${id}`);
+  const response = await apiClient.delete<DeleteEmployeeApiResponse>(API_ENDPOINTS.EMPLOYEES.DETAIL(id));
   return response.data;
 }
 
@@ -169,7 +170,7 @@ export async function addEmployee(formData: EmployeeFormData): Promise<AddEmploy
     certifications,
   };
 
-  const response = await apiClient.post<AddEmployeeApiResponse>('/employee', requestBody);
+  const response = await apiClient.post<AddEmployeeApiResponse>(API_ENDPOINTS.EMPLOYEES.BASE, requestBody);
   return response.data;
 }
 
@@ -212,7 +213,7 @@ export async function updateEmployee(
     requestBody.certifications = certifications;
   }
 
-  const response = await apiClient.put<UpdateEmployeeApiResponse>('/employee', requestBody);
+  const response = await apiClient.put<UpdateEmployeeApiResponse>(API_ENDPOINTS.EMPLOYEES.BASE, requestBody);
   return response.data;
 }
 

@@ -7,7 +7,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import EmployeeConfirmPage from '@/app/(protected)/employees/adm005/page';
-import { saveEmployeeFormData, clearEmployeeFormData } from '@/lib/storage/employeeFormState';
+import { saveEmployeeFormData, clearEmployeeFormData, getEmployeeFormError } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 import { EmployeeFormData } from '@/types/employee';
@@ -131,7 +131,7 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     });
   });
 
-  test('displays API error box when backend returns error', async () => {
+  test('redirects to EMPLOYEE_EDIT and saves error when backend returns error', async () => {
     (addEmployee as jest.Mock).mockResolvedValueOnce({
       code: 500,
       message: { code: 'ER003', params: ['アカウント名'] },
@@ -145,9 +145,9 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     fireEvent.click(okButton);
 
     await waitFor(() => {
-      expect(screen.getByText('「アカウント名」は既に存在しています。')).toBeInTheDocument();
+      expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+      expect(getEmployeeFormError()).toBe('「アカウント名」は既に存在しています。');
     });
-    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
   });
 
   test('clicking BACK button navigates to EMPLOYEE_EDIT', () => {

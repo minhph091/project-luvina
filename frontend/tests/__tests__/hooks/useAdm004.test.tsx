@@ -13,6 +13,8 @@ import {
   saveEmployeeFormData,
   clearEmployeeFormData,
   getEmployeeFormData,
+  saveEmployeeFormError,
+  getEmployeeFormError,
 } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES } from '@/constants';
@@ -150,6 +152,37 @@ describe('useAdm004 Hook', () => {
       expect(result.current.formData.employeeName).toBe('Lê Văn C');
       expect(getEmployeeById).not.toHaveBeenCalled();
     });
+  });
+
+  test('restores form data and sets apiError when returning from ADM005 with error', async () => {
+    const savedData: EmployeeFormData = {
+      employeeLoginId: 'duplicateUser',
+      departmentId: 1,
+      employeeName: 'Nguyễn Văn A',
+      employeeNameKana: 'ｶﾅ',
+      employeeBirthDate: '1995/01/01',
+      employeeEmail: 'user@luvina.net',
+      employeeTelephone: '0912345678',
+      employeeLoginPassword: 'Password123',
+      employeeLoginPasswordConfirm: 'Password123',
+      certificationId: '',
+      certificationStartDate: '',
+      certificationEndDate: '',
+      score: '',
+    };
+    saveEmployeeFormData(savedData);
+    saveEmployeeFormError('「アカウント名」は既に存在しています。');
+
+    const { result } = renderHook(() => useAdm004());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.formData.employeeLoginId).toBe('duplicateUser');
+      expect(result.current.apiError).toBe('「アカウント名」は既に存在しています。');
+    });
+
+    // Error should be cleared from storage so it does not persist across reloads
+    expect(getEmployeeFormError()).toBeNull();
   });
 
   test('handles field changes and onBlur realtime validation', async () => {

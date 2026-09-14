@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import {
+  API_RESPONSE_CODES,
   APP_ROUTES,
   BUTTON_LABELS,
   COMPLETE_ACTION_TYPES,
@@ -165,7 +166,7 @@ export function useAdm003(): UseAdm003Return {
       setApiError(null);
 
       const response = await deleteEmployee(employee.employeeId);
-      if (response && response.code === 200) {
+      if (response && response.code === API_RESPONSE_CODES.SUCCESS) {
         setEmployeeCompleteAction(COMPLETE_ACTION_TYPES.DELETE);
         router.push(APP_ROUTES.EMPLOYEE_COMPLETE);
       } else {

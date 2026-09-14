@@ -11,6 +11,7 @@ import {
   clearEditEmployeeId,
   saveEmployeeFormData,
   clearEmployeeFormData,
+  getEmployeeFormError,
 } from '@/lib/storage/employeeFormState';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, COMPLETE_ACTION_TYPES } from '@/constants';
@@ -172,7 +173,7 @@ describe('useAdm005 Hook', () => {
     expect(result.current.apiError).toBeNull();
   });
 
-  test('handleConfirmSubmit sets apiError when addEmployee returns error code 500', async () => {
+  test('handleConfirmSubmit redirects to EMPLOYEE_EDIT and saves error when addEmployee returns error code 500', async () => {
     (addEmployee as jest.Mock).mockResolvedValueOnce({
       code: 500,
       message: { code: 'ER003', params: ['アカウント名'] },
@@ -187,11 +188,11 @@ describe('useAdm005 Hook', () => {
     });
 
     expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
-    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
-    expect(result.current.apiError).toBe('「アカウント名」は既に存在しています。');
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+    expect(getEmployeeFormError()).toBe('「アカウント名」は既に存在しています。');
   });
 
-  test('handleConfirmSubmit sets apiError when addEmployee throws an exception', async () => {
+  test('handleConfirmSubmit redirects to EMPLOYEE_EDIT and saves error when addEmployee throws an exception', async () => {
     (addEmployee as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
     saveEmployeeFormData(MOCK_FORM_DATA);
@@ -203,8 +204,8 @@ describe('useAdm005 Hook', () => {
     });
 
     expect(addEmployee).toHaveBeenCalledWith(MOCK_FORM_DATA);
-    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
-    expect(result.current.apiError).toBe('システムエラーが発生しました。');
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+    expect(getEmployeeFormError()).toBe('システムエラーが発生しました。');
   });
 
   test('handleNavigateToEdit navigates back to EMPLOYEE_EDIT', () => {
@@ -245,7 +246,7 @@ describe('useAdm005 Hook', () => {
     expect(result.current.apiError).toBeNull();
   });
 
-  test('handleConfirmSubmit sets apiError when updateEmployee fails in EDIT mode', async () => {
+  test('handleConfirmSubmit redirects to EMPLOYEE_EDIT and saves error when updateEmployee fails in EDIT mode', async () => {
     (updateEmployee as jest.Mock).mockResolvedValueOnce({
       code: 500,
       message: { code: 'ER003', params: ['アカウント名'] },
@@ -265,7 +266,7 @@ describe('useAdm005 Hook', () => {
     });
 
     expect(updateEmployee).toHaveBeenCalledWith({ ...MOCK_FORM_DATA, employeeId: 10 });
-    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
-    expect(result.current.apiError).toBe('「アカウント名」は既に存在しています。');
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+    expect(getEmployeeFormError()).toBe('「アカウント名」は既に存在しています。');
   });
 });
