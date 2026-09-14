@@ -97,11 +97,7 @@ export function useAdm005(): UseAdm005Return {
 
   // Kiểm tra xem nhân viên có thông tin chứng chỉ tiếng Nhật hợp lệ không
   const hasCertification = Boolean(
-    formData &&
-      formData.certificationId !== '' &&
-      formData.certificationId !== null &&
-      formData.certificationId !== undefined &&
-      Number(formData.certificationId) > 0
+    formData?.certificationId && Number(formData.certificationId) > 0
   );
 
   /**

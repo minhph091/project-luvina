@@ -8,6 +8,7 @@ package com.luvina.la.repository;
 import com.luvina.la.entity.EmployeeCertificationEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -43,9 +44,11 @@ public interface EmployeeCertificationRepository extends JpaRepository<EmployeeC
             @Param("employeeId") Long employeeId);
 
     /**
-     * Xóa toàn bộ chứng chỉ của nhân viên theo employeeId.
+     * Xóa toàn bộ chứng chỉ của nhân viên theo employeeId bằng câu lệnh bulk delete tối ưu (1 câu SQL DELETE).
      *
      * @param employeeId ID của nhân viên cần xóa chứng chỉ.
      */
-    void deleteByEmployeeId(Long employeeId);
+    @Modifying
+    @Query("DELETE FROM EmployeeCertificationEntity ec WHERE ec.employeeId = :employeeId")
+    void deleteByEmployeeId(@Param("employeeId") Long employeeId);
 }

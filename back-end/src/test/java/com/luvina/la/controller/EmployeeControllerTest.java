@@ -89,7 +89,7 @@ public class EmployeeControllerTest {
         )).thenReturn(mockResult);
 
         ListEmployeesResponse response = employeeController.getEmployees(
-                "John", "1", "ASC", "ASC", "ASC", "5", "10"
+                "John", "1", "ASC", "ASC", "ASC", "5", "10", null
         );
 
         assertNotNull(response);
@@ -114,7 +114,7 @@ public class EmployeeControllerTest {
         )).thenReturn(mockResult);
 
         ListEmployeesResponse response = employeeController.getEmployees(
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         assertNotNull(response);
@@ -160,7 +160,7 @@ public class EmployeeControllerTest {
                 .thenReturn(new MessageResponse("ER021", new ArrayList<>()));
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
-                null, null, "INVALID", null, null, null, null
+                null, null, "INVALID", null, null, null, null, null
         ));
         assertEquals("ER021", ex.getMessageResponse().getCode());
     }
@@ -172,7 +172,7 @@ public class EmployeeControllerTest {
                 .thenReturn(new MessageResponse("ER018", List.of("オフセット")));
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
-                null, null, "ASC", null, null, "-1", "5"
+                null, null, "ASC", null, null, "-1", "5", null
         ));
         assertEquals("ER018", ex.getMessageResponse().getCode());
         assertEquals(List.of("オフセット"), ex.getMessageResponse().getParams());
@@ -185,7 +185,7 @@ public class EmployeeControllerTest {
                 .thenReturn(new MessageResponse("ER018", List.of("リミット")));
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> employeeController.getEmployees(
-                null, null, "ASC", null, null, "0", "0"
+                null, null, "ASC", null, null, "0", "0", null
         ));
         assertEquals("ER018", ex.getMessageResponse().getCode());
         assertEquals(List.of("リミット"), ex.getMessageResponse().getParams());
@@ -382,17 +382,17 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee trả về lỗi ER014 và employeeId khi xóa tài khoản có role ADMIN")
+    @DisplayName("Test deleteEmployee trả về lỗi ER020 và employeeId khi xóa tài khoản có role ADMIN")
     void testDeleteEmployeeAdminRole() throws Exception {
         when(employeeValidator.validateEmployeeIdForDelete(2L))
-                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER014, List.of(Constants.PARAM_ID)));
+                .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER020, List.of()));
 
         mockMvc.perform(delete("/employee/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.employeeId").value(2))
-                .andExpect(jsonPath("$.message.code").value("ER014"))
-                .andExpect(jsonPath("$.message.params[0]").value(Constants.PARAM_ID));
+                .andExpect(jsonPath("$.message.code").value("ER020"))
+                .andExpect(jsonPath("$.message.params").isEmpty());
     }
 
     @Test

@@ -87,6 +87,21 @@ describe('useAdm003 Hook', () => {
     });
   });
 
+  test('fetches employee detail using editId from sessionStorage when URL searchParam id is missing (returning from ADM004)', async () => {
+    mockGetSearchParams.mockReturnValue(null);
+    sessionStorage.setItem('edit_employee_id', '1');
+    (getEmployeeById as jest.Mock).mockResolvedValue(MOCK_API_EMPLOYEE_RESPONSE);
+
+    const { result } = renderHook(() => useAdm003());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(getEmployeeById).toHaveBeenCalledWith(1);
+    expect(result.current.employee?.employeeLoginId).toBe('ntmhuong');
+  });
+
   test('fetches employee detail successfully and formats dates', async () => {
     (getEmployeeById as jest.Mock).mockResolvedValue(MOCK_API_EMPLOYEE_RESPONSE);
 
@@ -242,6 +257,32 @@ describe('useAdm003 Hook', () => {
     });
 
     expect(result.current.apiError).toBe(VALIDATION_MESSAGES.ER014_USER_NOT_FOUND);
+    expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
+
+    confirmSpy.mockRestore();
+  });
+
+  test('displays error message when delete API returns ER020 (cannot delete admin)', async () => {
+    (getEmployeeById as jest.Mock).mockResolvedValue(MOCK_API_EMPLOYEE_RESPONSE);
+    (deleteEmployee as jest.Mock).mockResolvedValue({
+      code: 500,
+      employeeId: 1,
+      message: { code: 'ER020', params: [] },
+    });
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const { result } = renderHook(() => useAdm003());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.handleDelete();
+    });
+
+    expect(result.current.apiError).toBe(VALIDATION_MESSAGES.ER020_CANNOT_DELETE_ADMIN);
     expect(mockPush).not.toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_COMPLETE);
 
     confirmSpy.mockRestore();

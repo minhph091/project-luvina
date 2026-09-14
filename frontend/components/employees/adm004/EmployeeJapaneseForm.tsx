@@ -50,18 +50,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
   const endDateRef = useRef<DatePicker>(null);
 
   const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
-    if (!ref.current) return;
-    const dp = ref.current as unknown as {
-      toggleCalendar?: () => void;
-      setOpen?: (open: boolean) => void;
-    };
-    if (typeof dp.toggleCalendar === 'function') {
-      dp.toggleCalendar();
-    } else if (typeof dp.setOpen === 'function') {
-      dp.setOpen(true);
-    } else {
-      ref.current.setFocus();
-    }
+    ref.current?.setFocus();
   };
 
   return (
@@ -141,7 +130,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e?.preventDefault();
+                e.preventDefault();
               }}
             />
             <span
@@ -201,7 +190,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e?.preventDefault();
+                e.preventDefault();
               }}
             />
             <span
@@ -241,7 +230,7 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
             disabled={!isCertSelected}
             className={`form-control ${errors.score ? 'is-invalid' : ''}`}
             style={errors.score ? { borderColor: '#c00' } : undefined}
-            value={formData.score !== null && formData.score !== undefined ? formData.score : ''}
+            value={formData.score ?? ''}
             onChange={(e) => onFieldChange('score', e.target.value)}
             onBlur={() => onBlur('score')}
           />

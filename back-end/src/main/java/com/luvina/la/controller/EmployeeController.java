@@ -55,15 +55,6 @@ public class EmployeeController {
     private final EmployeeValidator employeeValidator;
 
     /**
-     * Khởi tạo EmployeeController hỗ trợ backward compatibility cho các unit test.
-     */
-    public EmployeeController(
-            EmployeeService employeeService,
-            EmployeeMapper employeeMapper) {
-        this(employeeService, employeeMapper, new EmployeeValidator());
-    }
-
-    /**
      * Khởi tạo EmployeeController với đầy đủ dependencies.
      *
      * @param employeeService  Service xử lý nghiệp vụ nhân viên.
@@ -132,19 +123,6 @@ public class EmployeeController {
                 .build();
     }
 
-    /**
-     * Overload getEmployees phục vụ gọi trực tiếp hoặc kiểm thử không cần request context.
-     */
-    public ListEmployeesResponse getEmployees(
-            String employeeName,
-            String departmentId,
-            String ordEmployeeName,
-            String ordCertificationName,
-            String ordEndDate,
-            String offset,
-            String limit) {
-        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offset, limit, (HttpServletRequest) null);
-    }
 
     /**
      * Xác định cột ưu tiên sắp xếp hàng đầu từ thứ tự xuất hiện trong query string hoặc param sortBy.
@@ -208,7 +186,7 @@ public class EmployeeController {
         EmployeeDTO createdEmployee = employeeService.addEmployee(request);
         return AddEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
-                .employeeId(createdEmployee != null ? createdEmployee.getEmployeeId() : null)
+                .employeeId(createdEmployee.getEmployeeId())
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
                 .build();
     }
@@ -263,8 +241,8 @@ public class EmployeeController {
      * @param id ID của nhân viên cần xóa.
      * @return DeleteEmployeeResponse chứa mã kết quả 200 và message thành công MSG003.
      */
-    @DeleteMapping(value = {"/employee", "/employee/{id}"})
-    public DeleteEmployeeResponse deleteEmployee(@PathVariable(name = "id", required = false) Long id) {
+    @DeleteMapping("/employee/{id}")
+    public DeleteEmployeeResponse deleteEmployee(@PathVariable(name = "id") Long id) {
         // Validate ID nhân viên khi xóa (ER001 nếu rỗng, ER014 nếu không tồn tại)
         MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(id);
         if (validationError != null) {
@@ -280,31 +258,24 @@ public class EmployeeController {
     }
 
     /**
-     * Cập nhật thông tin một nhân viên theo tài liệu thiết kế API (PUT /employee hoặc PUT /employee/{id}).
+     * Cập nhật thông tin một nhân viên theo tài liệu thiết kế API (PUT /employee).
      *
-     * @param id      ID nhân viên từ path variable (nếu có).
      * @param request Payload chứa thông tin nhân viên và chứng chỉ cần cập nhật.
      * @return UpdateEmployeeResponse chứa mã kết quả 200, employeeId và thông báo MSG002.
      */
-    @PutMapping(value = {"/employee", "/employee/{id}"})
-    public UpdateEmployeeResponse updateEmployee(
-            @PathVariable(name = "id", required = false) Long id,
-            @RequestBody UpdateEmployeeRequest request) {
-
-        if (request != null && id != null && request.getEmployeeId() == null) {
-            request.setEmployeeId(id);
-        }
+    @PutMapping("/employee")
+    public UpdateEmployeeResponse updateEmployee(@RequestBody UpdateEmployeeRequest request) {
 
         // Validate dữ liệu request cập nhật nhân viên theo thiết kế
         MessageResponse validationError = employeeValidator.validateUpdateEmployee(request);
         if (validationError != null) {
-            throw new CustomValidationException(validationError, request != null ? request.getEmployeeId() : id);
+            throw new CustomValidationException(validationError, request != null ? request.getEmployeeId() : null);
         }
 
         EmployeeDTO updatedEmployee = employeeService.updateEmployee(request);
         return UpdateEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
-                .employeeId(updatedEmployee != null ? updatedEmployee.getEmployeeId() : (request != null ? request.getEmployeeId() : id))
+                .employeeId(updatedEmployee.getEmployeeId())
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG002, new ArrayList<>()))
                 .build();
     }

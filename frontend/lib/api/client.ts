@@ -49,7 +49,7 @@ export function setupInterceptors(client: AxiosInstance): void {
           sessionStorage.removeItem(STORAGE_KEYS.TOKEN_TYPE);
           window.location.href = APP_ROUTES.LOGIN;
         }
-      } else if (error.response?.status && error.response.status >= 500) {
+      } else if ((error.response?.status ?? 0) >= 500) {
         if (typeof window !== 'undefined') {
           window.location.href = `${APP_ROUTES.SYSTEM_ERROR}?message=System%20Error`;
         }

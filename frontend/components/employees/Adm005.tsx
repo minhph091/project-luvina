@@ -15,7 +15,7 @@ export interface Adm005Props {
   loading: boolean;
   submitting: boolean;
   apiError: string | null;
-  hasCertification: boolean;
+  hasCertification?: boolean;
   handleConfirmSubmit: () => Promise<void> | void;
   handleNavigateToEdit: () => void;
 }
@@ -25,7 +25,6 @@ export const Adm005: React.FC<Adm005Props> = ({
   loading,
   submitting,
   apiError,
-  hasCertification,
   handleConfirmSubmit,
   handleNavigateToEdit,
 }) => {

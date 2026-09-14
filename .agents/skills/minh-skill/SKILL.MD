@@ -42,6 +42,7 @@ Bạn là một senior developer nhiều năm kinh nghiệm phát triển phần
 - Rà soát định nghĩa chức năng trong tài liệu thiết kế để đảm bảo triển khai đầy đủ và chính xác.
 - Tuân thủ nguyên tắc clean code: mã sạch, dễ đọc, dễ bảo trì, tối ưu hiệu suất.
 - Code phải đúng thiết kế: bố cục & tông màu màn hình đúng thiết kế, dữ liệu hiển thị đúng định dạng, có validate dữ liệu đúng mô tả, bắt & xử lý lỗi đầy đủ theo thiết kế.
+- **Tuyệt đối KHÔNG viết code phòng thủ cho Unit Test (No Test-Induced Damage)**: Mã nguồn production (cả Backend và Frontend) chỉ phản ánh nghiệp vụ và luồng dữ liệu thực tế. Khi Unit Test fail do mock thiếu dữ liệu hoặc mock trạng thái phi thực tế, **BẮT BUỘC sửa mock/kịch bản của Test, TUYỆT ĐỐI KHÔNG sửa code production** để né lỗi test.
 
 ---
 
@@ -110,6 +111,11 @@ Luôn tuân thủ luồng phụ thuộc một chiều: **Controller → Service 
 - Bắt ĐÚNG loại Exception đã throw (vd `NumberFormatException`), không bắt `Exception` chung chung.
 - Khi catch được exception PHẢI xử lý thích hợp hoặc ghi log — TUYỆT ĐỐI không để trống catch block.
 
+### B8. Không tạo code phòng thủ cho Unit Test (Backend)
+- Controller, Service, Repository, Entity, DTO KHÔNG ĐƯỢC thêm các kiểm tra `if (entity == null)`, `try-catch` nuốt lỗi hoặc nhánh rẽ giả định chỉ để vượt qua mock test của JUnit / Mockito.
+- Nếu service method giả định đối tượng phụ thuộc luôn tồn tại theo ràng buộc DB (FK, not null) hoặc flow nghiệp vụ thực tế, không được thêm `if (obj == null)` hay `Optional.empty()` fallback vô nghĩa chỉ vì mock test không stub method đó.
+- Khi test ném `NullPointerException` hoặc assertion fail do mock thiếu stubbing: Sửa mock data và cấu hình `when(...).thenReturn(...)` trong file test, KHÔNG thêm code phòng thủ vào Service/Controller.
+
 ---
 
 ## Rules — FRONTEND (Next.js / React / TypeScript)
@@ -149,6 +155,11 @@ Luôn tuân thủ luồng phụ thuộc một chiều: **Controller → Service 
 - Hằng số, chuỗi dùng chung đặt trong 1 file khai báo hằng số chung.
 - Cấu hình chung đặt trong file `environment` (env), không hardcode.
 
+### F6. Không tạo code phòng thủ cho Unit Test (Frontend)
+- Component, Hook, API layer KHÔNG ĐƯỢC thêm các prop `optional (?)`, các nhánh `if (!data && error)`, hoặc các fallback `?.` / `??` dư thừa chỉ để chiều theo unit test render với object mock thiếu thuộc tính hoặc mock trạng thái phi thực tế.
+- Giữ nguyên tính bắt buộc của types, interfaces và props; không chuyển thành nullable/optional chỉ để tiện viết test.
+- Khi unit test fail do component crash vì thiếu field trong mock object: Bổ sung đầy đủ field vào mock data trong file test, KHÔNG sửa component để chấp nhận object rỗng/thiếu.
+
 ---
 
 ## Rules — TEST CASE
@@ -156,13 +167,15 @@ Luôn tuân thủ luồng phụ thuộc một chiều: **Controller → Service 
 - Tuân thủ nguyên tắc kiểm thử: unit test, integration test, system test.
 - Cung cấp mã nguồn test kèm kịch bản, dữ liệu đầu vào và kết quả mong đợi.
 - Có tài liệu hướng dẫn cách chạy test và phản hồi mong đợi.
+- **Phản ánh đúng Runtime Thực Tế**: Test case và mock data phải mô phỏng chính xác dữ liệu và luồng thực tế của hệ thống. Nghiêm cấm mock các trạng thái mâu thuẫn hoặc không thể xảy ra trong production (ví dụ: mock ID = null trong màn hình Detail, hoặc mock đối tượng = null kèm lỗi API khi màn hình chỉ hiện lỗi lúc thao tác trên đối tượng có sẵn).
+- **Fix the Test, Not the Code**: Khi test gặp vấn đề về dữ liệu mock, trách nhiệm là sửa file test, không làm biến dạng mã nguồn production.
 
 ---
 
 ## Self-review checklist (Antigravity tự chấm trước khi trả kết quả)
 
-**Chung**: đúng thiết kế · dữ liệu đúng định dạng · có validate · bắt & xử lý lỗi đầy đủ.
+**Chung**: đúng thiết kế · dữ liệu đúng định dạng · có validate · bắt & xử lý lỗi đầy đủ · KHÔNG có code phòng thủ cho unit test (sửa test chứ không sửa production).
 
-**Backend**: Controller/Service/Repository đúng hậu tố & package · Controller không chạm Repository · gọi qua Interface · không trả HTML · message trong `.properties` · hằng số tập trung · Repository dùng JpaRepository/Custom · Entity vs DTO đúng vai trò · SQL không `SELECT *` · JOIN & subquery tối ưu · Javadoc đầy đủ · convention Java (space, brace, if-else `{}`, equals, StringBuilder, exception cụ thể, không catch rỗng).
+**Backend**: Controller/Service/Repository đúng hậu tố & package · Controller không chạm Repository · gọi qua Interface · không trả HTML · message trong `.properties` · hằng số tập trung · Repository dùng JpaRepository/Custom · Entity vs DTO đúng vai trò · SQL không `SELECT *` · JOIN & subquery tối ưu · Javadoc đầy đủ · convention Java (space, brace, if-else `{}`, equals, StringBuilder, exception cụ thể, không catch rỗng) · không thêm code/check null phòng thủ cho Mockito.
 
-**Frontend**: data flow 1 chiều · UI không chứa axios/fetch · logic trong custom hook · API layer tách riêng · không dùng `any` · form dùng RHF + Zod · state hợp lý · naming (use*, PascalCase, verb+entity, handle*, không viết tắt) · layout/Header/Footer tái sử dụng · hằng số & env tập trung.
+**Frontend**: data flow 1 chiều · UI không chứa axios/fetch · logic trong custom hook · API layer tách riêng · không dùng `any` · form dùng RHF + Zod · state hợp lý · naming (use*, PascalCase, verb+entity, handle*, không viết tắt) · layout/Header/Footer tái sử dụng · hằng số & env tập trung · không thêm nhánh rỗng/prop optional chỉ để test pass.

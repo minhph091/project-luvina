@@ -54,18 +54,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
   }, [mode]);
 
   const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
-    if (!ref.current) return;
-    const dp = ref.current as unknown as {
-      toggleCalendar?: () => void;
-      setOpen?: (open: boolean) => void;
-    };
-    if (typeof dp.toggleCalendar === 'function') {
-      dp.toggleCalendar();
-    } else if (typeof dp.setOpen === 'function') {
-      dp.setOpen(true);
-    } else {
-      ref.current.setFocus();
-    }
+    ref.current?.setFocus();
   };
 
   return (
@@ -240,7 +229,7 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
                 }
               }}
               onChangeRaw={(e) => {
-                e?.preventDefault();
+                e.preventDefault();
               }}
             />
             <span

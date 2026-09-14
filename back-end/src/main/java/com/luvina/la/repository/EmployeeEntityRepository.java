@@ -39,6 +39,7 @@ public interface EmployeeEntityRepository extends JpaRepository<EmployeeEntity, 
 
     /**
      * Lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ bằng 1 câu JOIN 4 bảng.
+     * Chỉ lấy nhân viên ngoại trừ tài khoản có role ADMIN.
      *
      * @param employeeId ID của nhân viên cần lấy chi tiết.
      * @return Danh sách mảng Object chứa thông tin nhân viên, phòng ban và chứng chỉ.
@@ -52,6 +53,7 @@ public interface EmployeeEntityRepository extends JpaRepository<EmployeeEntity, 
                     + "LEFT JOIN EmployeeCertificationEntity ec ON e.employeeId = ec.employeeId "
                     + "LEFT JOIN CertificationEntity c ON ec.certificationId = c.certificationId "
                     + "WHERE e.employeeId = :employeeId "
+                    + "AND e.employeeRole != '1' "
                     + "ORDER BY c.certificationLevel ASC")
     List<Object[]> findEmployeeDetailWithCertifications(
             @Param("employeeId") Long employeeId);

@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.luvina.la.entity.EmployeeCertificationEntity;
 import com.luvina.la.entity.EmployeeEntity;
+import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
 import com.luvina.la.payload.request.UpdateEmployeeRequest;
@@ -45,6 +46,7 @@ import com.luvina.la.repository.CertificationRepository;
 import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeCertificationRepository;
 import com.luvina.la.repository.EmployeeEntityRepository;
+import org.mapstruct.factory.Mappers;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -73,13 +75,16 @@ public class EmployeeServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Spy
-    private EmployeeValidator employeeValidator = new EmployeeValidator();
+    private EmployeeValidator employeeValidator;
+
+    private EmployeeMapper employeeMapper;
 
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
+        employeeValidator = new EmployeeValidator(employeeEntityRepository, departmentRepository, certificationRepository);
+        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
         employeeService = new EmployeeServiceImpl(
                 employeeNativeRepository,
                 employeeValidator,
@@ -87,7 +92,8 @@ public class EmployeeServiceTest {
                 departmentRepository,
                 certificationRepository,
                 employeeCertificationRepository,
-                passwordEncoder
+                passwordEncoder,
+                employeeMapper
         );
     }
 
@@ -337,19 +343,42 @@ public class EmployeeServiceTest {
     @DisplayName("Test deleteEmployee thành công xóa trong cả employees và employees_certifications")
     void testDeleteEmployeeSuccess() {
         Long empId = 1L;
+        EmployeeEntity entity = new EmployeeEntity();
+        entity.setEmployeeId(empId);
+        entity.setEmployeeRole(Constants.ROLE_USER);
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(entity));
 
         employeeService.deleteEmployee(empId);
 
         verify(employeeCertificationRepository).deleteByEmployeeId(empId);
-        verify(employeeEntityRepository).deleteById(empId);
+        verify(employeeEntityRepository).delete(entity);
+    }
+
+    @Test
+    @DisplayName("Test deleteEmployee khi ID không tồn tại ném CustomValidationException ER014")
+    void testDeleteEmployeeNotFoundThrowsCustomValidationExceptionER014() {
+        Long empId = 999L;
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.empty());
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
+            employeeService.deleteEmployee(empId);
+        });
+
+        assertNotNull(ex.getMessageResponse());
+        assertEquals(Constants.ERROR_CODE_ER014, ex.getMessageResponse().getCode());
+        assertEquals(empId, ex.getEmployeeId());
     }
 
     @Test
     @DisplayName("Test deleteEmployee gặp lỗi khi xóa trong CSDL ném CustomValidationException ER015")
     void testDeleteEmployeeDatabaseErrorThrowsCustomValidationExceptionER015() {
         Long empId = 1L;
+        EmployeeEntity entity = new EmployeeEntity();
+        entity.setEmployeeId(empId);
+        entity.setEmployeeRole(Constants.ROLE_USER);
+        when(employeeEntityRepository.findById(empId)).thenReturn(Optional.of(entity));
         doThrow(new RuntimeException("DB Connection Error"))
-                .when(employeeEntityRepository).deleteById(empId);
+                .when(employeeEntityRepository).delete(entity);
 
         CustomValidationException ex = assertThrows(CustomValidationException.class, () -> {
             employeeService.deleteEmployee(empId);
@@ -361,8 +390,8 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee với tài khoản có role ADMIN ném CustomValidationException ER014")
-    void testDeleteEmployeeAdminRoleThrowsCustomValidationExceptionER014() {
+    @DisplayName("Test deleteEmployee với tài khoản có role ADMIN ném CustomValidationException ER020")
+    void testDeleteEmployeeAdminRoleThrowsCustomValidationExceptionER020() {
         Long empId = 2L;
         EmployeeEntity adminEntity = new EmployeeEntity();
         adminEntity.setEmployeeId(empId);
@@ -374,8 +403,8 @@ public class EmployeeServiceTest {
         });
 
         assertNotNull(ex.getMessageResponse());
-        assertEquals(Constants.ERROR_CODE_ER014, ex.getMessageResponse().getCode());
-        assertEquals(List.of(Constants.PARAM_ID), ex.getMessageResponse().getParams());
+        assertEquals(Constants.ERROR_CODE_ER020, ex.getMessageResponse().getCode());
+        assertEquals(Collections.emptyList(), ex.getMessageResponse().getParams());
         assertEquals(empId, ex.getEmployeeId());
 
         verify(employeeCertificationRepository, never()).deleteByEmployeeId(anyLong());

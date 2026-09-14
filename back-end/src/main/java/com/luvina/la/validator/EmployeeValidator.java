@@ -33,18 +33,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmployeeValidator {
 
-    @Autowired(required = false)
-    private EmployeeEntityRepository employeeEntityRepository;
+    private final EmployeeEntityRepository employeeEntityRepository;
+    private final DepartmentRepository departmentRepository;
+    private final CertificationRepository certificationRepository;
 
-    @Autowired(required = false)
-    private DepartmentRepository departmentRepository;
-
-    @Autowired(required = false)
-    private CertificationRepository certificationRepository;
-
-    public EmployeeValidator() {
-    }
-
+    @Autowired
     public EmployeeValidator(
             EmployeeEntityRepository employeeEntityRepository,
             DepartmentRepository departmentRepository,
@@ -171,36 +164,14 @@ public class EmployeeValidator {
                     .withResolverStyle(ResolverStyle.STRICT);
 
     /**
-     * Validate toàn bộ thông tin trong request thêm mới nhân viên sử dụng các repository được inject tự động.
+     * Validate toàn bộ thông tin trong request thêm mới nhân viên theo tài liệu thiết kế (POST /employee).
      *
      * @param request Request DTO chứa thông tin nhân viên và chứng chỉ.
      * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
      */
     public MessageResponse validateAddEmployee(AddEmployeeRequest request) {
-        return validateAddEmployee(request, this.employeeEntityRepository, this.departmentRepository, this.certificationRepository);
-    }
-
-    /**
-     * Validate toàn bộ thông tin trong request thêm mới nhân viên theo tài liệu thiết kế (POST /employee).
-     *
-     * @param request          Request DTO chứa thông tin nhân viên và chứng chỉ.
-     * @param employeeRepo     Repository nhân viên để kiểm tra trùng login ID.
-     * @param departmentRepo   Repository phòng ban để kiểm tra tồn tại phòng ban.
-     * @param certificationRepo Repository chứng chỉ để kiểm tra tồn tại chứng chỉ.
-     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
-     */
-    public MessageResponse validateAddEmployee(
-            AddEmployeeRequest request,
-            EmployeeEntityRepository employeeRepo,
-            DepartmentRepository departmentRepo,
-            CertificationRepository certificationRepo) {
-
-        if (request == null) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-        }
-
         // 1.1 Validate employeeLoginId
-        MessageResponse loginIdError = validateEmployeeLoginId(request.getEmployeeLoginId(), employeeRepo);
+        MessageResponse loginIdError = validateEmployeeLoginId(request.getEmployeeLoginId());
         if (loginIdError != null) {
             return loginIdError;
         }
@@ -242,13 +213,13 @@ public class EmployeeValidator {
         }
 
         // 1.8 Validate departmentId
-        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId(), departmentRepo);
+        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId());
         if (departmentError != null) {
             return departmentError;
         }
 
         // 1.9 Validate certifications
-        MessageResponse certsError = validateCertifications(request.getCertifications(), certificationRepo);
+        MessageResponse certsError = validateCertifications(request.getCertifications());
         if (certsError != null) {
             return certsError;
         }
@@ -257,45 +228,23 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate toàn bộ thông tin trong request cập nhật nhân viên sử dụng các repository được inject tự động.
+     * Validate toàn bộ thông tin trong request cập nhật nhân viên theo tài liệu thiết kế (PUT /employee).
      *
-     * @param request Request DTO chứa thông tin nhân viên cần cập nhật.
+     * @param request Request DTO chứa thông tin cập nhật nhân viên.
      * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
      */
     public MessageResponse validateUpdateEmployee(UpdateEmployeeRequest request) {
-        return validateUpdateEmployee(request, this.employeeEntityRepository, this.departmentRepository, this.certificationRepository);
-    }
-
-    /**
-     * Validate toàn bộ thông tin trong request cập nhật nhân viên theo tài liệu thiết kế (PUT /employee).
-     *
-     * @param request           Request DTO chứa thông tin cập nhật nhân viên.
-     * @param employeeRepo      Repository nhân viên để kiểm tra tồn tại và trùng lặp tài khoản.
-     * @param departmentRepo    Repository phòng ban để kiểm tra tồn tại phòng ban.
-     * @param certificationRepo Repository chứng chỉ để kiểm tra tồn tại chứng chỉ.
-     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
-     */
-    public MessageResponse validateUpdateEmployee(
-            UpdateEmployeeRequest request,
-            EmployeeEntityRepository employeeRepo,
-            DepartmentRepository departmentRepo,
-            CertificationRepository certificationRepo) {
-
-        if (request == null) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
-        }
-
         // 1.1 Validate parameter [employeeId]
         Long empId = request.getEmployeeId();
         if (empId == null || empId <= 0) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }
-        if (employeeRepo != null && !employeeRepo.existsById(empId)) {
+        if (!employeeEntityRepository.existsById(empId)) {
             return new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID));
         }
 
         // 1.2 Validate parameter [employeeLoginId]
-        MessageResponse loginIdError = validateEmployeeLoginIdForUpdate(request.getEmployeeLoginId(), empId, employeeRepo);
+        MessageResponse loginIdError = validateEmployeeLoginIdForUpdate(request.getEmployeeLoginId(), empId);
         if (loginIdError != null) {
             return loginIdError;
         }
@@ -339,14 +288,14 @@ public class EmployeeValidator {
         }
 
         // 1.9 Validate parameter [departmentId]
-        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId(), departmentRepo);
+        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId());
         if (departmentError != null) {
             return departmentError;
         }
 
         // 1.10 Validate parameter [certifications]
         if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
-            MessageResponse certsError = validateCertifications(request.getCertifications(), certificationRepo);
+            MessageResponse certsError = validateCertifications(request.getCertifications());
             if (certsError != null) {
                 return certsError;
             }
@@ -361,8 +310,7 @@ public class EmployeeValidator {
      */
     public MessageResponse validateEmployeeLoginIdForUpdate(
             String loginId,
-            Long currentEmployeeId,
-            EmployeeEntityRepository employeeRepo) {
+            Long currentEmployeeId) {
         if (loginId == null || loginId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
@@ -374,11 +322,9 @@ public class EmployeeValidator {
         if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
             return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
-        if (employeeRepo != null) {
-            Optional<EmployeeEntity> existingOpt = employeeRepo.findByEmployeeLoginId(trimmed);
-            if (existingOpt.isPresent() && !existingOpt.get().getEmployeeId().equals(currentEmployeeId)) {
-                return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-            }
+        Optional<EmployeeEntity> existingOpt = employeeEntityRepository.findByEmployeeLoginId(trimmed);
+        if (existingOpt.isPresent() && !existingOpt.get().getEmployeeId().equals(currentEmployeeId)) {
+            return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
         return null;
     }
@@ -386,9 +332,7 @@ public class EmployeeValidator {
     /**
      * Validate employeeLoginId.
      */
-    public MessageResponse validateEmployeeLoginId(
-            String loginId,
-            EmployeeEntityRepository employeeRepo) {
+    public MessageResponse validateEmployeeLoginId(String loginId) {
         if (loginId == null || loginId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
@@ -400,7 +344,7 @@ public class EmployeeValidator {
         if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
             return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
-        if (employeeRepo != null && employeeRepo.existsByEmployeeLoginId(trimmed)) {
+        if (employeeEntityRepository.existsByEmployeeLoginId(trimmed)) {
             return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
         return null;
@@ -526,9 +470,7 @@ public class EmployeeValidator {
     /**
      * Validate departmentId (bắt buộc, số nguyên dương, tồn tại trong database).
      */
-    public MessageResponse validateDepartmentId(
-            String departmentId,
-            DepartmentRepository departmentRepo) {
+    public MessageResponse validateDepartmentId(String departmentId) {
         if (departmentId == null || departmentId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER002, Collections.singletonList(Constants.PARAM_GROUP));
         }
@@ -546,7 +488,7 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
         }
 
-        if (departmentRepo != null && !departmentRepo.existsById(parsedId)) {
+        if (!departmentRepository.existsById(parsedId)) {
             return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_GROUP));
         }
         return null;
@@ -555,18 +497,12 @@ public class EmployeeValidator {
     /**
      * Validate danh sách certifications.
      */
-    public MessageResponse validateCertifications(
-            List<CertificationItemRequest> certs,
-            CertificationRepository certificationRepo) {
+    public MessageResponse validateCertifications(List<CertificationItemRequest> certs) {
         if (certs == null || certs.isEmpty()) {
             return null;
         }
 
         for (CertificationItemRequest cert : certs) {
-            if (cert == null) {
-                continue;
-            }
-
             // 1. startDate
             MessageResponse startDateError = validateDateField(cert.getStartDate(), Constants.PARAM_CERTIFICATION_START_DATE);
             if (startDateError != null) {
@@ -623,7 +559,7 @@ public class EmployeeValidator {
                 return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
             }
 
-            if (certificationRepo != null && !certificationRepo.existsById(parsedCertId)) {
+            if (!certificationRepository.existsById(parsedCertId)) {
                 return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_CERTIFICATION));
             }
         }
@@ -656,27 +592,17 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate tham số employeeId theo thiết kế API Get employee sử dụng repository được inject.
-     */
-    public MessageResponse validateEmployeeId(Long employeeId) {
-        return validateEmployeeId(employeeId, this.employeeEntityRepository);
-    }
-
-    /**
-     * Validate tham số employeeId theo thiết kế API Get/Delete employee.
+     * Validate tham số employeeId theo thiết kế API Get employee.
      *
-     * @param employeeId   ID của nhân viên.
-     * @param employeeRepo Repository để kiểm tra tồn tại trong CSDL.
+     * @param employeeId ID của nhân viên.
      * @return MessageResponse nếu có lỗi (ER001 hoặc ER013), null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeId(
-            Long employeeId,
-            EmployeeEntityRepository employeeRepo) {
+    public MessageResponse validateEmployeeId(Long employeeId) {
         if (employeeId == null || employeeId <= 0) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }
 
-        if (employeeRepo != null && !employeeRepo.existsById(employeeId)) {
+        if (!employeeEntityRepository.existsById(employeeId)) {
             return new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID));
         }
 
@@ -684,35 +610,26 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate tham số employeeId theo thiết kế API Delete employee sử dụng repository được inject.
-     */
-    public MessageResponse validateEmployeeIdForDelete(Long employeeId) {
-        return validateEmployeeIdForDelete(employeeId, this.employeeEntityRepository);
-    }
-
-    /**
      * Validate tham số employeeId theo thiết kế API Delete employee.
      * Trả về ER001 nếu không tồn tại tham số.
-     * Trả về ER014 nếu không tồn tại trong bảng employees hoặc nhân viên có role ADMIN.
+     * Trả về ER014 nếu không tồn tại trong bảng employees.
+     * Trả về ER020 nếu nhân viên có role ADMIN (không thể xóa user admin).
      *
-     * @param employeeId   ID của nhân viên cần xóa.
-     * @param employeeRepo Repository để kiểm tra tồn tại trong CSDL.
-     * @return MessageResponse nếu có lỗi (ER001 hoặc ER014), null nếu hợp lệ.
+     * @param employeeId ID của nhân viên cần xóa.
+     * @return MessageResponse nếu có lỗi (ER001, ER014 hoặc ER020), null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeIdForDelete(
-            Long employeeId,
-            EmployeeEntityRepository employeeRepo) {
+    public MessageResponse validateEmployeeIdForDelete(Long employeeId) {
         if (employeeId == null || employeeId <= 0) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
         }
 
-        if (employeeRepo != null) {
-            Optional<EmployeeEntity> employeeOpt = employeeRepo.findById(employeeId);
-            if (employeeOpt.isEmpty()
-                    || Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())
-                    || "ADMIN".equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
-                return new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID));
-            }
+        Optional<EmployeeEntity> employeeOpt = employeeEntityRepository.findById(employeeId);
+        if (employeeOpt.isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID));
+        }
+
+        if (Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
+            return new MessageResponse(Constants.ERROR_CODE_ER020, new ArrayList<>());
         }
 
         return null;

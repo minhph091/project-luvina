@@ -8,6 +8,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { APP_ROUTES, COMPLETE_ACTION_TYPES, SYSTEM_MESSAGES } from '@/constants';
 import { clearEmployeeSearchState } from '@/lib/storage/employeeSearchState';
+import { clearEditEmployeeId } from '@/lib/storage/employeeFormState';
 import {
   getEmployeeCompleteAction,
   clearEmployeeCompleteAction,
@@ -47,6 +48,7 @@ export function useAdm006(): UseAdm006Return {
    * Dọn dẹp trạng thái hoàn tất, reset bộ lọc tìm kiếm và quay về trang ADM002.
    */
   const handleNavigateToList = useCallback(() => {
+    clearEditEmployeeId();
     clearEmployeeCompleteAction();
     clearEmployeeSearchState();
     router.push(APP_ROUTES.EMPLOYEE_LIST);

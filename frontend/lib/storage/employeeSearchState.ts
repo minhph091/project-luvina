@@ -43,15 +43,7 @@ export function getEmployeeSearchState(): EmployeeSearchState | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as EmployeeSearchState;
     if (!parsed || typeof parsed !== 'object') return null;
-    return {
-      ...parsed,
-      sort: {
-        employeeNameOrder: parsed.sort?.employeeNameOrder || 'ASC',
-        certificationNameOrder: parsed.sort?.certificationNameOrder || 'ASC',
-        endDateOrder: parsed.sort?.endDateOrder || 'ASC',
-      },
-      activeSortColumn: parsed.activeSortColumn || 'employeeNameOrder',
-    };
+    return parsed;
   } catch {
     return null;
   }

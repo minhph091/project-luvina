@@ -87,17 +87,17 @@ describe('Adm003 Component', () => {
   test('renders server error message if apiError is provided', () => {
     render(
       <Adm003
-        employee={null}
+        employee={MOCK_EMPLOYEE}
         loading={false}
         deleting={false}
-        apiError="Nhân viên không tồn tại"
-        hasCertification={false}
+        apiError="Lỗi khi xóa nhân viên"
+        hasCertification={true}
         handleNavigateToEdit={mockHandleNavigateToEdit}
         handleNavigateToList={mockHandleNavigateToList}
         handleDelete={mockHandleDelete}
       />
     );
 
-    expect(screen.getByText('Nhân viên không tồn tại')).toBeInTheDocument();
+    expect(screen.getByText('Lỗi khi xóa nhân viên')).toBeInTheDocument();
   });
 });

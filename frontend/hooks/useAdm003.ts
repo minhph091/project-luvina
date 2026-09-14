@@ -18,7 +18,7 @@ import {
 } from '@/constants';
 import { EmployeeDetail } from '@/types/employee';
 import { getEmployeeById, deleteEmployee } from '@/lib/api/employees';
-import { setEditEmployeeId, clearEmployeeFormData, getEditEmployeeId } from '@/lib/storage/employeeFormState';
+import { setEditEmployeeId, clearEmployeeFormData, getEditEmployeeId, clearEditEmployeeId } from '@/lib/storage/employeeFormState';
 import { setEmployeeCompleteAction } from '@/lib/storage/employeeCompleteState';
 
 export interface UseAdm003Return {
@@ -44,20 +44,15 @@ export function useAdm003(): UseAdm003Return {
   const [deleting, setDeleting] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // 1. Xác định ID nhân viên từ query parameter, window search hoặc edit storage
+  // 1. Xác định ID nhân viên từ query parameter hoặc từ sessionStorage (khi quay lại từ ADM004)
   const getParamId = useCallback((): number | null => {
-    let idStr = searchParams ? searchParams.get('id') : null;
-    if (!idStr && typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      idStr = urlParams.get('id');
-    }
+    const idStr = searchParams ? searchParams.get('id') : null;
     if (idStr && /^\d+$/.test(idStr)) {
       return Number(idStr);
     }
-    // Fallback nếu có lưu trong storage
     const editId = getEditEmployeeId();
-    if (editId) {
-      return editId;
+    if (editId && /^\d+$/.test(String(editId))) {
+      return Number(editId);
     }
     return null;
   }, [searchParams]);
@@ -68,8 +63,8 @@ export function useAdm003(): UseAdm003Return {
    * 2. Khi `getParamId` thay đổi tham chiếu (xảy ra khi `searchParams` / URL query thay đổi, ví dụ đổi `id` nhân viên).
    * 
    * [Điều kiện gọi API `fetchDetail`]:
-   * - Hàm `fetchDetail()` chỉ được gọi khi xác định được `employeeId` hợp lệ (từ URL hoặc storage).
-   * - Nếu không có `employeeId`, effect dừng lại ngay và hiển thị lỗi ER013 (User not found) mà không gửi request API.
+   * - Hàm `fetchDetail()` chỉ được gọi khi xác định được `employeeId` hợp lệ từ URL.
+   * - Nếu không có `employeeId`, effect dừng lại ngay và điều hướng sang màn hình System Error.
    */
   useEffect(() => {
     let isMounted = true;
@@ -100,24 +95,6 @@ export function useAdm003(): UseAdm003Return {
             employeeBirthDate: emp.employeeBirthDate ? emp.employeeBirthDate.replace(/-/g, '/') : '',
             certificationStartDate: emp.certificationStartDate ? emp.certificationStartDate.replace(/-/g, '/') : '',
             certificationEndDate: emp.certificationEndDate ? emp.certificationEndDate.replace(/-/g, '/') : '',
-          });
-        } else if (response && response.code === 200 && response.employeeId) {
-          const firstCert = response.certifications && response.certifications.length > 0 ? response.certifications[0] : null;
-          setEmployee({
-            employeeId: response.employeeId,
-            employeeLoginId: response.employeeLoginId || '',
-            employeeName: response.employeeName || '',
-            employeeNameKana: response.employeeNameKana || '',
-            employeeBirthDate: response.employeeBirthDate ? response.employeeBirthDate.replace(/-/g, '/') : '',
-            departmentId: Number(response.departmentId) || 0,
-            departmentName: response.departmentName || '',
-            employeeEmail: response.employeeEmail || '',
-            employeeTelephone: response.employeeTelephone || '',
-            certificationId: firstCert ? Number(firstCert.certificationId) : null,
-            certificationName: firstCert ? firstCert.certificationName : null,
-            certificationStartDate: firstCert && firstCert.startDate ? firstCert.startDate.replace(/-/g, '/') : null,
-            certificationEndDate: firstCert && firstCert.endDate ? firstCert.endDate.replace(/-/g, '/') : null,
-            score: firstCert && firstCert.score !== null && firstCert.score !== undefined ? Number(firstCert.score) : null,
           });
         } else {
           // Nếu API trả về lỗi hoặc ko tồn tại employee data di chuyển sang MH system error
@@ -166,6 +143,7 @@ export function useAdm003(): UseAdm003Return {
    * ADM002 sẽ tự động khôi phục điều kiện Search, Sort và số trang từ sessionStorage.
    */
   const handleNavigateToList = useCallback(() => {
+    clearEditEmployeeId();
     router.push(APP_ROUTES.EMPLOYEE_LIST);
   }, [router]);
 

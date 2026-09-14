@@ -37,31 +37,6 @@ public class EmployeeNativeRepository {
         this.entityManager = entityManager;
     }
 
-    /**
-     * Lấy danh sách nhân viên theo điều kiện với limit và offset.
-     * Mỗi nhân viên chỉ lấy 1 chứng chỉ ưu tiên (level cao nhất).
-     *
-     * @param employeeName         Tên nhân viên để lọc (null nếu không lọc).
-     * @param departmentId         ID phòng ban để lọc (null nếu không lọc).
-     * @param limit                Số bản ghi tối đa cần lấy.
-     * @param offset               Vị trí bắt đầu lấy bản ghi.
-     * @param ordEmployeeName      Chiều sắp xếp theo tên (ASC/DESC).
-     * @param ordCertificationName Chiều sắp xếp theo chứng chỉ (ASC/DESC).
-     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
-     * @return Danh sách EmployeeDTO theo trang.
-     */
-    @SuppressWarnings("unchecked")
-    public List<EmployeeDTO> findEmployees(
-            String employeeName,
-            Long departmentId,
-            int limit,
-            int offset,
-            String ordEmployeeName,
-            String ordCertificationName,
-            String ordEndDate) {
-        return findEmployees(employeeName, departmentId, limit, offset, ordEmployeeName, ordCertificationName,
-                ordEndDate, null);
-    }
 
     /**
      * Lấy danh sách nhân viên theo điều kiện với limit, offset và độ ưu tiên sắp

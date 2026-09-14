@@ -288,23 +288,35 @@ export function useAdm004(): UseAdm004Return {
           }
         }
 
+        // Nếu trường này đã từng có lỗi, validate lại để xóa lỗi ngay khi hợp lệ
+        const updatedKeys = Object.keys(updates) as (keyof EmployeeFormData)[];
+        const errorUpdates: Record<string, string | undefined> = {};
+        let shouldUpdateErrors = false;
+
+        for (const field of updatedKeys) {
+          if (errors[field]) {
+            const err = validateField(field, next, mode);
+            errorUpdates[field] = err || undefined;
+            shouldUpdateErrors = true;
+          }
+        }
+
+        // Nếu đổi startDate hoặc endDate thì re-validate endDate nếu trường endDate đang có lỗi
+        if (
+          ('certificationStartDate' in updates || 'certificationEndDate' in updates) &&
+          errors.certificationEndDate
+        ) {
+          const endErr = validateField('certificationEndDate', next, mode);
+          errorUpdates.certificationEndDate = endErr || undefined;
+          shouldUpdateErrors = true;
+        }
+
+        if (shouldUpdateErrors) {
+          setErrors((prevErr) => ({ ...prevErr, ...errorUpdates }));
+        }
+
         return next;
       });
-
-      // Nếu trường này đã từng có lỗi, validate lại để xóa lỗi ngay khi hợp lệ
-      const updatedKeys = Object.keys(updates) as (keyof EmployeeFormData)[];
-      for (const field of updatedKeys) {
-        if (errors[field]) {
-          setFormData((latest) => {
-            const err = validateField(field, latest, mode);
-            setErrors((prevErr) => ({
-              ...prevErr,
-              [field]: err || undefined,
-            }));
-            return latest;
-          });
-        }
-      }
     },
     [errors, mode]
   );
@@ -317,26 +329,9 @@ export function useAdm004(): UseAdm004Return {
       field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',
       date: Date | null
     ) => {
-      const dateStr = formatDateToSlashString(date);
-      handleFieldChange(field, dateStr);
-
-      // Re-validate date field
-      setFormData((prev) => {
-        const updated = { ...prev, [field]: dateStr };
-        const err = validateField(field, updated, mode);
-        setErrors((prevErr) => {
-          const nextErr = { ...prevErr, [field]: err || undefined };
-          // Nếu đổi startDate hoặc endDate thì re-validate endDate
-          if (field === 'certificationStartDate' || field === 'certificationEndDate') {
-            const endErr = validateField('certificationEndDate', updated, mode);
-            nextErr.certificationEndDate = endErr || undefined;
-          }
-          return nextErr;
-        });
-        return updated;
-      });
+      handleFieldChange(field, formatDateToSlashString(date));
     },
-    [handleFieldChange, mode]
+    [handleFieldChange]
   );
 
   /**

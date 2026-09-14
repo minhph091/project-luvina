@@ -44,22 +44,9 @@ export async function getEmployees(
     sortBy = 'employeeNameOrder',
   } = params;
 
-  // Xử lý limit / pageSize
-  let finalLimit: number | undefined = undefined;
-  if (limit !== undefined && limit !== null) {
-    finalLimit = limit;
-  } else if (pageSize !== undefined && pageSize !== null) {
-    finalLimit = pageSize;
-  }
-
-  // Xử lý offset / pageNo
-  let finalOffset: number | undefined = undefined;
-  if (offset !== undefined && offset !== null) {
-    finalOffset = offset;
-  } else if (pageNo !== undefined && pageNo !== null) {
-    const calcLimit = finalLimit ?? 5;
-    finalOffset = (pageNo - 1) * calcLimit;
-  }
+  // Xử lý limit và offset
+  const finalLimit = limit ?? pageSize;
+  const finalOffset = offset ?? (pageNo != null ? (pageNo - 1) * (finalLimit ?? 5) : undefined);
 
   // Mặc định cả 3 trường sắp xếp theo đúng tài liệu thiết kế (design-doc & api-design-doc)
   const sortParams: Record<string, string> = {
@@ -97,7 +84,7 @@ export async function getEmployees(
     queryParams.employee_name = employeeName.trim();
   }
 
-  if (departmentId !== undefined && departmentId !== null && String(departmentId).trim() !== '') {
+  if (departmentId != null && String(departmentId).trim() !== '') {
     queryParams.department_id = String(departmentId);
   }
 
@@ -117,8 +104,8 @@ export async function getEmployees(
 export async function getEmployeeById(id: number | string): Promise<GetEmployeeDetailApiResponse> {
   const response = await apiClient.get<GetEmployeeDetailApiResponse>(`/employee/${id}`);
   const data = response.data;
-  if (data && data.employeeId && !data.employee) {
-    const firstCert = data.certifications && data.certifications.length > 0 ? data.certifications[0] : null;
+  if (data?.employeeId) {
+    const firstCert = data.certifications?.[0] ?? null;
     data.employee = {
       employeeId: data.employeeId,
       employeeLoginId: data.employeeLoginId || '',
@@ -133,7 +120,7 @@ export async function getEmployeeById(id: number | string): Promise<GetEmployeeD
       certificationName: firstCert ? firstCert.certificationName : null,
       certificationStartDate: firstCert ? firstCert.startDate : null,
       certificationEndDate: firstCert ? firstCert.endDate : null,
-      score: firstCert && firstCert.score !== null && firstCert.score !== undefined ? Number(firstCert.score) : null,
+      score: firstCert && firstCert.score != null && firstCert.score !== '' ? Number(firstCert.score) : null,
     };
   }
   return data;
@@ -157,11 +144,7 @@ export async function deleteEmployee(id: number | string): Promise<DeleteEmploye
  * @returns Promise chứa phản hồi từ server (AddEmployeeApiResponse).
  */
 export async function addEmployee(formData: EmployeeFormData): Promise<AddEmployeeApiResponse> {
-  const hasCert =
-    formData.certificationId !== '' &&
-    formData.certificationId !== null &&
-    formData.certificationId !== undefined &&
-    Number(formData.certificationId) > 0;
+  const hasCert = Boolean(formData.certificationId && Number(formData.certificationId) > 0);
 
   const certifications = hasCert
     ? [
@@ -199,11 +182,7 @@ export async function addEmployee(formData: EmployeeFormData): Promise<AddEmploy
 export async function updateEmployee(
   formData: EmployeeFormData
 ): Promise<UpdateEmployeeApiResponse> {
-  const hasCert =
-    formData.certificationId !== '' &&
-    formData.certificationId !== null &&
-    formData.certificationId !== undefined &&
-    Number(formData.certificationId) > 0;
+  const hasCert = Boolean(formData.certificationId && Number(formData.certificationId) > 0);
 
   const certifications = hasCert
     ? {

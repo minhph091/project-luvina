@@ -119,7 +119,7 @@ describe('EmployeeDetailPage (ADM003)', () => {
 
   test('displays API error box when apiError exists', () => {
     (useAdm003 as jest.Mock).mockReturnValue({
-      employee: null,
+      employee: MOCK_EMPLOYEE,
       loading: false,
       deleting: false,
       apiError: '該当するユーザが存在しません。',

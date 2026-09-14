@@ -113,6 +113,10 @@ export const ERROR_CODES = {
   ER017: 'ER017',
   ER018: 'ER018',
   ER019: 'ER019',
+  ER020: 'ER020',
+  ER021: 'ER021',
+  ER022: 'ER022',
+  ER023: 'ER023',
 } as const;
 
 export const VALIDATION_MESSAGES = {
@@ -136,6 +140,7 @@ export const VALIDATION_MESSAGES = {
   ER017_PASSWORD_MISMATCH: '「パスワード（確認）」が不正です。',
   ER018_HALF_NUMBER: (field: string) => `「${field}」は半角で入力してください。`,
   ER019_HALF_ALPHANUMERIC: (field: string = 'アカウント名') => `[${field}]は(a-z, A-Z, 0-9 と _)の桁のみです。最初の桁は数字ではない。`,
+  ER020_CANNOT_DELETE_ADMIN: '管理者ユーザを削除することはできません。',
 } as const;
 
 /**
@@ -187,6 +192,8 @@ export function formatApiErrorMessage(code?: string, params: string[] = []): str
       return VALIDATION_MESSAGES.ER018_HALF_NUMBER(p0);
     case ERROR_CODES.ER019:
       return VALIDATION_MESSAGES.ER019_HALF_ALPHANUMERIC(p0);
+    case ERROR_CODES.ER020:
+      return VALIDATION_MESSAGES.ER020_CANNOT_DELETE_ADMIN;
     default:
       return VALIDATION_MESSAGES.ER015_SYSTEM_ERROR;
   }

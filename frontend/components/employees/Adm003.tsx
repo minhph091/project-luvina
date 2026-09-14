@@ -31,7 +31,7 @@ export const Adm003: React.FC<Adm003Props> = ({
   handleNavigateToList,
   handleDelete,
 }) => {
-  if (loading && !employee && !apiError) {
+  if (loading || !employee) {
     return (
       <div className="row">
         <div style={{ padding: '24px', textAlign: 'center', color: '#888' }}>
@@ -61,7 +61,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.ACCOUNT_NAME}</label>
             <div id="detail-account-name" className="col-sm col-sm-10">
-              {employee?.employeeLoginId || ''}
+              {employee.employeeLoginId}
             </div>
           </li>
 
@@ -69,7 +69,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.GROUP}</label>
             <div id="detail-group" className="col-sm col-sm-10">
-              {employee?.departmentName || ''}
+              {employee.departmentName || ''}
             </div>
           </li>
 
@@ -77,7 +77,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.NAME}</label>
             <div id="detail-name" className="col-sm col-sm-10">
-              {employee?.employeeName || ''}
+              {employee.employeeName}
             </div>
           </li>
 
@@ -85,7 +85,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.KATAKANA_NAME}</label>
             <div id="detail-katakana-name" className="col-sm col-sm-10">
-              {employee?.employeeNameKana || ''}
+              {employee.employeeNameKana}
             </div>
           </li>
 
@@ -93,7 +93,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.BIRTHDAY}</label>
             <div id="detail-birthday" className="col-sm col-sm-10">
-              {employee?.employeeBirthDate || ''}
+              {employee.employeeBirthDate}
             </div>
           </li>
 
@@ -101,7 +101,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.EMAIL}</label>
             <div id="detail-email" className="col-sm col-sm-10">
-              {employee?.employeeEmail || ''}
+              {employee.employeeEmail}
             </div>
           </li>
 
@@ -109,7 +109,7 @@ export const Adm003: React.FC<Adm003Props> = ({
           <li className="form-group row d-flex bor-none">
             <label className="col-form-label col-sm-2">{FIELD_LABELS.TEL}</label>
             <div id="detail-tel" className="col-sm col-sm-10">
-              {employee?.employeeTelephone || ''}
+              {employee.employeeTelephone}
             </div>
           </li>
 
@@ -122,25 +122,25 @@ export const Adm003: React.FC<Adm003Props> = ({
               <li className="form-group row d-flex">
                 <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
                 <div id="detail-certification-name" className="col-sm col-sm-10">
-                  {employee?.certificationName || ''}
+                  {employee.certificationName || ''}
                 </div>
               </li>
               <li className="form-group row d-flex">
                 <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
                 <div id="detail-start-date" className="col-sm col-sm-10">
-                  {employee?.certificationStartDate || ''}
+                  {employee.certificationStartDate || ''}
                 </div>
               </li>
               <li className="form-group row d-flex">
                 <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
                 <div id="detail-end-date" className="col-sm col-sm-10">
-                  {employee?.certificationEndDate || ''}
+                  {employee.certificationEndDate || ''}
                 </div>
               </li>
               <li className="form-group row d-flex">
                 <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
                 <div id="detail-score" className="col-sm col-sm-10">
-                  {employee?.score !== null && employee?.score !== undefined ? String(employee.score) : ''}
+                  {employee.score ?? ''}
                 </div>
               </li>
             </>
@@ -153,7 +153,6 @@ export const Adm003: React.FC<Adm003Props> = ({
                 type="button"
                 id="btn-detail-edit"
                 onClick={handleNavigateToEdit}
-                disabled={!employee}
                 className="btn btn-primary btn-sm"
                 tabIndex={1}
               >
@@ -163,7 +162,7 @@ export const Adm003: React.FC<Adm003Props> = ({
                 type="button"
                 id="btn-detail-delete"
                 onClick={handleDelete}
-                disabled={!employee || deleting}
+                disabled={deleting}
                 className="btn btn-secondary btn-sm"
                 tabIndex={2}
               >

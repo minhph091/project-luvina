@@ -60,29 +60,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeMapper employeeMapper;
 
     /**
-     * Khởi tạo EmployeeServiceImpl với tham số tối thiểu cho backward compatibility trong unit tests.
-     */
-    public EmployeeServiceImpl(
-            EmployeeNativeRepository employeeNativeRepository,
-            EmployeeValidator employeeValidator) {
-        this(employeeNativeRepository, employeeValidator, null, null, null, null, null, null);
-    }
-
-    /**
-     * Khởi tạo EmployeeServiceImpl với 7 tham số hỗ trợ backward compatibility trong unit tests.
-     */
-    public EmployeeServiceImpl(
-            EmployeeNativeRepository employeeNativeRepository,
-            EmployeeValidator employeeValidator,
-            EmployeeEntityRepository employeeEntityRepository,
-            DepartmentRepository departmentRepository,
-            CertificationRepository certificationRepository,
-            EmployeeCertificationRepository employeeCertificationRepository,
-            PasswordEncoder passwordEncoder) {
-        this(employeeNativeRepository, employeeValidator, employeeEntityRepository, departmentRepository, certificationRepository, employeeCertificationRepository, passwordEncoder, null);
-    }
-
-    /**
      * Khởi tạo EmployeeServiceImpl với đầy đủ các dependencies cần thiết.
      */
     @Autowired
@@ -106,7 +83,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
-     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp và phân trang theo tài liệu thiết kế API.
+     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp và phân trang theo
+     * tài liệu thiết kế API.
      *
      * @param employeeName         Tên nhân viên để lọc (tùy chọn).
      * @param departmentId         ID phòng ban để lọc (tùy chọn).
@@ -126,11 +104,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             String ordEndDate,
             String offsetStr,
             String limitStr) {
-        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offsetStr, limitStr, null);
+        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offsetStr,
+                limitStr, null);
     }
 
     /**
-     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp, phân trang và cột ưu tiên.
+     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp, phân trang và cột ưu
+     * tiên.
      *
      * @param employeeName         Tên nhân viên để lọc (tùy chọn).
      * @param departmentId         ID phòng ban để lọc (tùy chọn).
@@ -139,7 +119,8 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
      * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
      * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
-     * @param sortBy               Cột đang được người dùng ưu tiên sắp xếp hàng đầu.
+     * @param sortBy               Cột đang được người dùng ưu tiên sắp xếp hàng
+     *                             đầu.
      * @return EmployeeListDTO chứa tổng số bản ghi và danh sách EmployeeDTO.
      */
     @Override
@@ -153,25 +134,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             String limitStr,
             String sortBy) {
 
-        // Parse offset
-        int offsetVal = Constants.DEFAULT_OFFSET;
-        if (offsetStr != null && !offsetStr.trim().isEmpty()) {
-            try {
-                offsetVal = Integer.parseInt(offsetStr.trim());
-            } catch (NumberFormatException ex) {
-                log.warn("Invalid offset format: {}", offsetStr);
-            }
-        }
-
-        // Parse limit
-        int limitVal = Constants.DEFAULT_LIMIT;
-        if (limitStr != null && !limitStr.trim().isEmpty()) {
-            try {
-                limitVal = Integer.parseInt(limitStr.trim());
-            } catch (NumberFormatException ex) {
-                log.warn("Invalid limit format: {}", limitStr);
-            }
-        }
+        // Parse offset và limit
+        int offsetVal = parseIntOrDefault(offsetStr, Constants.DEFAULT_OFFSET);
+        int limitVal = parseIntOrDefault(limitStr, Constants.DEFAULT_LIMIT);
 
         // Parse departmentId
         Long deptIdVal = null;
@@ -185,7 +150,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // Chuẩn hóa tên nhân viên
         String nameFilter = (employeeName == null || employeeName.trim().isEmpty())
-                ? null : employeeName.trim();
+                ? null
+                : employeeName.trim();
 
         // 2.1 Thực hiện lấy tổng số nhân viên từ database
         Long totalRecords = employeeNativeRepository.countEmployees(nameFilter, deptIdVal);
@@ -210,11 +176,14 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
-     * Thêm mới nhân viên và danh sách chứng chỉ tiếng Nhật (nếu có) theo tài liệu thiết kế API.
-     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu có ngoại lệ.
+     * Thêm mới nhân viên và danh sách chứng chỉ tiếng Nhật (nếu có) theo tài liệu
+     * thiết kế API.
+     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu có
+     * ngoại lệ.
      *
      * @param request Thông tin nhân viên và chứng chỉ gửi lên từ client.
-     * @return EmployeeDTO chứa thông tin nhân viên vừa được tạo (bao gồm employeeId).
+     * @return EmployeeDTO chứa thông tin nhân viên vừa được tạo (bao gồm
+     *         employeeId).
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -228,7 +197,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeEntity.setEmployeeEmail(request.getEmployeeEmail().trim());
         employeeEntity.setEmployeeTelephone(request.getEmployeeTelephone().trim());
         employeeEntity.setEmployeeLoginId(request.getEmployeeLoginId().trim());
-        if (passwordEncoder != null && request.getEmployeeLoginPassword() != null) {
+        if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
             employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(request.getEmployeeLoginPassword().trim()));
         } else {
             employeeEntity.setEmployeeLoginPassword(request.getEmployeeLoginPassword());
@@ -238,7 +207,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
         Long newEmployeeId = savedEmployee.getEmployeeId();
 
-        // 3. Nếu tồn tại certifications thì thực hiện insert vào bảng employees_certifications
+        // 3. Nếu tồn tại certifications thì thực hiện insert vào bảng
+        // employees_certifications
         if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
             for (CertificationItemRequest certReq : request.getCertifications()) {
                 if (certReq == null) {
@@ -257,31 +227,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         // 4. Chuyển đổi sang EmployeeDTO và trả về
-        if (employeeMapper != null) {
-            return employeeMapper.toDto(savedEmployee);
-        }
-        return EmployeeDTO.builder()
-                .employeeId(newEmployeeId)
-                .departmentId(savedEmployee.getDepartmentId())
-                .employeeName(savedEmployee.getEmployeeName())
-                .employeeNameKana(savedEmployee.getEmployeeNameKana())
-                .employeeBirthDate(savedEmployee.getEmployeeBirthDate())
-                .employeeEmail(savedEmployee.getEmployeeEmail())
-                .employeeTelephone(savedEmployee.getEmployeeTelephone())
-                .employeeLoginId(savedEmployee.getEmployeeLoginId())
-                .employeeRole(savedEmployee.getEmployeeRole())
-                .build();
+        return employeeMapper.toDto(savedEmployee);
     }
 
     /**
      * Lấy thông tin chi tiết của một nhân viên theo employeeId.
      *
      * @param employeeId ID của nhân viên cần lấy thông tin.
-     * @return EmployeeDetailDTO chứa thông tin nhân viên và danh sách chứng chỉ tiếng Nhật.
+     * @return EmployeeDetailDTO chứa thông tin nhân viên và danh sách chứng chỉ
+     *         tiếng Nhật.
      */
     @Override
     public EmployeeDetailDTO getEmployeeById(Long employeeId) {
-        // 1. Thực hiện query JOIN 4 bảng lấy chi tiết nhân viên, phòng ban và danh sách chứng chỉ
+        // 1. Thực hiện query JOIN 4 bảng lấy chi tiết nhân viên, phòng ban và danh sách
+        // chứng chỉ
         List<Object[]> rows = employeeEntityRepository.findEmployeeDetailWithCertifications(employeeId);
         if (rows == null || rows.isEmpty()) {
             throw new CustomValidationException(
@@ -307,7 +266,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 4. Duyệt qua tất cả các dòng để gom danh sách chứng chỉ (quan hệ 1 - N)
         for (Object[] row : rows) {
             Long certId = row[10] != null ? ((Number) row[10]).longValue() : null;
-            // Chỉ thêm nếu dòng có chứng chỉ (do dùng LEFT JOIN, nhân viên không có chứng chỉ thì certId = null)
+            // Chỉ thêm nếu dòng có chứng chỉ (do dùng LEFT JOIN, nhân viên không có chứng
+            // chỉ thì certId = null)
             if (certId != null) {
                 EmployeeDetailDTO.CertificationInfo certInfo = EmployeeDetailDTO.CertificationInfo.builder()
                         .certificationId(certId)
@@ -333,43 +293,40 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteEmployee(Long employeeId) {
         try {
-            // 1. Kiểm tra an toàn: Không cho phép xóa người dùng có role ADMIN
-            if (employeeEntityRepository != null) {
-                Optional<EmployeeEntity> employeeOpt = employeeEntityRepository.findById(employeeId);
-                if (employeeOpt.isPresent()) {
-                    String role = employeeOpt.get().getEmployeeRole();
-                    if (Constants.ROLE_ADMIN.equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
-                        throw new CustomValidationException(
-                                new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID)),
-                                employeeId
-                        );
-                    }
-                }
+            // 1. Kiểm tra tồn tại và role của nhân viên (không cho phép xóa ADMIN)
+            EmployeeEntity employeeEntity = employeeEntityRepository.findById(employeeId)
+                    .orElseThrow(() -> new CustomValidationException(
+                            new MessageResponse(Constants.ERROR_CODE_ER014,
+                                    Collections.singletonList(Constants.PARAM_ID)),
+                            employeeId));
+
+            String role = employeeEntity.getEmployeeRole();
+            if (Constants.ROLE_ADMIN.equalsIgnoreCase(role)) {
+                throw new CustomValidationException(
+                        new MessageResponse(Constants.ERROR_CODE_ER020, new ArrayList<>()),
+                        employeeId);
             }
 
-            // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications
-            if (employeeCertificationRepository != null) {
-                employeeCertificationRepository.deleteByEmployeeId(employeeId);
-            }
+            // 2. Xóa các chứng chỉ của nhân viên trong bảng employees_certifications bằng 1 câu bulk delete
+            employeeCertificationRepository.deleteByEmployeeId(employeeId);
 
-            // 3. Xóa nhân viên trong bảng employees
-            if (employeeEntityRepository != null) {
-                employeeEntityRepository.deleteById(employeeId);
-            }
+            // 3. Xóa nhân viên trong bảng employees (sử dụng entity đã load, không query lại)
+            employeeEntityRepository.delete(employeeEntity);
         } catch (CustomValidationException cve) {
             throw cve;
         } catch (Exception ex) {
             log.error("Lỗi khi xóa nhân viên có employeeId = {}", employeeId, ex);
             throw new CustomValidationException(
                     new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()),
-                    employeeId
-            );
+                    employeeId);
         }
     }
 
     /**
-     * Cập nhật thông tin nhân viên và chứng chỉ tiếng Nhật theo tài liệu thiết kế API (PUT /employee).
-     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu xảy ra lỗi.
+     * Cập nhật thông tin nhân viên và chứng chỉ tiếng Nhật theo tài liệu thiết kế
+     * API (PUT /employee).
+     * Toàn bộ thao tác thực thi trong một transaction, tự động rollback nếu xảy ra
+     * lỗi.
      *
      * @param request Thông tin nhân viên và chứng chỉ cần cập nhật từ client.
      * @return EmployeeDTO chứa thông tin nhân viên sau khi cập nhật thành công.
@@ -380,47 +337,36 @@ public class EmployeeServiceImpl implements EmployeeService {
         Long employeeId = request.getEmployeeId();
         try {
             // 1. Tìm thông tin nhân viên cần update trong CSDL
-            EmployeeEntity employeeEntity = null;
-            if (employeeEntityRepository != null) {
-                employeeEntity = employeeEntityRepository.findById(employeeId).orElse(null);
-            }
-            if (employeeEntity == null) {
-                throw new CustomValidationException(
-                        new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID)),
-                        employeeId
-                );
-            }
+            EmployeeEntity employeeEntity = employeeEntityRepository.findById(employeeId)
+                    .orElseThrow(() -> new CustomValidationException(
+                            new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID)),
+                            employeeId));
 
             // 2.1 Update các trường thông tin nhân viên vào table employees
             employeeEntity.setDepartmentId(Long.parseLong(request.getDepartmentId().trim()));
             employeeEntity.setEmployeeName(request.getEmployeeName().trim());
             employeeEntity.setEmployeeNameKana(request.getEmployeeNameKana().trim());
-            employeeEntity.setEmployeeBirthDate(employeeValidator.parseStrictDate(request.getEmployeeBirthDate().trim()));
+            employeeEntity
+                    .setEmployeeBirthDate(employeeValidator.parseStrictDate(request.getEmployeeBirthDate().trim()));
             employeeEntity.setEmployeeEmail(request.getEmployeeEmail().trim());
             employeeEntity.setEmployeeTelephone(request.getEmployeeTelephone().trim());
             employeeEntity.setEmployeeLoginId(request.getEmployeeLoginId().trim());
 
             // Chỉ update password nếu có truyền password khác rỗng
             if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
-                String rawPassword = request.getEmployeeLoginPassword().trim();
-                if (passwordEncoder != null) {
-                    employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(rawPassword));
-                } else {
-                    employeeEntity.setEmployeeLoginPassword(rawPassword);
-                }
+                employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(request.getEmployeeLoginPassword().trim()));
             }
 
             EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
 
             // 3.1 Xóa thông tin chứng chỉ hiện có của nhân viên
-            if (employeeCertificationRepository != null) {
-                employeeCertificationRepository.deleteByEmployeeId(employeeId);
-            }
+            employeeCertificationRepository.deleteByEmployeeId(employeeId);
 
             // 3.2 Nếu tồn tại parameter certifications thì insert thông tin chứng chỉ mới
-            if (request.getCertifications() != null && !request.getCertifications().isEmpty() && employeeCertificationRepository != null) {
+            if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
                 for (CertificationItemRequest certReq : request.getCertifications()) {
-                    if (certReq == null || certReq.getCertificationId() == null || certReq.getCertificationId().trim().isEmpty()) {
+                    if (certReq == null || certReq.getCertificationId() == null
+                            || certReq.getCertificationId().trim().isEmpty()) {
                         continue;
                     }
                     EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
@@ -436,20 +382,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
 
             // 4. Chuyển đổi sang EmployeeDTO và trả về
-            if (employeeMapper != null) {
-                return employeeMapper.toDto(savedEmployee);
-            }
-            return EmployeeDTO.builder()
-                    .employeeId(employeeId)
-                    .departmentId(savedEmployee.getDepartmentId())
-                    .employeeName(savedEmployee.getEmployeeName())
-                    .employeeNameKana(savedEmployee.getEmployeeNameKana())
-                    .employeeBirthDate(savedEmployee.getEmployeeBirthDate())
-                    .employeeEmail(savedEmployee.getEmployeeEmail())
-                    .employeeTelephone(savedEmployee.getEmployeeTelephone())
-                    .employeeLoginId(savedEmployee.getEmployeeLoginId())
-                    .employeeRole(savedEmployee.getEmployeeRole())
-                    .build();
+            return employeeMapper.toDto(savedEmployee);
 
         } catch (CustomValidationException cve) {
             throw cve;
@@ -457,8 +390,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             log.error("Lỗi khi cập nhật nhân viên có employeeId = {}", employeeId, ex);
             throw new CustomValidationException(
                     new MessageResponse(Constants.ERROR_CODE_ER015, new ArrayList<>()),
-                    employeeId
-            );
+                    employeeId);
+        }
+    }
+
+    /**
+     * Parse chuỗi thành số nguyên, nếu null, rỗng hoặc sai định dạng thì trả về giá
+     * trị mặc định.
+     *
+     * @param value        Chuỗi cần parse.
+     * @param defaultValue Giá trị mặc định trả về khi không parse được.
+     * @return Số nguyên sau khi parse hoặc giá trị mặc định.
+     */
+    private int parseIntOrDefault(String value, int defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return defaultValue;
         }
     }
 }

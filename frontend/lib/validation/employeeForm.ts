@@ -104,7 +104,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
       // 2. departmentId
       departmentId: z
         .union([z.number(), z.string()])
-        .refine((val) => val !== '' && val !== undefined && val !== null && Number(val) > 0, {
+        .refine((val) => Boolean(val && Number(val) > 0), {
           message: VALIDATION_MESSAGES.ER002_REQUIRED_SELECT(FIELD_LABELS.GROUP),
         }),
 
@@ -237,11 +237,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
       }
 
       // Validate Japanese Certificate Fields if certificationId is selected
-      const hasCert =
-        data.certificationId !== undefined &&
-        data.certificationId !== null &&
-        data.certificationId !== '' &&
-        Number(data.certificationId) > 0;
+      const hasCert = Boolean(data.certificationId && Number(data.certificationId) > 0);
 
       if (hasCert) {
         // 11. certificationStartDate

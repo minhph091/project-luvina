@@ -1098,6 +1098,7 @@ Nếu request **có truyền** parameter này thì cần check chi tiết bên d
 | Date | Người update | Version | Nội dung thay đổi | Ngày phê chuẩn | Người phê chuẩn |
 |------|--------------|---------|-------------------|----------------|-----------------|
 | 2023-01-04 | ThanhPD | 0.1 | Tạo mới tài liệu | | |
+| 2026-09-14 | Phạm Văn Minh | 0.2 | Tách biệt mã lỗi xóa nhân viên: ER014 (user không tồn tại) và ER020 (không thể xóa user role ADMIN) | | |
 
 ---
 
@@ -1184,7 +1185,8 @@ Lấy thông tin chi tiết nhân viên *(ghi chú: tiêu đề khái quát tron
 ##### 1.1 Validate parameter [employeeId]
 
 - Nếu **không tồn tại** parameter này thì trả về lỗi có mã code **ER001**, tham số `"ＩＤ"`.
-- Nếu **không tồn tại** trong bảng `employees.employee_id` hoặc nhân viên có role là **ADMIN** (`employee_role = 'ADMIN'`) thì trả về lỗi có mã code **ER014**, tham số `"ＩＤ"`.
+- Nếu **không tồn tại** trong bảng `employees.employee_id` thì trả về lỗi có mã code **ER014**, tham số `"ＩＤ"`.
+- Nếu nhân viên có role là **ADMIN** (`employee_role = 'ADMIN'`) thì trả về lỗi có mã code **ER020** (message: `管理者ユーザを削除することはできません。`).
 - Nếu có lỗi thì chuyển sang bước **[4. Tạo dữ liệu response cho API]**.
 
 #### Khởi tạo transaction
@@ -1556,5 +1558,35 @@ Nếu request có truyền parameter này thì cần check chi tiết:
 | | | |
 
 ---
+ 
+ *Tài liệu được chuyển đổi từ file Excel: `TKAPI_UpdateEmployee.xlsx` (Version 0.1 – 2023-01-04)*
 
-*Tài liệu được chuyển đổi từ file Excel: `TKAPI_UpdateEmployee.xlsx` (Version 0.1 – 2023-01-04)*
+---
+
+# Phụ lục: Bảng danh sách mã lỗi và quy tắc validate hệ thống (Error Code Master List)
+
+| Mã lỗi | Nội dung check | Nội dung tiếng Việt | Nội dung tiếng Nhật | API | Màn hình |
+|---|---|---|---|:---:|:---:|
+| **ER001** | Không nhập | Hãy nhập [Tên hạng mục trên màn hình]. | 「画面項目名」を入力してください | ○ | ○ |
+| **ER002** | Không chọn | Hãy chọn [Tên hạng mục trên màn hình]. | 「画面項目名」を選択してください | ○ | ○ |
+| **ER003** | Check đã tồn tại | [Tên hạng mục trên màn hình] đã tồn tại. | [画面項目名]は既に存在しています。 | ○ | |
+| **ER004** | Check không tồn tại | [Tên hạng mục trên màn hình] không tồn tại. | [画面項目名]は存在していません。 | ○ | |
+| **ER005** | Sai format | Hãy nhập [Tên hạng mục trên màn hình] đúng định dạng xxx. *(xxx: chính là format cần check)* | 「画面項目名」をxxx形式で入力してください | ○ | ○ |
+| **ER006** | Check maxlength | [Tên hạng mục trên màn hình] không được vượt quá xxxx ký tự. | xxxx桁以内の「画面項目名」を入力してください | ○ | ○ |
+| **ER007** | Check độ dài trong khoảng | [Tên hạng mục trên màn hình] phải lớn hơn hoặc bằng xxx và nhỏ hơn hoặc bằng xxx ký tự. | 「画面項目名」をxxx<= 桁数、<= xxx桁で入力してください | ○ | ○ |
+| **ER008** | Check ký tự 1 byte | [Tên hạng mục trên màn hình] chỉ chấp nhận ký tự 1 byte. | 「画面項目名」に半角英数を入力してください | ○ | ○ |
+| **ER009** | Check kana | [Tên hạng mục trên màn hình] phải là ký tự kana. | 「画面項目名」をカタカナで入力してください | ○ | ○ |
+| **ER010** | Check hiragana | [Tên hạng mục trên màn hình] phải là ký tự hiragana. | 「画面項目名」をひらがなで入力してください | ○ | ○ |
+| **ER011** | Ngày không hợp lệ | [Tên hạng mục trên màn hình] không hợp lệ. | 「画面項目名」は無効になっています。 | ○ | ○ |
+| **ER012** | Ngày hết hạn < ngày cấp chứng chỉ | [Ngày hết hạn] phải lớn hơn [Ngày cấp chứng chỉ]. | 「失効日」は「資格交付日」より未来の日で入力してください。 | ○ | ○ |
+| **ER013** | Biên tập user không tồn tại | User không tồn tại. | 該当するユーザは存在していません。 | ○ | |
+| **ER014** | Xóa user không tồn tại | User không tồn tại. | 該当するユーザは存在していません。 | ○ | |
+| **ER015** | Lỗi khi thao tác với database | Hệ thống đang có lỗi. | システムエラーが発生しました。 | ○ | |
+| **ER016** | Nhập sai Tên đăng nhập hoặc Password | [Tên đăng nhập] hoặc [Mật khẩu] bị sai. | 「アカウント名」または「パスワード」は不正です。 | ○ | |
+| **ER017** | Mật khẩu xác nhận không đúng | [Mật khẩu xác nhận] không đúng. | 「パスワード（確認）」が不正です。 | ○ | ○ |
+| **ER018** | Check phải là số halfsize | [Tên hạng mục trên màn hình] phải là số halfsize. | 「画面上の項目名」は半角で入力してください。 | ○ | ○ |
+| **ER019** | Tên đăng nhập không đúng định dạng | [Tên đăng nhập] chỉ chấp nhận các ký tự (a-z, A-Z, 0-9 và _). Ký tự đầu tiên không phải là số. | [アカウント名]は(a-z, A-Z, 0-9 と _)の桁のみです。最初の桁は数字ではない。 | ○ | |
+| **ER020** | Kiểm tra user admin | Không thể xóa user admin | 管理者ユーザを削除することはできません。 | ○ | |
+| **ER021** | Kiểm tra thứ tự sắp xếp | Thứ tự sắp xếp phải là ASC, DESC | ソートは (ASC, DESC) でなければなりません。 | ○ | |
+| **ER022** | User di chuyển đến trang không tồn tại | Page not found | ページが見つかりません。 | | ○ |
+| **ER023** | Lỗi hệ thống | Hệ thống đang có lỗi. | システムエラーが発生しました。 | ○ | ○ |

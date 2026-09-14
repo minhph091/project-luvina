@@ -58,7 +58,7 @@ export function useAdm002(): UseAdm002Return {
   const router = useRouter();
 
   // ── Khởi tạo trạng thái từ sessionStorage nếu có ─────────────────
-  const savedState = typeof window !== 'undefined' ? getEmployeeSearchState() : null;
+  const savedState = getEmployeeSearchState();
 
   // ── Trạng thái dữ liệu ──────────────────────────────────────────
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
