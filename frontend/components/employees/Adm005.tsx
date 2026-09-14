@@ -94,30 +94,26 @@ export const Adm005: React.FC<Adm005Props> = ({
             <div className="col-sm col-sm-10">{formData.employeeTelephone}</div>
           </li>
 
-          {/* Khối trình độ tiếng Nhật (chỉ hiển thị khi có chứng chỉ được chọn) */}
-          {hasCertification && (
-            <>
-              <li className="title mt-12">
-                <a href="#!">{FIELD_LABELS.JAPANESE_LEVEL}</a>
-              </li>
-              <li className="form-group row d-flex">
-                <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
-                <div className="col-sm col-sm-10">{formData.certificationName || ''}</div>
-              </li>
-              <li className="form-group row d-flex">
-                <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
-                <div className="col-sm col-sm-10">{formData.certificationStartDate || ''}</div>
-              </li>
-              <li className="form-group row d-flex">
-                <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
-                <div className="col-sm col-sm-10">{formData.certificationEndDate || ''}</div>
-              </li>
-              <li className="form-group row d-flex">
-                <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
-                <div className="col-sm col-sm-10">{formData.score || ''}</div>
-              </li>
-            </>
-          )}
+          {/* Khối trình độ tiếng Nhật (luôn hiển thị, trường hợp không chọn chứng chỉ thì các giá trị để trống) */}
+          <li className="title mt-12">
+            <a href="#!">{FIELD_LABELS.JAPANESE_LEVEL}</a>
+          </li>
+          <li className="form-group row d-flex">
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.CERTIFICATION}</label>
+            <div className="col-sm col-sm-10">{formData.certificationName || ''}</div>
+          </li>
+          <li className="form-group row d-flex">
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.START_DATE}</label>
+            <div className="col-sm col-sm-10">{formData.certificationStartDate || ''}</div>
+          </li>
+          <li className="form-group row d-flex">
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.END_DATE}</label>
+            <div className="col-sm col-sm-10">{formData.certificationEndDate || ''}</div>
+          </li>
+          <li className="form-group row d-flex">
+            <label className="col-form-label col-sm-2">{FIELD_LABELS.SCORE}</label>
+            <div className="col-sm col-sm-10">{formData.score || ''}</div>
+          </li>
 
           {/* Nhóm nút thao tác (OK / 戻る) */}
           <li className="form-group row d-flex">

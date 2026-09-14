@@ -7,7 +7,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Adm005 from '@/components/employees/Adm005';
-import { BUTTON_LABELS, PAGE_TITLES } from '@/constants';
+import { BUTTON_LABELS, FIELD_LABELS, PAGE_TITLES } from '@/constants';
 import { EmployeeFormData } from '@/types/employee';
 
 const mockHandleConfirmSubmit = jest.fn();
@@ -104,5 +104,34 @@ describe('Adm005 Component', () => {
     );
 
     expect(screen.getByText('Lỗi hệ thống khi xác nhận')).toBeInTheDocument();
+  });
+
+  test('renders Japanese certification section even when formData has no certification', () => {
+    const dataWithoutCert: EmployeeFormData = {
+      ...MOCK_FORM_DATA,
+      certificationId: '',
+      certificationName: '',
+      certificationStartDate: '',
+      certificationEndDate: '',
+      score: '',
+    };
+
+    render(
+      <Adm005
+        formData={dataWithoutCert}
+        loading={false}
+        submitting={false}
+        apiError={null}
+        hasCertification={false}
+        handleConfirmSubmit={mockHandleConfirmSubmit}
+        handleNavigateToEdit={mockHandleNavigateToEdit}
+      />
+    );
+
+    expect(screen.getByText(FIELD_LABELS.JAPANESE_LEVEL)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.CERTIFICATION)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.START_DATE)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.END_DATE)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.SCORE)).toBeInTheDocument();
   });
 });

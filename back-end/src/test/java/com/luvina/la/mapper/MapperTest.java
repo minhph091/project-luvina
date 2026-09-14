@@ -75,7 +75,7 @@ public class MapperTest {
         entity.setEmployeeEmail("deva@luvina.net");
         entity.setEmployeeTelephone("0912345678");
         entity.setEmployeeLoginId("deva");
-        entity.setEmployeeRole("USER");
+        entity.setEmployeeRole(com.luvina.la.config.Constants.ROLE_USER);
         entity.setEmployeeBirthDate(LocalDate.of(1996, 6, 15));
 
         // 1. Entity -> DTO

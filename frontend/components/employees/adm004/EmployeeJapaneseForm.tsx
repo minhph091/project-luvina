@@ -12,6 +12,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { CertificationItem } from '@/types/certification';
 import { EmployeeFormData, EmployeeFormErrors } from '@/types/employee';
 import { COMMON_LABELS, FIELD_LABELS } from '@/constants';
+import { ModernDatePickerHeader } from './ModernDatePickerHeader';
 
 interface EmployeeJapaneseFormProps {
   formData: EmployeeFormData;
@@ -50,7 +51,10 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
 
   const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
     if (!ref.current) return;
-    const dp = ref.current as any;
+    const dp = ref.current as unknown as {
+      toggleCalendar?: () => void;
+      setOpen?: (open: boolean) => void;
+    };
     if (typeof dp.toggleCalendar === 'function') {
       dp.toggleCalendar();
     } else if (typeof dp.setOpen === 'function') {
@@ -120,6 +124,14 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
               onChange={(date: Date | null) => onDateChange('certificationStartDate', date)}
               onBlur={() => onBlur('certificationStartDate')}
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
+              todayButton="今日"
+              renderCustomHeader={(headerProps) => (
+                <ModernDatePickerHeader
+                  {...headerProps}
+                  minYear={2000}
+                  maxYear={new Date().getFullYear() + 15}
+                />
+              )}
               className={`form-control ${errors.certificationStartDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
               preventOpenOnFocus
@@ -172,6 +184,14 @@ export const EmployeeJapaneseForm: React.FC<EmployeeJapaneseFormProps> = ({
               onChange={(date: Date | null) => onDateChange('certificationEndDate', date)}
               onBlur={() => onBlur('certificationEndDate')}
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
+              todayButton="今日"
+              renderCustomHeader={(headerProps) => (
+                <ModernDatePickerHeader
+                  {...headerProps}
+                  minYear={2000}
+                  maxYear={new Date().getFullYear() + 15}
+                />
+              )}
               className={`form-control ${errors.certificationEndDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
               preventOpenOnFocus

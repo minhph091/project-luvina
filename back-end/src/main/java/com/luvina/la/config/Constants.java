@@ -44,8 +44,9 @@ public class Constants {
             "employeeEmail"
     };
 
-    // Roles
-    public static final String ROLE_ADMIN = "ADMIN";
+    // Roles (0: USER, 1: ADMIN theo thiết kế DB schema)
+    public static final String ROLE_ADMIN = "1";
+    public static final String ROLE_USER = "0";
 
     // Response Code
     public static final int RESPONSE_CODE_SUCCESS = 200;

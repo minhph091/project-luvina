@@ -233,7 +233,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         } else {
             employeeEntity.setEmployeeLoginPassword(request.getEmployeeLoginPassword());
         }
-        employeeEntity.setEmployeeRole("USER");
+        employeeEntity.setEmployeeRole(Constants.ROLE_USER);
 
         EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
         Long newEmployeeId = savedEmployee.getEmployeeId();
@@ -300,7 +300,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .employeeEmail((String) firstRow[6])
                 .employeeTelephone((String) firstRow[7])
                 .employeeLoginId((String) firstRow[8])
-                .employeeRole((String) firstRow[9])
+                .employeeRole(firstRow[9] != null ? String.valueOf(firstRow[9]) : null)
                 .certifications(new ArrayList<>())
                 .build();
 
@@ -336,11 +336,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             // 1. Kiểm tra an toàn: Không cho phép xóa người dùng có role ADMIN
             if (employeeEntityRepository != null) {
                 Optional<EmployeeEntity> employeeOpt = employeeEntityRepository.findById(employeeId);
-                if (employeeOpt.isPresent() && Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
-                    throw new CustomValidationException(
-                            new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID)),
-                            employeeId
-                    );
+                if (employeeOpt.isPresent()) {
+                    String role = employeeOpt.get().getEmployeeRole();
+                    if (Constants.ROLE_ADMIN.equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
+                        throw new CustomValidationException(
+                                new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID)),
+                                employeeId
+                        );
+                    }
                 }
             }
 

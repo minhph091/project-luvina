@@ -87,7 +87,7 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     expect(screen.getByRole('button', { name: BUTTON_LABELS.BACK })).toBeInTheDocument();
   });
 
-  test('does not render Japanese certification section when employee has no certification', () => {
+  test('still renders Japanese certification section with empty values when employee has no certification', () => {
     const dataWithoutCert: EmployeeFormData = {
       ...MOCK_FORM_DATA,
       certificationId: '',
@@ -103,8 +103,12 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     expect(screen.getByText(MOCK_FORM_DATA.employeeLoginId)).toBeInTheDocument();
     expect(screen.getByText('Phát triển số 1')).toBeInTheDocument();
 
-    // Khối tiếng Nhật không được render
-    expect(screen.queryByText(FIELD_LABELS.JAPANESE_LEVEL)).not.toBeInTheDocument();
+    // Khối tiếng Nhật vẫn được render
+    expect(screen.getByText(FIELD_LABELS.JAPANESE_LEVEL)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.CERTIFICATION)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.START_DATE)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.END_DATE)).toBeInTheDocument();
+    expect(screen.getByText(FIELD_LABELS.SCORE)).toBeInTheDocument();
     expect(screen.queryByText('Trình độ tiếng Nhật N2')).not.toBeInTheDocument();
   });
 

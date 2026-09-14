@@ -246,7 +246,7 @@ public class EmployeeServiceTest {
                 entity.getDepartmentId().equals(1L)
                         && "Nguyễn Văn A".equals(entity.getEmployeeName())
                         && "encodedPassword".equals(entity.getEmployeeLoginPassword())
-                        && "USER".equals(entity.getEmployeeRole())
+                        && Constants.ROLE_USER.equals(entity.getEmployeeRole())
         ));
     }
 

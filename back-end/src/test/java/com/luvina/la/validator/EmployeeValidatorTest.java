@@ -521,7 +521,7 @@ public class EmployeeValidatorTest {
         // 5. employeeId hợp lệ và tồn tại với role USER -> null
         EmployeeEntity userEntity = new EmployeeEntity();
         userEntity.setEmployeeId(1L);
-        userEntity.setEmployeeRole("USER");
+        userEntity.setEmployeeRole(Constants.ROLE_USER);
         when(mockEmpRepo.findById(1L)).thenReturn(Optional.of(userEntity));
 
         MessageResponse valid = employeeValidator.validateEmployeeIdForDelete(1L, mockEmpRepo);

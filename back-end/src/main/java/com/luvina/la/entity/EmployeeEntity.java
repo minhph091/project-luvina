@@ -87,9 +87,9 @@ public class EmployeeEntity implements Serializable {
     private String employeeLoginPassword;
 
     /**
-     * Quyền hạn/vai trò của nhân viên (USER, ADMIN,...).
+     * Quyền hạn/vai trò của nhân viên (0: USER, 1: ADMIN theo DB schema).
      */
     @Column(name = "employee_role", nullable = false)
-    private String employeeRole = "USER";
+    private String employeeRole = com.luvina.la.config.Constants.ROLE_USER;
 }
 

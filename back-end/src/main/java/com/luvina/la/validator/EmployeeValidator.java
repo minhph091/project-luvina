@@ -708,7 +708,9 @@ public class EmployeeValidator {
 
         if (employeeRepo != null) {
             Optional<EmployeeEntity> employeeOpt = employeeRepo.findById(employeeId);
-            if (employeeOpt.isEmpty() || Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
+            if (employeeOpt.isEmpty()
+                    || Constants.ROLE_ADMIN.equalsIgnoreCase(employeeOpt.get().getEmployeeRole())
+                    || "ADMIN".equalsIgnoreCase(employeeOpt.get().getEmployeeRole())) {
                 return new MessageResponse(Constants.ERROR_CODE_ER014, Collections.singletonList(Constants.PARAM_ID));
             }
         }

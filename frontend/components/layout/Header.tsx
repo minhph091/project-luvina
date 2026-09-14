@@ -20,10 +20,10 @@ const Header: React.FC = () => {
           <h5 className="title-brand mr-auto">{COMMON_LABELS.BRAND_NAME}</h5>
           <ul className="navbar-nav flex-row d-flex">
             <li className="nav-item">
-              <Link href={APP_ROUTES.EMPLOYEE_LIST}>{BUTTON_LABELS.TOP}</Link>
+              <Link href={APP_ROUTES.LOGOUT}>{BUTTON_LABELS.LOGOUT}</Link>
             </li>
             <li className="nav-item">
-              <Link href={APP_ROUTES.LOGOUT}>{BUTTON_LABELS.LOGOUT}</Link>
+              <Link href={APP_ROUTES.EMPLOYEE_LIST}>{BUTTON_LABELS.TOP}</Link>
             </li>
           </ul>
         </div>

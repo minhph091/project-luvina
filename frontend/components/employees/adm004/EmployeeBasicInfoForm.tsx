@@ -12,6 +12,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { DepartmentItem } from '@/types/department';
 import { EmployeeFormData, EmployeeFormErrors, EmployeeFormMode } from '@/types/employee';
 import { COMMON_LABELS, FIELD_LABELS } from '@/constants';
+import { ModernDatePickerHeader } from './ModernDatePickerHeader';
 
 interface EmployeeBasicInfoFormProps {
   formData: EmployeeFormData;
@@ -54,7 +55,10 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
 
   const toggleCalendar = (ref: React.RefObject<DatePicker | null>) => {
     if (!ref.current) return;
-    const dp = ref.current as any;
+    const dp = ref.current as unknown as {
+      toggleCalendar?: () => void;
+      setOpen?: (open: boolean) => void;
+    };
     if (typeof dp.toggleCalendar === 'function') {
       dp.toggleCalendar();
     } else if (typeof dp.setOpen === 'function') {
@@ -219,6 +223,14 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
               onBlur={() => onBlur('employeeBirthDate')}
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
               maxDate={new Date()}
+              todayButton="今日"
+              renderCustomHeader={(headerProps) => (
+                <ModernDatePickerHeader
+                  {...headerProps}
+                  minYear={1940}
+                  maxYear={new Date().getFullYear()}
+                />
+              )}
               className={`form-control ${errors.employeeBirthDate ? 'is-invalid' : ''}`}
               wrapperClassName="w-100"
               preventOpenOnFocus
