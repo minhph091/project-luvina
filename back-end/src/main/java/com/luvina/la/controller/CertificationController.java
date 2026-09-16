@@ -48,12 +48,12 @@ public class CertificationController {
     }
 
     /**
-     * Lấy danh sách tất cả chứng chỉ tiếng Nhật theo tài liệu thiết kế API (GET /certifications).
-     * Hỗ trợ alias /certification cho frontend.
+     * Lấy danh sách tất cả chứng chỉ tiếng Nhật theo tài liệu thiết kế API (GET
+     * /certifications).
      *
      * @return Response chứa mã kết quả và danh sách chứng chỉ hoặc lỗi ER023.
      */
-    @GetMapping({"/certifications", "/certification"})
+    @GetMapping("/certification")
     public ResponseEntity<ListCertificationsResponse> getCertifications() {
         try {
             List<CertificationDTO> certificationDTOs = certificationService.getCertifications();
@@ -64,7 +64,6 @@ public class CertificationController {
                     .certifications(certifications)
                     .build());
         } catch (Exception ex) {
-            log.error("Error occurred while getting certification list: ", ex);
             return ResponseEntity.ok(ListCertificationsResponse.builder()
                     .code(Constants.RESPONSE_CODE_ERROR)
                     .message(new MessageResponse(Constants.ERROR_CODE_ER023, new ArrayList<>()))

@@ -237,14 +237,14 @@ public class EmployeeController {
     }
 
     /**
-     * Xóa một nhân viên theo ID trong CSDL theo tài liệu thiết kế (DELETE /employee/{id} hoặc DELETE /employee).
+     * Xóa một nhân viên theo ID trong CSDL theo tài liệu thiết kế (DELETE /employee/{id}).
      *
      * @param id ID của nhân viên cần xóa.
      * @return DeleteEmployeeResponse chứa mã kết quả 200 và message thành công MSG003.
      */
-    @DeleteMapping({"/employee/{id}", "/employee"})
-    public ResponseEntity<DeleteEmployeeResponse> deleteEmployee(@PathVariable(name = "id", required = false) Long id) {
-        // Validate ID nhân viên khi xóa (ER001 nếu rỗng, ER014 nếu không tồn tại)
+    @DeleteMapping("/employee/{id}")
+    public ResponseEntity<DeleteEmployeeResponse> deleteEmployee(@PathVariable("id") Long id) {
+        // Validate ID nhân viên khi xóa (ER014 nếu không tồn tại)
         MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(id);
         if (validationError != null) {
             throw new CustomValidationException(validationError, id);

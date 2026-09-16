@@ -356,12 +356,12 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    @DisplayName("Test deleteEmployee trả về lỗi ER001 khi Validator báo ID rỗng")
+    @DisplayName("Test deleteEmployee trả về lỗi ER001 khi Validator báo ID rỗng hoặc <= 0")
     void testDeleteEmployeeMissingId() throws Exception {
-        when(employeeValidator.validateEmployeeIdForDelete(isNull()))
+        when(employeeValidator.validateEmployeeIdForDelete(0L))
                 .thenReturn(new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID)));
 
-        mockMvc.perform(delete("/employee"))
+        mockMvc.perform(delete("/employee/0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message.code").value("ER001"))
