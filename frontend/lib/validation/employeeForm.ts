@@ -61,7 +61,20 @@ export function isValidDateString(val: string): boolean {
 }
 
 /**
- * Helper kiểm tra chuỗi ngày có hợp lệ và không lớn hơn ngày hiện tại không
+ * Helper kiểm tra chuỗi ngày có hợp lệ và phải là ngày trong quá khứ (nhỏ hơn ngày hiện tại, không được bằng hoặc lớn hơn ngày hiện tại)
+ */
+export function isValidBirthDateString(val: string): boolean {
+  if (!isValidDateString(val)) return false;
+  const parts = val.trim().split(/[/-]/).map(Number);
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getTime() < today.getTime();
+}
+
+/**
+ * Helper kiểm tra chuỗi ngày có hợp lệ và không lớn hơn ngày hiện tại (không phải ngày trong tương lai)
  */
 export function isNotFutureDateString(val: string): boolean {
   if (!isValidDateString(val)) return false;
@@ -131,7 +144,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.BIRTHDAY))
-        .refine((val) => isNotFutureDateString(val), {
+        .refine((val) => isValidBirthDateString(val), {
           message: VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY),
         }),
 
@@ -249,7 +262,7 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
             path: ['certificationStartDate'],
             message: VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.START_DATE),
           });
-        } else if (!isValidDateString(startDateStr)) {
+        } else if (!isNotFutureDateString(startDateStr)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['certificationStartDate'],

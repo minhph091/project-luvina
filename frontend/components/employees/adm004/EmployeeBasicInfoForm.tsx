@@ -211,13 +211,12 @@ export const EmployeeBasicInfoForm: React.FC<EmployeeBasicInfoFormProps> = ({
               onChange={(date: Date | null) => onDateChange('employeeBirthDate', date)}
               onBlur={() => onBlur('employeeBirthDate')}
               dateFormat={COMMON_LABELS.DATE_PLACEHOLDER}
-              maxDate={new Date()}
               todayButton="今日"
               renderCustomHeader={(headerProps) => (
                 <ModernDatePickerHeader
                   {...headerProps}
                   minYear={1940}
-                  maxYear={new Date().getFullYear()}
+                  maxYear={new Date().getFullYear() + 10}
                 />
               )}
               className={`form-control ${errors.employeeBirthDate ? 'is-invalid' : ''}`}

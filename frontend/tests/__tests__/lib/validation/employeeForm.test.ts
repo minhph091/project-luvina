@@ -8,6 +8,7 @@ import {
   validateEmployeeForm,
   validateField,
   isValidDateString,
+  isValidBirthDateString,
   HALFSIZE_KATAKANA_REGEX,
   HALFSIZE_NUMERIC_REGEX,
   HALFSIZE_ALPHANUMERIC_REGEX,
@@ -45,6 +46,23 @@ describe('employeeForm validation regex & helpers', () => {
     expect(isValidDateString('2026/13/01')).toBe(false); // Invalid month
     expect(isValidDateString('2026/04/31')).toBe(false); // April has 30 days
     expect(isValidDateString('invalid')).toBe(false);
+  });
+
+  test('isValidBirthDateString accepts past dates and rejects today and future dates', () => {
+    // Past date
+    expect(isValidBirthDateString('1995/05/10')).toBe(true);
+    expect(isValidBirthDateString('2000-01-01')).toBe(true);
+
+    // Today date
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+    expect(isValidBirthDateString(todayStr)).toBe(false);
+
+    // Future date
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}/${String(tomorrow.getMonth() + 1).padStart(2, '0')}/${String(tomorrow.getDate()).padStart(2, '0')}`;
+    expect(isValidBirthDateString(tomorrowStr)).toBe(false);
   });
 });
 
@@ -291,6 +309,22 @@ describe('validateEmployeeForm - Mode ADD', () => {
     );
   });
 
+  test('validates current date (today) for birthday (ER011)', () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayForm: EmployeeFormData = {
+      ...validAddFormData,
+      employeeBirthDate: `${yyyy}/${mm}/${dd}`,
+    };
+    const result = validateEmployeeForm(todayForm, 'ADD');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.employeeBirthDate).toBe(
+      VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.BIRTHDAY)
+    );
+  });
+
   test('validates certification fields when certificationId is selected', () => {
     const certFormMissingDetails: EmployeeFormData = {
       ...validAddFormData,
@@ -324,6 +358,41 @@ describe('validateEmployeeForm - Mode ADD', () => {
     expect(resultEndDate.errors.certificationEndDate).toBe(
       VALIDATION_MESSAGES.ER012_DATE_AFTER(FIELD_LABELS.END_DATE, FIELD_LABELS.START_DATE)
     );
+
+    // Certification Start Date cannot be future date (ER011)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowYyyy = tomorrow.getFullYear();
+    const tomorrowMm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const tomorrowDd = String(tomorrow.getDate()).padStart(2, '0');
+    const certFormFutureStartDate: EmployeeFormData = {
+      ...validAddFormData,
+      certificationId: 1,
+      certificationStartDate: `${tomorrowYyyy}/${tomorrowMm}/${tomorrowDd}`,
+      certificationEndDate: `${tomorrowYyyy + 1}/${tomorrowMm}/${tomorrowDd}`,
+      score: 180,
+    };
+    const resultFutureStart = validateEmployeeForm(certFormFutureStartDate, 'ADD');
+    expect(resultFutureStart.isValid).toBe(false);
+    expect(resultFutureStart.errors.certificationStartDate).toBe(
+      VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.START_DATE)
+    );
+
+    // Certification Start Date can be today
+    const today = new Date();
+    const todayYyyy = today.getFullYear();
+    const todayMm = String(today.getMonth() + 1).padStart(2, '0');
+    const todayDd = String(today.getDate()).padStart(2, '0');
+    const certFormTodayStartDate: EmployeeFormData = {
+      ...validAddFormData,
+      certificationId: 1,
+      certificationStartDate: `${todayYyyy}/${todayMm}/${todayDd}`,
+      certificationEndDate: `${todayYyyy + 1}/${todayMm}/${todayDd}`,
+      score: 180,
+    };
+    const resultTodayStart = validateEmployeeForm(certFormTodayStartDate, 'ADD');
+    expect(resultTodayStart.isValid).toBe(true);
+    expect(resultTodayStart.errors.certificationStartDate).toBeUndefined();
 
     // Valid cert form
     const validCertForm: EmployeeFormData = {
@@ -414,6 +483,22 @@ describe('validateField - Realtime field validation', () => {
     };
     expect(validateField('employeeLoginId', invalidData, 'ADD')).toBe(
       VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.ACCOUNT_NAME)
+    );
+  });
+
+  test('returns ER011 when certificationStartDate is in the future', () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yyyy = tomorrow.getFullYear();
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd = String(tomorrow.getDate()).padStart(2, '0');
+    const certFutureData: EmployeeFormData = {
+      ...sampleFormData,
+      certificationId: 1,
+      certificationStartDate: `${yyyy}/${mm}/${dd}`,
+    };
+    expect(validateField('certificationStartDate', certFutureData, 'ADD')).toBe(
+      VALIDATION_MESSAGES.ER011_INVALID_DATE(FIELD_LABELS.START_DATE)
     );
   });
 });

@@ -42,7 +42,7 @@ export function useAdm005(): UseAdm005Return {
    * - Luồng xử lý theo tài liệu thiết kế (Mục 6.1):
    *   + Xác định mode thao tác (`ADD` hoặc `EDIT`) từ storage (`getEditEmployeeId()`).
    *   + Lấy dữ liệu tạm `savedData` vừa nhập từ màn hình ADM004.
-   *   + Nếu không có dữ liệu (truy cập URL trực tiếp trái phép): Tự động redirect người dùng quay về màn hình nhập liệu ADM004.
+   *   + Nếu không có dữ liệu (truy cập URL trực tiếp trái phép): Tự động redirect người dùng quay về màn hình danh sách nhân viên ADM002.
    *   + Nếu là mode `EDIT`: Gọi API `getEmployeeById(editId)` tương ứng. Nếu API trả về lỗi hoặc không tồn tại employee data thì chuyển sang MH System Error.
    *   + Binding data từ MH edit/add gửi sang lên màn hình xác nhận.
    */
@@ -58,8 +58,8 @@ export function useAdm005(): UseAdm005Return {
 
       const savedData = getEmployeeFormData();
       if (!savedData) {
-        // Nếu không có dữ liệu form (ví dụ truy cập trực tiếp URL), điều hướng về màn hình edit/add
-        router.push(APP_ROUTES.EMPLOYEE_EDIT);
+        // Nếu không có dữ liệu form (ví dụ truy cập trực tiếp URL), điều hướng về màn hình danh sách nhân viên ADM002
+        router.push(APP_ROUTES.EMPLOYEE_LIST);
         return;
       }
 

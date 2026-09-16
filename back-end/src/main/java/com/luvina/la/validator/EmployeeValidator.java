@@ -402,7 +402,7 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeBirthDate (định dạng yyyy/MM/dd, ngày hợp lệ và không lớn hơn ngày hiện tại).
+     * Validate employeeBirthDate (định dạng yyyy/MM/dd, ngày hợp lệ và nhỏ hơn ngày hiện tại, không được bằng hoặc lớn hơn ngày hiện tại).
      */
     public MessageResponse validateEmployeeBirthDate(String birthDate) {
         MessageResponse dateError = validateDateField(birthDate, Constants.PARAM_BIRTHDAY);
@@ -410,7 +410,7 @@ public class EmployeeValidator {
             return dateError;
         }
         LocalDate date = parseStrictDate(birthDate.trim());
-        if (date != null && date.isAfter(LocalDate.now())) {
+        if (date != null && !date.isBefore(LocalDate.now())) {
             return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_BIRTHDAY));
         }
         return null;
@@ -508,6 +508,10 @@ public class EmployeeValidator {
             if (startDateError != null) {
                 return startDateError;
             }
+            LocalDate parsedStart = parseStrictDate(cert.getStartDate().trim());
+            if (parsedStart != null && parsedStart.isAfter(LocalDate.now())) {
+                return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
+            }
 
             // 2. endDate
             MessageResponse endDateError = validateDateField(cert.getEndDate(), Constants.PARAM_CERTIFICATION_END_DATE);
@@ -516,7 +520,6 @@ public class EmployeeValidator {
             }
 
             // Check endDate > startDate (ER012)
-            LocalDate parsedStart = parseStrictDate(cert.getStartDate().trim());
             LocalDate parsedEnd = parseStrictDate(cert.getEndDate().trim());
             if (!parsedEnd.isAfter(parsedStart)) {
                 return new MessageResponse(Constants.ERROR_CODE_ER012, Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));

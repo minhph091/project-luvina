@@ -299,13 +299,13 @@ export function useAdm004(): UseAdm004Return {
           }
         }
 
-        // Nếu trường này đã từng có lỗi, validate lại để xóa lỗi ngay khi hợp lệ
+        // Nếu trường này đã từng có lỗi hoặc đã touched, validate lại để cập nhật/xóa lỗi
         const updatedKeys = Object.keys(updates) as (keyof EmployeeFormData)[];
         const errorUpdates: Record<string, string | undefined> = {};
         let shouldUpdateErrors = false;
 
         for (const field of updatedKeys) {
-          if (errors[field]) {
+          if (errors[field] || touched[field]) {
             const err = validateField(field, next, mode);
             errorUpdates[field] = err || undefined;
             shouldUpdateErrors = true;
@@ -329,7 +329,7 @@ export function useAdm004(): UseAdm004Return {
         return next;
       });
     },
-    [errors, mode]
+    [errors, touched, mode]
   );
 
   /**
@@ -340,6 +340,7 @@ export function useAdm004(): UseAdm004Return {
       field: 'employeeBirthDate' | 'certificationStartDate' | 'certificationEndDate',
       date: Date | null
     ) => {
+      setTouched((prev) => ({ ...prev, [field]: true }));
       handleFieldChange(field, formatDateToSlashString(date));
     },
     [handleFieldChange]

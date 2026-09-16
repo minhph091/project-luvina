@@ -161,12 +161,12 @@ describe('EmployeeConfirmPage Component (ADM005)', () => {
     expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
   });
 
-  test('returns null and redirects to EMPLOYEE_EDIT when no formData in storage', () => {
+  test('returns null and redirects to EMPLOYEE_LIST when no formData in storage', () => {
     clearEmployeeFormData();
 
     const { container } = render(<EmployeeConfirmPage />);
 
     expect(container).toBeEmptyDOMElement();
-    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_LIST);
   });
 });

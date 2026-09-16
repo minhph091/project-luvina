@@ -14,6 +14,7 @@
  Date: 11/09/2026 13:09:54
 */
 
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -226,7 +227,6 @@ INSERT INTO `employees` VALUES (145, 3, 'Quỳnh%Nga', 'グループ', '2002-02-
 INSERT INTO `employees` VALUES (146, 3, 'Quỳnh_Nga', 'グループ', '2002-02-02', 'nga@luvina.net', '778520123', 'ngaptt268', '$2a$10$r.XIN4K9vTioiuYQwaTop.UVQ5r5FvrKk2V5Orm9Hc6n4i9Tvjthy', 0);
 INSERT INTO `employees` VALUES (147, 3, 'Quỳnh;Nga', 'グループ', '2002-02-02', 'nga@luvina.net', '778520123', 'ngaptt269', '$2a$10$r.XIN4K9vTioiuYQwaTop.UVQ5r5FvrKk2V5Orm9Hc6n4i9Tvjthy', 0);
 INSERT INTO `employees` VALUES (148, 4, 'Quỳnh,Nga', 'グループ', '2002-02-02', 'nga@luvina.net', '778520123', 'ngaptt270', '$2a$10$r.XIN4K9vTioiuYQwaTop.UVQ5r5FvrKk2V5Orm9Hc6n4i9Tvjthy', 0);
-
 -- ----------------------------
 -- Table structure for employees_certifications
 -- ----------------------------
@@ -409,5 +409,6 @@ INSERT INTO `employees_certifications` VALUES (160, 145, 3, '2023-03-01', '2027-
 INSERT INTO `employees_certifications` VALUES (161, 146, 1, '2023-04-01', '2027-04-01', 170.0);
 INSERT INTO `employees_certifications` VALUES (162, 147, 2, '2023-05-01', '2027-05-01', 165.0);
 INSERT INTO `employees_certifications` VALUES (163, 148, 3, '2023-06-01', '2027-06-01', 155.0);
+INSERT INTO `employees_certifications` VALUES (164, 148, 1, '2023-06-01', '2027-06-01', 160.0);
 
 

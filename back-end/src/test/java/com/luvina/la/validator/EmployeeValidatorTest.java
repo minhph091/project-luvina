@@ -18,6 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -262,6 +264,13 @@ public class EmployeeValidatorTest {
         error = employeeValidator.validateAddEmployee(request);
         assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
         assertEquals(List.of(Constants.PARAM_BIRTHDAY), error.getParams());
+
+        // Ngày bằng ngày hiện tại -> ER011
+        String todayDate = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        request.setEmployeeBirthDate(todayDate);
+        error = employeeValidator.validateAddEmployee(request);
+        assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
+        assertEquals(List.of(Constants.PARAM_BIRTHDAY), error.getParams());
     }
 
     @Test
@@ -435,6 +444,37 @@ public class EmployeeValidatorTest {
         error = employeeValidator.validateAddEmployee(request);
         assertEquals(Constants.ERROR_CODE_ER004, error.getCode());
         assertEquals(List.of(Constants.PARAM_CERTIFICATION), error.getParams());
+
+        // 5. startDate là ngày tương lai (ER011)
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        String tomorrowStartStr = tomorrow.format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String tomorrowEndStr = tomorrow.plusYears(1).format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        request.setCertifications(List.of(
+                CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate(tomorrowStartStr)
+                        .endDate(tomorrowEndStr)
+                        .score("100")
+                        .build()
+        ));
+        when(mockCertRepo.existsById(1L)).thenReturn(true);
+        error = employeeValidator.validateAddEmployee(request);
+        assertEquals(Constants.ERROR_CODE_ER011, error.getCode());
+        assertEquals(List.of(Constants.PARAM_CERTIFICATION_START_DATE), error.getParams());
+
+        // 6. startDate là ngày hôm nay -> hợp lệ, không bị lỗi ER011 cho startDate
+        String todayStartStr = LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String todayEndStr = LocalDate.now().plusYears(1).format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        request.setCertifications(List.of(
+                CertificationItemRequest.builder()
+                        .certificationId("1")
+                        .startDate(todayStartStr)
+                        .endDate(todayEndStr)
+                        .score("100")
+                        .build()
+        ));
+        error = employeeValidator.validateAddEmployee(request);
+        assertNull(error);
     }
 
     @Test

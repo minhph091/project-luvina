@@ -66,12 +66,12 @@ describe('useAdm005 Hook', () => {
     sessionStorage.clear();
   });
 
-  test('redirects to EMPLOYEE_EDIT if no formData exists in sessionStorage', () => {
+  test('redirects to EMPLOYEE_LIST if no formData exists in sessionStorage', () => {
     clearEmployeeFormData();
 
     const { result } = renderHook(() => useAdm005());
 
-    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_EDIT);
+    expect(mockPush).toHaveBeenCalledWith(APP_ROUTES.EMPLOYEE_LIST);
     expect(result.current.formData).toBeNull();
   });
 
