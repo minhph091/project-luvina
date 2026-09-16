@@ -19,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -51,8 +53,11 @@ public class CertificationControllerTest {
         CertificationDTO c2 = CertificationDTO.builder().certificationId(2L).certificationName("JLPT N2").certificationLevel(2).build();
         when(certificationService.getCertifications()).thenReturn(Arrays.asList(c1, c2));
 
-        ListCertificationsResponse response = certificationController.getCertifications();
+        ResponseEntity<ListCertificationsResponse> responseEntity = certificationController.getCertifications();
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListCertificationsResponse response = responseEntity.getBody();
         assertNotNull(response);
         assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertNotNull(response.getCertifications());
@@ -69,8 +74,11 @@ public class CertificationControllerTest {
     void testGetCertificationsEmpty() {
         when(certificationService.getCertifications()).thenReturn(Collections.emptyList());
 
-        ListCertificationsResponse response = certificationController.getCertifications();
+        ResponseEntity<ListCertificationsResponse> responseEntity = certificationController.getCertifications();
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListCertificationsResponse response = responseEntity.getBody();
         assertNotNull(response);
         assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertNotNull(response.getCertifications());
@@ -85,8 +93,11 @@ public class CertificationControllerTest {
     void testGetCertificationsError() {
         when(certificationService.getCertifications()).thenThrow(new RuntimeException("Database error"));
 
-        ListCertificationsResponse response = certificationController.getCertifications();
+        ResponseEntity<ListCertificationsResponse> responseEntity = certificationController.getCertifications();
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListCertificationsResponse response = responseEntity.getBody();
         assertNotNull(response);
         assertEquals(Constants.RESPONSE_CODE_ERROR, response.getCode());
         assertNull(response.getCertifications());

@@ -15,7 +15,6 @@ import com.luvina.la.service.EmployeeService;
 import com.luvina.la.validator.EmployeeValidator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,14 +25,11 @@ import com.luvina.la.mapper.EmployeeMapper;
 import com.luvina.la.payload.request.AddEmployeeRequest;
 import com.luvina.la.payload.request.CertificationItemRequest;
 import com.luvina.la.payload.request.UpdateEmployeeRequest;
-import com.luvina.la.repository.CertificationRepository;
-import com.luvina.la.repository.DepartmentRepository;
 import com.luvina.la.repository.EmployeeCertificationRepository;
 import com.luvina.la.repository.EmployeeEntityRepository;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import com.luvina.la.entity.DepartmentEntity;
 import com.luvina.la.dto.EmployeeDetailDTO;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -50,11 +46,26 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
+    // Hằng số chỉ số cột khi query chi tiết nhân viên và chứng chỉ (findEmployeeDetailWithCertifications)
+    private static final int IDX_EMPLOYEE_ID = 0;
+    private static final int IDX_DEPARTMENT_ID = 1;
+    private static final int IDX_DEPARTMENT_NAME = 2;
+    private static final int IDX_EMPLOYEE_NAME = 3;
+    private static final int IDX_EMPLOYEE_NAME_KANA = 4;
+    private static final int IDX_EMPLOYEE_BIRTH_DATE = 5;
+    private static final int IDX_EMPLOYEE_EMAIL = 6;
+    private static final int IDX_EMPLOYEE_TELEPHONE = 7;
+    private static final int IDX_EMPLOYEE_LOGIN_ID = 8;
+    private static final int IDX_EMPLOYEE_ROLE = 9;
+    private static final int IDX_CERTIFICATION_ID = 10;
+    private static final int IDX_CERTIFICATION_NAME = 11;
+    private static final int IDX_START_DATE = 12;
+    private static final int IDX_END_DATE = 13;
+    private static final int IDX_SCORE = 14;
+
     private final EmployeeNativeRepository employeeNativeRepository;
     private final EmployeeValidator employeeValidator;
     private final EmployeeEntityRepository employeeEntityRepository;
-    private final DepartmentRepository departmentRepository;
-    private final CertificationRepository certificationRepository;
     private final EmployeeCertificationRepository employeeCertificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeMapper employeeMapper;
@@ -67,46 +78,17 @@ public class EmployeeServiceImpl implements EmployeeService {
             EmployeeNativeRepository employeeNativeRepository,
             EmployeeValidator employeeValidator,
             EmployeeEntityRepository employeeEntityRepository,
-            DepartmentRepository departmentRepository,
-            CertificationRepository certificationRepository,
             EmployeeCertificationRepository employeeCertificationRepository,
             PasswordEncoder passwordEncoder,
             EmployeeMapper employeeMapper) {
         this.employeeNativeRepository = employeeNativeRepository;
         this.employeeValidator = employeeValidator;
         this.employeeEntityRepository = employeeEntityRepository;
-        this.departmentRepository = departmentRepository;
-        this.certificationRepository = certificationRepository;
         this.employeeCertificationRepository = employeeCertificationRepository;
         this.passwordEncoder = passwordEncoder;
         this.employeeMapper = employeeMapper;
     }
 
-    /**
-     * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp và phân trang theo
-     * tài liệu thiết kế API.
-     *
-     * @param employeeName         Tên nhân viên để lọc (tùy chọn).
-     * @param departmentId         ID phòng ban để lọc (tùy chọn).
-     * @param ordEmployeeName      Chiều sắp xếp theo tên nhân viên (ASC/DESC).
-     * @param ordCertificationName Chiều sắp xếp theo tên chứng chỉ (ASC/DESC).
-     * @param ordEndDate           Chiều sắp xếp theo ngày hết hạn (ASC/DESC).
-     * @param offsetStr            Vị trí bắt đầu lấy bản ghi (mặc định 0).
-     * @param limitStr             Số bản ghi tối đa trên một trang (mặc định 5).
-     * @return EmployeeListDTO chứa tổng số bản ghi và danh sách EmployeeDTO.
-     */
-    @Override
-    public EmployeeListDTO getEmployees(
-            String employeeName,
-            String departmentId,
-            String ordEmployeeName,
-            String ordCertificationName,
-            String ordEndDate,
-            String offsetStr,
-            String limitStr) {
-        return getEmployees(employeeName, departmentId, ordEmployeeName, ordCertificationName, ordEndDate, offsetStr,
-                limitStr, null);
-    }
 
     /**
      * Lấy danh sách nhân viên theo các điều kiện lọc, sắp xếp, phân trang và cột ưu
@@ -158,7 +140,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // Nếu tổng số bản ghi là 0 thì trả về kết quả rỗng
         if (totalRecords == null || totalRecords == 0L) {
-            return new EmployeeListDTO(0L, new ArrayList<>());
+            return new EmployeeListDTO(0L, Collections.emptyList());
         }
 
         // 2.2 Thực hiện get danh sách DTO nhân viên từ database
@@ -197,34 +179,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeEntity.setEmployeeEmail(request.getEmployeeEmail().trim());
         employeeEntity.setEmployeeTelephone(request.getEmployeeTelephone().trim());
         employeeEntity.setEmployeeLoginId(request.getEmployeeLoginId().trim());
-        if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
-            employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(request.getEmployeeLoginPassword().trim()));
-        } else {
-            employeeEntity.setEmployeeLoginPassword(request.getEmployeeLoginPassword());
-        }
+        employeeEntity.setEmployeeLoginPassword(passwordEncoder.encode(request.getEmployeeLoginPassword().trim()));
         employeeEntity.setEmployeeRole(Constants.ROLE_USER);
 
         EmployeeEntity savedEmployee = employeeEntityRepository.save(employeeEntity);
         Long newEmployeeId = savedEmployee.getEmployeeId();
 
-        // 3. Nếu tồn tại certifications thì thực hiện insert vào bảng
-        // employees_certifications
-        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
-            for (CertificationItemRequest certReq : request.getCertifications()) {
-                if (certReq == null) {
-                    continue;
-                }
-                EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
-                        .employeeId(newEmployeeId)
-                        .certificationId(Long.parseLong(certReq.getCertificationId().trim()))
-                        .startDate(employeeValidator.parseStrictDate(certReq.getStartDate().trim()))
-                        .endDate(employeeValidator.parseStrictDate(certReq.getEndDate().trim()))
-                        .score(new BigDecimal(certReq.getScore().trim()))
-                        .build();
-
-                employeeCertificationRepository.save(certEntity);
-            }
-        }
+        // 3. Nếu tồn tại certifications thì thực hiện insert vào bảng employees_certifications
+        saveCertifications(newEmployeeId, request.getCertifications());
 
         // 4. Chuyển đổi sang EmployeeDTO và trả về
         return employeeMapper.toDto(savedEmployee);
@@ -247,34 +209,33 @@ public class EmployeeServiceImpl implements EmployeeService {
                     new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID)));
         }
 
-        // 3. Lấy thông tin chung của nhân viên từ dòng đầu tiên (index 0)
+        // 3. Lấy thông tin chung của nhân viên từ dòng đầu tiên
         Object[] firstRow = rows.get(0);
         EmployeeDetailDTO detailDTO = EmployeeDetailDTO.builder()
-                .employeeId(firstRow[0] != null ? ((Number) firstRow[0]).longValue() : null)
-                .departmentId(firstRow[1] != null ? ((Number) firstRow[1]).longValue() : null)
-                .departmentName((String) firstRow[2])
-                .employeeName((String) firstRow[3])
-                .employeeNameKana((String) firstRow[4])
-                .employeeBirthDate((LocalDate) firstRow[5])
-                .employeeEmail((String) firstRow[6])
-                .employeeTelephone((String) firstRow[7])
-                .employeeLoginId((String) firstRow[8])
-                .employeeRole(firstRow[9] != null ? String.valueOf(firstRow[9]) : null)
+                .employeeId(firstRow[IDX_EMPLOYEE_ID] != null ? ((Number) firstRow[IDX_EMPLOYEE_ID]).longValue() : null)
+                .departmentId(firstRow[IDX_DEPARTMENT_ID] != null ? ((Number) firstRow[IDX_DEPARTMENT_ID]).longValue() : null)
+                .departmentName((String) firstRow[IDX_DEPARTMENT_NAME])
+                .employeeName((String) firstRow[IDX_EMPLOYEE_NAME])
+                .employeeNameKana((String) firstRow[IDX_EMPLOYEE_NAME_KANA])
+                .employeeBirthDate((LocalDate) firstRow[IDX_EMPLOYEE_BIRTH_DATE])
+                .employeeEmail((String) firstRow[IDX_EMPLOYEE_EMAIL])
+                .employeeTelephone((String) firstRow[IDX_EMPLOYEE_TELEPHONE])
+                .employeeLoginId((String) firstRow[IDX_EMPLOYEE_LOGIN_ID])
+                .employeeRole(firstRow[IDX_EMPLOYEE_ROLE] != null ? String.valueOf(firstRow[IDX_EMPLOYEE_ROLE]) : null)
                 .certifications(new ArrayList<>())
                 .build();
 
         // 4. Duyệt qua tất cả các dòng để gom danh sách chứng chỉ (quan hệ 1 - N)
         for (Object[] row : rows) {
-            Long certId = row[10] != null ? ((Number) row[10]).longValue() : null;
-            // Chỉ thêm nếu dòng có chứng chỉ (do dùng LEFT JOIN, nhân viên không có chứng
-            // chỉ thì certId = null)
+            Long certId = row[IDX_CERTIFICATION_ID] != null ? ((Number) row[IDX_CERTIFICATION_ID]).longValue() : null;
+            // Chỉ thêm nếu dòng có chứng chỉ (do dùng LEFT JOIN, nhân viên không có chứng chỉ thì certId = null)
             if (certId != null) {
                 EmployeeDetailDTO.CertificationInfo certInfo = EmployeeDetailDTO.CertificationInfo.builder()
                         .certificationId(certId)
-                        .certificationName((String) row[11])
-                        .startDate((LocalDate) row[12])
-                        .endDate((LocalDate) row[13])
-                        .score((BigDecimal) row[14])
+                        .certificationName((String) row[IDX_CERTIFICATION_NAME])
+                        .startDate((LocalDate) row[IDX_START_DATE])
+                        .endDate((LocalDate) row[IDX_END_DATE])
+                        .score((BigDecimal) row[IDX_SCORE])
                         .build();
                 detailDTO.getCertifications().add(certInfo);
             }
@@ -363,23 +324,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeCertificationRepository.deleteByEmployeeId(employeeId);
 
             // 3.2 Nếu tồn tại parameter certifications thì insert thông tin chứng chỉ mới
-            if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
-                for (CertificationItemRequest certReq : request.getCertifications()) {
-                    if (certReq == null || certReq.getCertificationId() == null
-                            || certReq.getCertificationId().trim().isEmpty()) {
-                        continue;
-                    }
-                    EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
-                            .employeeId(employeeId)
-                            .certificationId(Long.parseLong(certReq.getCertificationId().trim()))
-                            .startDate(employeeValidator.parseStrictDate(certReq.getStartDate().trim()))
-                            .endDate(employeeValidator.parseStrictDate(certReq.getEndDate().trim()))
-                            .score(new BigDecimal(certReq.getScore().trim()))
-                            .build();
-
-                    employeeCertificationRepository.save(certEntity);
-                }
-            }
+            saveCertifications(employeeId, request.getCertifications());
 
             // 4. Chuyển đổi sang EmployeeDTO và trả về
             return employeeMapper.toDto(savedEmployee);
@@ -410,6 +355,32 @@ public class EmployeeServiceImpl implements EmployeeService {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException ex) {
             return defaultValue;
+        }
+    }
+
+    /**
+     * Chuyển đổi và lưu danh sách chứng chỉ tiếng Nhật cho nhân viên vào CSDL.
+     *
+     * @param employeeId   ID của nhân viên.
+     * @param certRequests Danh sách chứng chỉ cần lưu.
+     */
+    private void saveCertifications(Long employeeId, List<CertificationItemRequest> certRequests) {
+        if (certRequests == null || certRequests.isEmpty()) {
+            return;
+        }
+        for (CertificationItemRequest certReq : certRequests) {
+            if (certReq == null) {
+                continue;
+            }
+            EmployeeCertificationEntity certEntity = EmployeeCertificationEntity.builder()
+                    .employeeId(employeeId)
+                    .certificationId(Long.parseLong(certReq.getCertificationId().trim()))
+                    .startDate(employeeValidator.parseStrictDate(certReq.getStartDate().trim()))
+                    .endDate(employeeValidator.parseStrictDate(certReq.getEndDate().trim()))
+                    .score(new BigDecimal(certReq.getScore().trim()))
+                    .build();
+
+            employeeCertificationRepository.save(certEntity);
         }
     }
 }

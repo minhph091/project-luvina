@@ -31,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -88,12 +90,15 @@ public class EmployeeControllerTest {
                 eq("John"), eq("1"), eq("ASC"), eq("ASC"), eq("ASC"), eq("5"), eq("10"), isNull()
         )).thenReturn(mockResult);
 
-        ListEmployeesResponse response = employeeController.getEmployees(
+        ResponseEntity<ListEmployeesResponse> responseEntity = employeeController.getEmployees(
                 "John", "1", "ASC", "ASC", "ASC", "5", "10", null
         );
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListEmployeesResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertEquals(10L, response.getTotalRecords());
 
         verify(employeeService).getEmployees(
@@ -113,12 +118,15 @@ public class EmployeeControllerTest {
                 isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), isNull()
         )).thenReturn(mockResult);
 
-        ListEmployeesResponse response = employeeController.getEmployees(
+        ResponseEntity<ListEmployeesResponse> responseEntity = employeeController.getEmployees(
                 null, null, null, null, null, null, null, null
         );
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListEmployeesResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertEquals(25L, response.getTotalRecords());
 
         verify(employeeService).getEmployees(
@@ -141,12 +149,15 @@ public class EmployeeControllerTest {
                 isNull(), isNull(), eq("ASC"), eq("DESC"), eq("ASC"), isNull(), isNull(), eq("certificationNameOrder")
         )).thenReturn(mockResult);
 
-        ListEmployeesResponse response = employeeController.getEmployees(
+        ResponseEntity<ListEmployeesResponse> responseEntity = employeeController.getEmployees(
                 null, null, "ASC", "DESC", "ASC", null, null, request
         );
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListEmployeesResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertEquals(5L, response.getTotalRecords());
         verify(employeeService).getEmployees(
                 isNull(), isNull(), eq("ASC"), eq("DESC"), eq("ASC"), isNull(), isNull(), eq("certificationNameOrder")
@@ -218,10 +229,13 @@ public class EmployeeControllerTest {
 
         when(employeeService.addEmployee(request)).thenReturn(mockDto);
 
-        AddEmployeeResponse response = employeeController.addEmployee(request);
+        ResponseEntity<AddEmployeeResponse> responseEntity = employeeController.addEmployee(request);
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        AddEmployeeResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertEquals(1L, response.getEmployeeId());
         assertEquals("MSG001", response.getMessage().getCode());
         verify(employeeService).addEmployee(request);
@@ -308,7 +322,7 @@ public class EmployeeControllerTest {
 
         mockMvc.perform(get("/employee/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(Constants.RESPONSE_CODE_SUCCESS))
                 .andExpect(jsonPath("$.employeeId").value(1))
                 .andExpect(jsonPath("$.employeeName").value("Nguyễn Văn A"))
                 .andExpect(jsonPath("$.departmentName").value("Phòng Phát Triển 1"))
@@ -334,7 +348,7 @@ public class EmployeeControllerTest {
     void testDeleteEmployeeSuccess() throws Exception {
         mockMvc.perform(delete("/employee/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(Constants.RESPONSE_CODE_SUCCESS))
                 .andExpect(jsonPath("$.employeeId").value(1))
                 .andExpect(jsonPath("$.message.code").value("MSG003"));
 
@@ -417,7 +431,7 @@ public class EmployeeControllerTest {
                         .contentType("application/json")
                         .content(requestJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(Constants.RESPONSE_CODE_SUCCESS))
                 .andExpect(jsonPath("$.employeeId").value(1))
                 .andExpect(jsonPath("$.message.code").value("MSG002"));
     }

@@ -5,6 +5,7 @@ package com.luvina.la.controller;
  * DepartmentControllerTest.java, 04/09/2026 Phạm Văn Minh
  */
 
+import com.luvina.la.config.Constants;
 import com.luvina.la.dto.DepartmentDTO;
 import com.luvina.la.mapper.DepartmentMapper;
 import com.luvina.la.payload.response.ListDepartmentsResponse;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -51,10 +54,13 @@ public class DepartmentControllerTest {
         DepartmentDTO d2 = DepartmentDTO.builder().departmentId(2L).departmentName("Phòng Sales").build();
         when(departmentService.getDepartments()).thenReturn(Arrays.asList(d1, d2));
 
-        ListDepartmentsResponse response = departmentController.getDepartments();
+        ResponseEntity<ListDepartmentsResponse> responseEntity = departmentController.getDepartments();
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListDepartmentsResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertEquals(2, response.getDepartments().size());
         assertEquals(1L, response.getDepartments().get(0).getDepartmentId());
         assertEquals("Phòng Dev", response.getDepartments().get(0).getDepartmentName());
@@ -67,10 +73,13 @@ public class DepartmentControllerTest {
     void testGetDepartmentsEmpty() {
         when(departmentService.getDepartments()).thenReturn(Collections.emptyList());
 
-        ListDepartmentsResponse response = departmentController.getDepartments();
+        ResponseEntity<ListDepartmentsResponse> responseEntity = departmentController.getDepartments();
 
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ListDepartmentsResponse response = responseEntity.getBody();
         assertNotNull(response);
-        assertEquals(200, response.getCode());
+        assertEquals(Constants.RESPONSE_CODE_SUCCESS, response.getCode());
         assertTrue(response.getDepartments().isEmpty());
 
         verify(departmentService).getDepartments();

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -159,158 +160,169 @@ public class EmployeeValidator {
         return null;
     }
 
+    /**
+     * Formatter cho ngày tháng theo định dạng "uuuu/MM/dd" với chế độ phân tích nghiêm ngặt (STRICT).
+     * Sử dụng ký tự 'u' (year) thay vì 'y' (year-of-era) nhằm hỗ trợ xác thực chính xác ngày thực tế trên lịch,
+     * ngăn chặn tự động làm tròn các ngày không tồn tại (ví dụ: ngày 29/02 ở năm không nhuận, ngày 31 các tháng có 30 ngày).
+     */
     private static final DateTimeFormatter STRICT_DATE_FORMATTER =
             DateTimeFormatter.ofPattern("uuuu/MM/dd")
                     .withResolverStyle(ResolverStyle.STRICT);
 
+    /** Regex kiểm tra định dạng tên đăng nhập (ER019: gồm a-z, A-Z, 0-9, _, ký tự đầu không được là số) */
+    private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
+    /** Regex kiểm tra ký tự Katakana nửa chữ (ER009: Half-width Katakana Unicode range \uFF66 - \uFF9F) */
+    private static final Pattern KANA_HALFSIZE_PATTERN = Pattern.compile("^[\\uFF66-\\uFF9F]+$");
+
+    /** Regex kiểm tra định dạng chuỗi ngày yyyy/MM/dd (ER005) */
+    private static final Pattern DATE_FORMAT_PATTERN = Pattern.compile("^\\d{4}/\\d{2}/\\d{2}$");
+
     /**
      * Validate toàn bộ thông tin trong request thêm mới nhân viên theo tài liệu thiết kế (POST /employee).
      *
-     * @param request Request DTO chứa thông tin nhân viên và chứng chỉ.
-     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     * @param request Request DTO chứa thông tin nhân viên và danh sách chứng chỉ cần thêm mới.
+     * @return MessageResponse chứa mã lỗi và danh sách tham số lỗi nếu vi phạm, hoặc null nếu toàn bộ dữ liệu hợp lệ.
      */
     public MessageResponse validateAddEmployee(AddEmployeeRequest request) {
-        // 1.1 Validate employeeLoginId
-        MessageResponse loginIdError = validateEmployeeLoginId(request.getEmployeeLoginId());
+        // 1.1 Validate tài khoản đăng nhập (employeeLoginId)
+        MessageResponse loginIdError = validateLoginId(request.getEmployeeLoginId());
         if (loginIdError != null) {
             return loginIdError;
         }
 
-        // 1.2 Validate employeeName
-        MessageResponse nameError = validateEmployeeName(request.getEmployeeName());
-        if (nameError != null) {
-            return nameError;
+        // 1.2 - 1.6 Validate các thông tin cá nhân cơ bản (tên, tên kana, ngày sinh, email, số điện thoại)
+        MessageResponse personalInfoError = validatePersonalInfo(
+                request.getEmployeeName(),
+                request.getEmployeeNameKana(),
+                request.getEmployeeBirthDate(),
+                request.getEmployeeEmail(),
+                request.getEmployeeTelephone());
+        if (personalInfoError != null) {
+            return personalInfoError;
         }
 
-        // 1.3 Validate employeeNameKana
-        MessageResponse kanaError = validateEmployeeNameKana(request.getEmployeeNameKana());
-        if (kanaError != null) {
-            return kanaError;
-        }
-
-        // 1.4 Validate employeeBirthDate
-        MessageResponse birthDateError = validateEmployeeBirthDate(request.getEmployeeBirthDate());
-        if (birthDateError != null) {
-            return birthDateError;
-        }
-
-        // 1.5 Validate employeeEmail
-        MessageResponse emailError = validateEmployeeEmail(request.getEmployeeEmail());
-        if (emailError != null) {
-            return emailError;
-        }
-
-        // 1.6 Validate employeeTelephone
-        MessageResponse telephoneError = validateEmployeeTelephone(request.getEmployeeTelephone());
-        if (telephoneError != null) {
-            return telephoneError;
-        }
-
-        // 1.7 Validate employeeLoginPassword
-        MessageResponse passwordError = validateEmployeePassword(request.getEmployeeLoginPassword());
+        // 1.7 Validate mật khẩu đăng nhập (employeeLoginPassword: bắt buộc nhập khi thêm mới)
+        MessageResponse passwordError = validatePassword(request.getEmployeeLoginPassword());
         if (passwordError != null) {
             return passwordError;
         }
 
-        // 1.8 Validate departmentId
-        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId());
-        if (departmentError != null) {
-            return departmentError;
-        }
-
-        // 1.9 Validate certifications
-        MessageResponse certsError = validateCertifications(request.getCertifications());
-        if (certsError != null) {
-            return certsError;
-        }
-
-        return null;
+        // 1.8 - 1.9 Validate thông tin phòng ban và danh sách chứng chỉ
+        return validateDepartmentAndCertifications(request.getDepartmentId(), request.getCertifications());
     }
 
     /**
      * Validate toàn bộ thông tin trong request cập nhật nhân viên theo tài liệu thiết kế (PUT /employee).
      *
-     * @param request Request DTO chứa thông tin cập nhật nhân viên.
-     * @return MessageResponse chứa mã lỗi và params nếu có lỗi, ngược lại null nếu hợp lệ.
+     * @param request Request DTO chứa thông tin cần cập nhật của nhân viên.
+     * @return MessageResponse chứa mã lỗi và danh sách tham số lỗi nếu vi phạm, hoặc null nếu toàn bộ dữ liệu hợp lệ.
      */
     public MessageResponse validateUpdateEmployee(UpdateEmployeeRequest request) {
-        // 1.1 Validate parameter [employeeId]
-        Long empId = request.getEmployeeId();
-        if (empId == null || empId <= 0) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ID));
-        }
-        if (!employeeEntityRepository.existsById(empId)) {
-            return new MessageResponse(Constants.ERROR_CODE_ER013, Collections.singletonList(Constants.PARAM_ID));
+        // 1.1 Validate mã ID nhân viên (employeeId: bắt buộc, tồn tại trong database)
+        MessageResponse idError = validateEmployeeId(request.getEmployeeId());
+        if (idError != null) {
+            return idError;
         }
 
-        // 1.2 Validate parameter [employeeLoginId]
-        MessageResponse loginIdError = validateEmployeeLoginIdForUpdate(request.getEmployeeLoginId(), empId);
+        // 1.2 Validate tài khoản đăng nhập (employeeLoginId: cho phép giữ nguyên của chính nhân viên này)
+        MessageResponse loginIdError = validateLoginId(request.getEmployeeLoginId(), request.getEmployeeId());
         if (loginIdError != null) {
             return loginIdError;
         }
 
-        // 1.3 Validate parameter [employeeName]
-        MessageResponse nameError = validateEmployeeName(request.getEmployeeName());
+        // 1.3 - 1.7 Validate các thông tin cá nhân cơ bản (tên, tên kana, ngày sinh, email, số điện thoại)
+        MessageResponse personalInfoError = validatePersonalInfo(
+                request.getEmployeeName(),
+                request.getEmployeeNameKana(),
+                request.getEmployeeBirthDate(),
+                request.getEmployeeEmail(),
+                request.getEmployeeTelephone());
+        if (personalInfoError != null) {
+            return personalInfoError;
+        }
+
+        // 1.8 Validate mật khẩu đăng nhập (employeeLoginPassword: chỉ kiểm tra độ dài khi người dùng nhập mật khẩu mới)
+        if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
+            MessageResponse passwordError = validatePasswordLength(request.getEmployeeLoginPassword().trim());
+            if (passwordError != null) {
+                return passwordError;
+            }
+        }
+
+        // 1.9 - 1.10 Validate thông tin phòng ban và danh sách chứng chỉ
+        return validateDepartmentAndCertifications(request.getDepartmentId(), request.getCertifications());
+    }
+
+    /**
+     * Validate các trường thông tin cá nhân cơ bản dùng chung cho cả màn hình Thêm mới và Cập nhật
+     * theo thứ tự ưu tiên hiển thị lỗi: Tên -> Tên Katakana -> Ngày sinh -> Email -> Số điện thoại.
+     *
+     * @param name       Họ và tên nhân viên.
+     * @param nameKana   Họ và tên phiên âm Katakana.
+     * @param birthDate  Ngày sinh (chuỗi định dạng yyyy/MM/dd).
+     * @param email      Địa chỉ email.
+     * @param telephone  Số điện thoại liên lạc.
+     * @return MessageResponse chứa mã lỗi nếu có trường không hợp lệ, hoặc null nếu tất cả đều hợp lệ.
+     */
+    public MessageResponse validatePersonalInfo(
+            String name,
+            String nameKana,
+            String birthDate,
+            String email,
+            String telephone) {
+        MessageResponse nameError = validateName(name);
         if (nameError != null) {
             return nameError;
         }
 
-        // 1.4 Validate parameter [employeeNameKana]
-        MessageResponse kanaError = validateEmployeeNameKana(request.getEmployeeNameKana());
+        MessageResponse kanaError = validateNameKana(nameKana);
         if (kanaError != null) {
             return kanaError;
         }
 
-        // 1.5 Validate parameter [employeeBirthDate]
-        MessageResponse birthDateError = validateEmployeeBirthDate(request.getEmployeeBirthDate());
+        MessageResponse birthDateError = validateBirthDate(birthDate);
         if (birthDateError != null) {
             return birthDateError;
         }
 
-        // 1.6 Validate parameter [employeeEmail]
-        MessageResponse emailError = validateEmployeeEmail(request.getEmployeeEmail());
+        MessageResponse emailError = validateEmail(email);
         if (emailError != null) {
             return emailError;
         }
 
-        // 1.7 Validate parameter [employeeTelephone]
-        MessageResponse telephoneError = validateEmployeeTelephone(request.getEmployeeTelephone());
-        if (telephoneError != null) {
-            return telephoneError;
-        }
+        return validateTelephone(telephone);
+    }
 
-        // 1.8 Validate parameter [employeeLoginPassword] (chỉ khi khác rỗng)
-        if (request.getEmployeeLoginPassword() != null && !request.getEmployeeLoginPassword().trim().isEmpty()) {
-            String trimmedPass = request.getEmployeeLoginPassword().trim();
-            if (trimmedPass.length() < 8 || trimmedPass.length() > 50) {
-                return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
-            }
-        }
-
-        // 1.9 Validate parameter [departmentId]
-        MessageResponse departmentError = validateDepartmentId(request.getDepartmentId());
+    /**
+     * Validate thông tin phòng ban và danh sách chứng chỉ của nhân viên.
+     * Dùng chung cho cả chức năng Thêm mới và Cập nhật.
+     *
+     * @param departmentId ID phòng ban dưới dạng chuỗi.
+     * @param certs        Danh sách chứng chỉ của nhân viên.
+     * @return MessageResponse chứa mã lỗi nếu không hợp lệ, hoặc null nếu hợp lệ.
+     */
+    public MessageResponse validateDepartmentAndCertifications(
+            String departmentId,
+            List<CertificationItemRequest> certs) {
+        MessageResponse departmentError = validateDepartmentId(departmentId);
         if (departmentError != null) {
             return departmentError;
         }
 
-        // 1.10 Validate parameter [certifications]
-        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
-            MessageResponse certsError = validateCertifications(request.getCertifications());
-            if (certsError != null) {
-                return certsError;
-            }
-        }
-
-        return null;
+        return validateCertifications(certs);
     }
 
     /**
-     * Validate employeeLoginId khi cập nhật: Cho phép giữ nguyên loginId của chính mình,
-     * báo lỗi ER003 nếu trùng với nhân viên khác trong hệ thống.
+     * Kiểm tra định dạng và độ dài của tên đăng nhập (employeeLoginId).
+     * - ER001: Bắt buộc nhập.
+     * - ER006: Độ dài tối đa 50 ký tự.
+     * - ER019: Chỉ chứa ký tự chữ cái (a-z, A-Z), số (0-9), dấu gạch dưới (_), và ký tự đầu tiên không phải là số.
+     *
+     * @param loginId Tên đăng nhập cần kiểm tra.
+     * @return MessageResponse chứa mã lỗi tương ứng nếu không hợp lệ, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeLoginIdForUpdate(
-            String loginId,
-            Long currentEmployeeId) {
+    public MessageResponse validateLoginIdFormat(String loginId) {
         if (loginId == null || loginId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
@@ -319,10 +331,50 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
         // Chỉ chứa ký tự a-z, A-Z, 0-9, _ và ký tự đầu tiên không phải là số
-        if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+        if (!LOGIN_ID_PATTERN.matcher(trimmed).matches()) {
             return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
-        Optional<EmployeeEntity> existingOpt = employeeEntityRepository.findByEmployeeLoginId(trimmed);
+        return null;
+    }
+
+    /**
+     * Validate tên đăng nhập (employeeLoginId) khi thêm mới nhân viên:
+     * - Kiểm tra định dạng và độ dài hợp lệ.
+     * - ER003: Kiểm tra tên đăng nhập đã tồn tại trong hệ thống hay chưa.
+     *
+     * @param loginId Tên đăng nhập cần validate.
+     * @return MessageResponse lỗi nếu không hợp lệ hoặc đã tồn tại, ngược lại trả về null.
+     */
+    public MessageResponse validateLoginId(String loginId) {
+        MessageResponse formatError = validateLoginIdFormat(loginId);
+        if (formatError != null) {
+            return formatError;
+        }
+        if (employeeEntityRepository.existsByEmployeeLoginId(loginId.trim())) {
+            return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
+        }
+        return null;
+    }
+
+    /**
+     * Validate tên đăng nhập (employeeLoginId) khi cập nhật nhân viên:
+     * - Kiểm tra định dạng và độ dài hợp lệ.
+     * - ER003: Kiểm tra tên đăng nhập có bị trùng với nhân viên khác trong hệ thống hay không
+     *   (cho phép giữ nguyên tên đăng nhập của chính nhân viên đang được cập nhật).
+     *
+     * @param loginId           Tên đăng nhập mới cần cập nhật.
+     * @param currentEmployeeId ID của nhân viên đang được cập nhật để loại trừ kiểm tra trùng lặp.
+     * @return MessageResponse lỗi nếu không hợp lệ hoặc trùng với nhân viên khác, ngược lại null.
+     */
+    public MessageResponse validateLoginId(String loginId, Long currentEmployeeId) {
+        if (currentEmployeeId == null) {
+            return validateLoginId(loginId);
+        }
+        MessageResponse formatError = validateLoginIdFormat(loginId);
+        if (formatError != null) {
+            return formatError;
+        }
+        Optional<EmployeeEntity> existingOpt = employeeEntityRepository.findByEmployeeLoginId(loginId.trim());
         if (existingOpt.isPresent() && !existingOpt.get().getEmployeeId().equals(currentEmployeeId)) {
             return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
@@ -330,30 +382,14 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeLoginId.
+     * Validate họ tên nhân viên (employeeName):
+     * - ER001: Bắt buộc nhập (không được null hoặc chỉ chứa khoảng trắng).
+     * - ER006: Độ dài tối đa 125 ký tự.
+     *
+     * @param name Họ và tên nhân viên.
+     * @return MessageResponse nếu có lỗi, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeLoginId(String loginId) {
-        if (loginId == null || loginId.trim().isEmpty()) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-        }
-        String trimmed = loginId.trim();
-        if (trimmed.length() > 50) {
-            return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-        }
-        // Chỉ chứa ký tự a-z, A-Z, 0-9, _ và ký tự đầu tiên không phải là số
-        if (!trimmed.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
-            return new MessageResponse(Constants.ERROR_CODE_ER019, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-        }
-        if (employeeEntityRepository.existsByEmployeeLoginId(trimmed)) {
-            return new MessageResponse(Constants.ERROR_CODE_ER003, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
-        }
-        return null;
-    }
-
-    /**
-     * Validate employeeName.
-     */
-    public MessageResponse validateEmployeeName(String name) {
+    public MessageResponse validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_NAME));
         }
@@ -364,9 +400,15 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeNameKana (yêu cầu Halfsize Katakana).
+     * Validate tên phiên âm Katakana (employeeNameKana):
+     * - ER001: Bắt buộc nhập (không được null hoặc chỉ chứa khoảng trắng).
+     * - ER006: Độ dài tối đa 125 ký tự.
+     * - ER009: Chỉ chấp nhận ký tự Katakana nửa chữ (Half-width Katakana).
+     *
+     * @param nameKana Tên Katakana cần kiểm tra.
+     * @return MessageResponse nếu có lỗi, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeNameKana(String nameKana) {
+    public MessageResponse validateNameKana(String nameKana) {
         if (nameKana == null || nameKana.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
         }
@@ -374,18 +416,21 @@ public class EmployeeValidator {
         if (trimmed.length() > 125) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
         }
-        if (!trimmed.matches("^[\\uFF66-\\uFF9F]+$")) {
+        if (!KANA_HALFSIZE_PATTERN.matcher(trimmed).matches()) {
             return new MessageResponse(Constants.ERROR_CODE_ER009, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
         }
         return null;
     }
 
     /**
-     * Validate một trường ngày tháng bắt buộc theo định dạng yyyy/MM/dd và tính hợp lệ của ngày.
+     * Validate một trường ngày tháng bắt buộc theo định dạng yyyy/MM/dd và tính hợp lệ trên lịch (theo chuẩn strict):
+     * - ER001: Bắt buộc nhập.
+     * - ER005: Đúng định dạng yyyy/MM/dd.
+     * - ER011: Ngày có thực trên lịch (ví dụ: loại bỏ ngày 2023/02/29 hoặc 2023/04/31).
      *
      * @param dateStr   Giá trị chuỗi ngày cần kiểm tra.
      * @param paramName Tên tham số dùng trong message lỗi (Constants.PARAM_BIRTHDAY, Constants.PARAM_CERTIFICATION_START_DATE, v.v.).
-     * @return MessageResponse nếu có lỗi (ER001 nếu rỗng, ER005 nếu sai format, ER011 nếu ngày không hợp lệ), null nếu hợp lệ.
+     * @return MessageResponse nếu có lỗi, hoặc null nếu hợp lệ.
      */
     public MessageResponse validateDateField(String dateStr, String paramName) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
@@ -402,9 +447,14 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeBirthDate (định dạng yyyy/MM/dd, ngày hợp lệ và nhỏ hơn ngày hiện tại, không được bằng hoặc lớn hơn ngày hiện tại).
+     * Validate ngày sinh của nhân viên (employeeBirthDate):
+     * - Định dạng yyyy/MM/dd và ngày có thực trên lịch (validateDateField).
+     * - ER011: Ngày sinh phải nhỏ hơn ngày hiện tại (không được bằng hoặc lớn hơn hôm nay).
+     *
+     * @param birthDate Chuỗi ngày sinh cần kiểm tra.
+     * @return MessageResponse nếu có lỗi, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeBirthDate(String birthDate) {
+    public MessageResponse validateBirthDate(String birthDate) {
         MessageResponse dateError = validateDateField(birthDate, Constants.PARAM_BIRTHDAY);
         if (dateError != null) {
             return dateError;
@@ -417,12 +467,15 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeEmail (bắt buộc, độ dài tối đa 125, chỉ chứa ký tự 1 byte nửa chữ).
+     * Validate địa chỉ email của nhân viên (employeeEmail):
+     * - ER001: Bắt buộc nhập.
+     * - ER006: Độ dài tối đa 125 ký tự.
+     * - ER008: Chỉ chứa ký tự 1 byte nửa chữ (ký tự ASCII in được từ mã 33 đến 126).
      *
      * @param email Địa chỉ email cần validate.
-     * @return MessageResponse nếu không hợp lệ, null nếu hợp lệ.
+     * @return MessageResponse nếu không hợp lệ, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeEmail(String email) {
+    public MessageResponse validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_EMAIL));
         }
@@ -437,9 +490,15 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeTelephone (chỉ ký tự 1 byte, độ dài tối đa 50).
+     * Validate số điện thoại liên lạc của nhân viên (employeeTelephone):
+     * - ER001: Bắt buộc nhập.
+     * - ER006: Độ dài tối đa 50 ký tự.
+     * - ER008: Chỉ chứa ký tự 1 byte nửa chữ (ASCII từ 0 đến 127).
+     *
+     * @param telephone Số điện thoại cần validate.
+     * @return MessageResponse nếu không hợp lệ, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeeTelephone(String telephone) {
+    public MessageResponse validateTelephone(String telephone) {
         if (telephone == null || telephone.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_TEL));
         }
@@ -454,40 +513,77 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate employeeLoginPassword (độ dài 8 đến 50 ký tự).
+     * Validate độ dài mật khẩu đăng nhập (employeeLoginPassword):
+     * - ER007: Độ dài phải nằm trong khoảng từ 8 đến 50 ký tự.
+     *
+     * @param trimmedPassword Chuỗi mật khẩu đã loại bỏ khoảng trắng thừa ở hai đầu.
+     * @return MessageResponse lỗi ER007 nếu không nằm trong khoảng 8-50 ký tự, hoặc null nếu hợp lệ.
      */
-    public MessageResponse validateEmployeePassword(String password) {
-        if (password == null || password.trim().isEmpty()) {
-            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_PASSWORD));
-        }
-        String trimmed = password.trim();
-        if (trimmed.length() < 8 || trimmed.length() > 50) {
+    public MessageResponse validatePasswordLength(String trimmedPassword) {
+        if (trimmedPassword.length() < 8 || trimmedPassword.length() > 50) {
             return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
         }
         return null;
     }
 
     /**
-     * Validate departmentId (bắt buộc, số nguyên dương, tồn tại trong database).
+     * Validate mật khẩu đăng nhập khi thêm mới nhân viên:
+     * - ER001: Bắt buộc nhập (không được null hoặc chỉ chứa khoảng trắng).
+     * - ER007: Độ dài từ 8 đến 50 ký tự (validatePasswordLength).
+     *
+     * @param password Mật khẩu cần validate.
+     * @return MessageResponse nếu không hợp lệ, hoặc null nếu hợp lệ.
+     */
+    public MessageResponse validatePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_PASSWORD));
+        }
+        return validatePasswordLength(password.trim());
+    }
+
+    /**
+     * Helper kiểm tra chuỗi số nguyên và giới hạn giá trị.
+     *
+     * @param valueStr   Giá trị số dạng chuỗi.
+     * @param paramName  Tên param cho message lỗi.
+     * @param allowZero  true nếu cho phép giá trị >= 0, false nếu yêu cầu giá trị > 0.
+     * @return MessageResponse lỗi ER018 nếu không hợp lệ, hoặc null nếu hợp lệ.
+     */
+    public MessageResponse validatePositiveNumber(String valueStr, String paramName, boolean allowZero) {
+        if (valueStr == null || valueStr.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = valueStr.trim();
+        try {
+            long val = Long.parseLong(trimmed);
+            if (allowZero ? val < 0 : val <= 0) {
+                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(paramName));
+            }
+        } catch (NumberFormatException ex) {
+            return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(paramName));
+        }
+        return null;
+    }
+
+    /**
+     * Validate mã phòng ban (departmentId):
+     * - ER002: Bắt buộc chọn (không được null hoặc rỗng).
+     * - ER018: Phải là số nguyên dương (> 0).
+     * - ER004: Phòng ban phải tồn tại trong cơ sở dữ liệu.
+     *
+     * @param departmentId ID phòng ban dưới dạng chuỗi.
+     * @return MessageResponse nếu không hợp lệ, hoặc null nếu hợp lệ.
      */
     public MessageResponse validateDepartmentId(String departmentId) {
         if (departmentId == null || departmentId.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER002, Collections.singletonList(Constants.PARAM_GROUP));
         }
-        String trimmed = departmentId.trim();
-        if (!trimmed.matches("^[0-9]+$")) {
-            return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
-        }
-        long parsedId;
-        try {
-            parsedId = Long.parseLong(trimmed);
-            if (parsedId <= 0) {
-                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
-            }
-        } catch (NumberFormatException ex) {
-            return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_GROUP));
+        MessageResponse numberError = validatePositiveNumber(departmentId, Constants.PARAM_GROUP, false);
+        if (numberError != null) {
+            return numberError;
         }
 
+        long parsedId = Long.parseLong(departmentId.trim());
         if (!departmentRepository.existsById(parsedId)) {
             return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_GROUP));
         }
@@ -495,7 +591,18 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate danh sách certifications.
+     * Validate danh sách chứng chỉ của nhân viên:
+     * - startDate (Ngày cấp chứng chỉ): Bắt buộc (ER001), định dạng yyyy/MM/dd (ER005),
+     *   ngày hợp lệ trên lịch (ER011), không được lớn hơn ngày hiện tại (ER011).
+     * - endDate (Ngày hết hạn chứng chỉ): Bắt buộc (ER001), định dạng yyyy/MM/dd (ER005),
+     *   ngày hợp lệ trên lịch (ER011).
+     * - Quan hệ giữa 2 ngày: endDate phải sau startDate (ER012).
+     * - score (Điểm chứng chỉ): Bắt buộc (ER001), phải là số nguyên không âm >= 0 (ER018).
+     * - certificationId (Mã chứng chỉ): Bắt buộc (ER001), phải là số nguyên dương > 0 (ER018),
+     *   và phải tồn tại trong cơ sở dữ liệu (ER004).
+     *
+     * @param certs Danh sách chứng chỉ cần kiểm tra.
+     * @return MessageResponse nếu có chứng chỉ không hợp lệ, hoặc null nếu tất cả đều hợp lệ.
      */
     public MessageResponse validateCertifications(List<CertificationItemRequest> certs) {
         if (certs == null || certs.isEmpty()) {
@@ -503,7 +610,7 @@ public class EmployeeValidator {
         }
 
         for (CertificationItemRequest cert : certs) {
-            // 1. startDate
+            // 1. Kiểm tra ngày cấp chứng chỉ (startDate)
             MessageResponse startDateError = validateDateField(cert.getStartDate(), Constants.PARAM_CERTIFICATION_START_DATE);
             if (startDateError != null) {
                 return startDateError;
@@ -513,55 +620,39 @@ public class EmployeeValidator {
                 return new MessageResponse(Constants.ERROR_CODE_ER011, Collections.singletonList(Constants.PARAM_CERTIFICATION_START_DATE));
             }
 
-            // 2. endDate
+            // 2. Kiểm tra ngày hết hạn chứng chỉ (endDate)
             MessageResponse endDateError = validateDateField(cert.getEndDate(), Constants.PARAM_CERTIFICATION_END_DATE);
             if (endDateError != null) {
                 return endDateError;
             }
 
-            // Check endDate > startDate (ER012)
+            // 3. Kiểm tra logic ngày: ngày hết hạn phải sau ngày cấp (endDate > startDate - ER012)
             LocalDate parsedEnd = parseStrictDate(cert.getEndDate().trim());
             if (!parsedEnd.isAfter(parsedStart)) {
                 return new MessageResponse(Constants.ERROR_CODE_ER012, Arrays.asList(Constants.PARAM_CERTIFICATION_END_DATE, Constants.PARAM_CERTIFICATION_START_DATE));
             }
 
-            // 3. score
+            // 4. Kiểm tra điểm chứng chỉ (score: bắt buộc, số nguyên >= 0 - ER001, ER018)
             String score = cert.getScore();
             if (score == null || score.trim().isEmpty()) {
                 return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_SCORE));
             }
-            String trimmedScore = score.trim();
-            if (!trimmedScore.matches("^[0-9]+$")) {
-                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
-            }
-            try {
-                int parsedScore = Integer.parseInt(trimmedScore);
-                if (parsedScore < 0) {
-                    return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
-                }
-            } catch (NumberFormatException ex) {
-                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_SCORE));
+            MessageResponse scoreError = validatePositiveNumber(score, Constants.PARAM_SCORE, true);
+            if (scoreError != null) {
+                return scoreError;
             }
 
-            // 4. certificationId
+            // 5. Kiểm tra mã loại chứng chỉ (certificationId: bắt buộc, số nguyên > 0, tồn tại trong DB - ER001, ER018, ER004)
             String certId = cert.getCertificationId();
             if (certId == null || certId.trim().isEmpty()) {
                 return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_CERTIFICATION));
             }
-            String trimmedCertId = certId.trim();
-            if (!trimmedCertId.matches("^[0-9]+$")) {
-                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
-            }
-            long parsedCertId;
-            try {
-                parsedCertId = Long.parseLong(trimmedCertId);
-                if (parsedCertId <= 0) {
-                    return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
-                }
-            } catch (NumberFormatException ex) {
-                return new MessageResponse(Constants.ERROR_CODE_ER018, Collections.singletonList(Constants.PARAM_CERTIFICATION));
+            MessageResponse certIdError = validatePositiveNumber(certId, Constants.PARAM_CERTIFICATION, false);
+            if (certIdError != null) {
+                return certIdError;
             }
 
+            long parsedCertId = Long.parseLong(certId.trim());
             if (!certificationRepository.existsById(parsedCertId)) {
                 return new MessageResponse(Constants.ERROR_CODE_ER004, Collections.singletonList(Constants.PARAM_CERTIFICATION));
             }
@@ -571,17 +662,24 @@ public class EmployeeValidator {
     }
 
     /**
-     * Kiểm tra định dạng chuỗi ngày yyyy/MM/dd.
+     * Kiểm tra chuỗi ngày có đúng định dạng yyyy/MM/dd hay không (sử dụng regex 4 số/2 số/2 số).
+     *
+     * @param dateStr Chuỗi ngày cần kiểm tra.
+     * @return true nếu khớp định dạng yyyy/MM/dd, false nếu null hoặc sai định dạng.
      */
     public boolean isValidDateFormat(String dateStr) {
         if (dateStr == null) {
             return false;
         }
-        return dateStr.matches("^\\d{4}/\\d{2}/\\d{2}$");
+        return DATE_FORMAT_PATTERN.matcher(dateStr).matches();
     }
 
     /**
-     * Parse chuỗi ngày nghiêm ngặt (strict) theo định dạng yyyy/MM/dd.
+     * Parse chuỗi ngày theo định dạng uuuu/MM/dd với chế độ nghiêm ngặt (ResolverStyle.STRICT).
+     * Giúp phát hiện và loại bỏ các ngày không có thực trên lịch (như 2023/02/29, 2023/04/31,...).
+     *
+     * @param dateStr Chuỗi ngày cần parse.
+     * @return Đối tượng {@link LocalDate} nếu ngày hợp lệ, hoặc null nếu không thể parse.
      */
     public LocalDate parseStrictDate(String dateStr) {
         if (dateStr == null) {
@@ -595,10 +693,12 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate tham số employeeId theo thiết kế API Get employee.
+     * Validate tham số employeeId theo thiết kế API Xem chi tiết nhân viên (GET /employee/{id}):
+     * - ER001: Bắt buộc truyền ID hợp lệ (> 0).
+     * - ER013: Nhân viên phải tồn tại trong cơ sở dữ liệu.
      *
-     * @param employeeId ID của nhân viên.
-     * @return MessageResponse nếu có lỗi (ER001 hoặc ER013), null nếu hợp lệ.
+     * @param employeeId ID của nhân viên cần lấy chi tiết.
+     * @return MessageResponse nếu có lỗi (ER001 hoặc ER013), hoặc null nếu hợp lệ.
      */
     public MessageResponse validateEmployeeId(Long employeeId) {
         if (employeeId == null || employeeId <= 0) {
@@ -613,13 +713,13 @@ public class EmployeeValidator {
     }
 
     /**
-     * Validate tham số employeeId theo thiết kế API Delete employee.
-     * Trả về ER001 nếu không tồn tại tham số.
-     * Trả về ER014 nếu không tồn tại trong bảng employees.
-     * Trả về ER020 nếu nhân viên có role ADMIN (không thể xóa user admin).
+     * Validate tham số employeeId theo thiết kế API Xóa nhân viên (DELETE /employee/{id}):
+     * - ER001: Bắt buộc truyền ID hợp lệ (> 0).
+     * - ER014: Nhân viên phải tồn tại trong bảng employees.
+     * - ER020: Không được phép xóa tài khoản nhân viên có vai trò quản trị viên (role ADMIN).
      *
      * @param employeeId ID của nhân viên cần xóa.
-     * @return MessageResponse nếu có lỗi (ER001, ER014 hoặc ER020), null nếu hợp lệ.
+     * @return MessageResponse nếu có lỗi (ER001, ER014 hoặc ER020), hoặc null nếu hợp lệ.
      */
     public MessageResponse validateEmployeeIdForDelete(Long employeeId) {
         if (employeeId == null || employeeId <= 0) {

@@ -89,8 +89,6 @@ public class EmployeeServiceTest {
                 employeeNativeRepository,
                 employeeValidator,
                 employeeEntityRepository,
-                departmentRepository,
-                certificationRepository,
                 employeeCertificationRepository,
                 passwordEncoder,
                 employeeMapper
@@ -118,7 +116,7 @@ public class EmployeeServiceTest {
                 .thenReturn(1L);
 
         EmployeeListDTO result = employeeService.getEmployees(
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         assertNotNull(result);
@@ -150,7 +148,7 @@ public class EmployeeServiceTest {
                 .thenReturn(List.of(empDto));
 
         EmployeeListDTO result = employeeService.getEmployees(
-                "  Van A  ", "2", "DESC", "ASC", "DESC", "20", "10"
+                "  Van A  ", "2", "DESC", "ASC", "DESC", "20", "10", null
         );
 
         assertNotNull(result);
@@ -170,7 +168,7 @@ public class EmployeeServiceTest {
                 .thenReturn(0L);
 
         EmployeeListDTO result = employeeService.getEmployees(
-                "Nonexistent", "1", null, null, null, "0", "5"
+                "Nonexistent", "1", null, null, null, "0", "5", null
         );
 
         assertNotNull(result);

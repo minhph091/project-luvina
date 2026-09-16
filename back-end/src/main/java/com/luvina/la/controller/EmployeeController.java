@@ -30,6 +30,7 @@ import com.luvina.la.payload.response.EmployeeCertificationResponse;
 import com.luvina.la.payload.response.EmployeeDetailResponse;
 import com.luvina.la.validator.EmployeeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,7 +86,7 @@ public class EmployeeController {
      * @return Response chứa mã kết quả, tổng số bản ghi và danh sách nhân viên.
      */
     @GetMapping("/employee")
-    public ListEmployeesResponse getEmployees(
+    public ResponseEntity<ListEmployeesResponse> getEmployees(
             @RequestParam(required = false, name = "employee_name") String employeeName,
             @RequestParam(required = false, name = "department_id") String departmentId,
             @RequestParam(required = false, name = "ord_employee_name") String ordEmployeeName,
@@ -116,11 +117,11 @@ public class EmployeeController {
 
         List<EmployeeResponse> employeeResponses = employeeMapper.toResponseList(employeeListDTO.getEmployees());
 
-        return ListEmployeesResponse.builder()
+        return ResponseEntity.ok(ListEmployeesResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .totalRecords(employeeListDTO.getTotalRecords())
                 .employees(employeeResponses)
-                .build();
+                .build());
     }
 
 
@@ -176,7 +177,7 @@ public class EmployeeController {
      * @return AddEmployeeResponse chứa mã kết quả, employeeId mới tạo và message thành công hoặc lỗi.
      */
     @PostMapping("/employee")
-    public AddEmployeeResponse addEmployee(@RequestBody AddEmployeeRequest request) {
+    public ResponseEntity<AddEmployeeResponse> addEmployee(@RequestBody AddEmployeeRequest request) {
         // Validate dữ liệu request thêm mới nhân viên theo thiết kế
         MessageResponse validationError = employeeValidator.validateAddEmployee(request);
         if (validationError != null) {
@@ -184,11 +185,11 @@ public class EmployeeController {
         }
 
         EmployeeDTO createdEmployee = employeeService.addEmployee(request);
-        return AddEmployeeResponse.builder()
+        return ResponseEntity.ok(AddEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(createdEmployee.getEmployeeId())
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG001, new ArrayList<>()))
-                .build();
+                .build());
     }
 
     /**
@@ -198,7 +199,7 @@ public class EmployeeController {
      * @return EmployeeDetailResponse chứa toàn bộ thông tin nhân viên và danh sách chứng chỉ tiếng Nhật.
      */
     @GetMapping("/employee/{id}")
-    public EmployeeDetailResponse getEmployeeById(@PathVariable("id") Long id) {
+    public ResponseEntity<EmployeeDetailResponse> getEmployeeById(@PathVariable("id") Long id) {
         // Validate ID nhân viên
         MessageResponse validationError = employeeValidator.validateEmployeeId(id);
         if (validationError != null) {
@@ -220,7 +221,7 @@ public class EmployeeController {
             }
         }
 
-        return EmployeeDetailResponse.builder()
+        return ResponseEntity.ok(EmployeeDetailResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(detailDTO.getEmployeeId())
                 .employeeName(detailDTO.getEmployeeName())
@@ -232,7 +233,7 @@ public class EmployeeController {
                 .employeeNameKana(detailDTO.getEmployeeNameKana())
                 .employeeLoginId(detailDTO.getEmployeeLoginId())
                 .certifications(certResponses)
-                .build();
+                .build());
     }
 
     /**
@@ -241,8 +242,8 @@ public class EmployeeController {
      * @param id ID của nhân viên cần xóa.
      * @return DeleteEmployeeResponse chứa mã kết quả 200 và message thành công MSG003.
      */
-    @DeleteMapping("/employee/{id}")
-    public DeleteEmployeeResponse deleteEmployee(@PathVariable(name = "id") Long id) {
+    @DeleteMapping({"/employee/{id}", "/employee"})
+    public ResponseEntity<DeleteEmployeeResponse> deleteEmployee(@PathVariable(name = "id", required = false) Long id) {
         // Validate ID nhân viên khi xóa (ER001 nếu rỗng, ER014 nếu không tồn tại)
         MessageResponse validationError = employeeValidator.validateEmployeeIdForDelete(id);
         if (validationError != null) {
@@ -250,11 +251,11 @@ public class EmployeeController {
         }
 
         employeeService.deleteEmployee(id);
-        return DeleteEmployeeResponse.builder()
+        return ResponseEntity.ok(DeleteEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(id)
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG003, new ArrayList<>()))
-                .build();
+                .build());
     }
 
     /**
@@ -264,7 +265,7 @@ public class EmployeeController {
      * @return UpdateEmployeeResponse chứa mã kết quả 200, employeeId và thông báo MSG002.
      */
     @PutMapping("/employee")
-    public UpdateEmployeeResponse updateEmployee(@RequestBody UpdateEmployeeRequest request) {
+    public ResponseEntity<UpdateEmployeeResponse> updateEmployee(@RequestBody UpdateEmployeeRequest request) {
 
         // Validate dữ liệu request cập nhật nhân viên theo thiết kế
         MessageResponse validationError = employeeValidator.validateUpdateEmployee(request);
@@ -273,10 +274,10 @@ public class EmployeeController {
         }
 
         EmployeeDTO updatedEmployee = employeeService.updateEmployee(request);
-        return UpdateEmployeeResponse.builder()
+        return ResponseEntity.ok(UpdateEmployeeResponse.builder()
                 .code(Constants.RESPONSE_CODE_SUCCESS)
                 .employeeId(updatedEmployee.getEmployeeId())
                 .message(new MessageResponse(Constants.MESSAGE_CODE_MSG002, new ArrayList<>()))
-                .build();
+                .build());
     }
 }

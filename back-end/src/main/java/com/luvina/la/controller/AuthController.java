@@ -64,7 +64,7 @@ public class AuthController {
      * @return LoginResponse
      */
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -75,7 +75,7 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String accessToken = tokenProvider.generateToken((AuthUserDetails) authentication.getPrincipal());
-            return new LoginResponse(accessToken);
+            return ResponseEntity.ok(new LoginResponse(accessToken));
         } catch (UsernameNotFoundException | BadCredentialsException ex) {
             log.warn(ex.getMessage());
             errors.put("code", "100");
@@ -84,7 +84,7 @@ public class AuthController {
             // unknown error
             errors.put("code", "000");
         }
-        return new LoginResponse(errors);
+        return ResponseEntity.ok(new LoginResponse(errors));
     }
 
     /**
@@ -93,9 +93,9 @@ public class AuthController {
      * @return
      */
     @RequestMapping("/test-auth")
-    public Map<String, String> testAuth() {
+    public ResponseEntity<Map<String, String>> testAuth() {
         Map<String, String> testData = new HashMap<>();
         testData.put("msg", "Token is valid");
-        return testData;
+        return ResponseEntity.ok(testData);
     }
 }

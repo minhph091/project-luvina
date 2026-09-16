@@ -1,11 +1,13 @@
 package com.luvina.la.controller;
 
+import com.luvina.la.config.Constants;
 import com.luvina.la.dto.DepartmentDTO;
 import com.luvina.la.mapper.DepartmentMapper;
 import com.luvina.la.payload.response.DepartmentResponse;
 import com.luvina.la.payload.response.ListDepartmentsResponse;
 import com.luvina.la.service.DepartmentService;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,13 +47,13 @@ public class DepartmentController {
      * @return Response chứa mã kết quả và danh sách phòng ban.
      */
     @GetMapping("/department")
-    public ListDepartmentsResponse getDepartments() {
+    public ResponseEntity<ListDepartmentsResponse> getDepartments() {
         List<DepartmentDTO> departmentDTOs = departmentService.getDepartments();
         List<DepartmentResponse> departments = departmentMapper.toResponseList(departmentDTOs);
 
-        return ListDepartmentsResponse.builder()
-                .code(200)
+        return ResponseEntity.ok(ListDepartmentsResponse.builder()
+                .code(Constants.RESPONSE_CODE_SUCCESS)
                 .departments(departments)
-                .build();
+                .build());
     }
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,21 +54,21 @@ public class CertificationController {
      * @return Response chứa mã kết quả và danh sách chứng chỉ hoặc lỗi ER023.
      */
     @GetMapping({"/certifications", "/certification"})
-    public ListCertificationsResponse getCertifications() {
+    public ResponseEntity<ListCertificationsResponse> getCertifications() {
         try {
             List<CertificationDTO> certificationDTOs = certificationService.getCertifications();
             List<CertificationResponse> certifications = certificationMapper.toResponseList(certificationDTOs);
 
-            return ListCertificationsResponse.builder()
+            return ResponseEntity.ok(ListCertificationsResponse.builder()
                     .code(Constants.RESPONSE_CODE_SUCCESS)
                     .certifications(certifications)
-                    .build();
+                    .build());
         } catch (Exception ex) {
             log.error("Error occurred while getting certification list: ", ex);
-            return ListCertificationsResponse.builder()
+            return ResponseEntity.ok(ListCertificationsResponse.builder()
                     .code(Constants.RESPONSE_CODE_ERROR)
                     .message(new MessageResponse(Constants.ERROR_CODE_ER023, new ArrayList<>()))
-                    .build();
+                    .build());
         }
     }
 }
