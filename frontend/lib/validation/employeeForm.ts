@@ -44,6 +44,19 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const DATE_FORMAT_REGEX = /^\d{4}[/-]\d{1,2}[/-]\d{1,2}$/;
 
 /**
+ * Giới hạn độ dài min/max cho các trường dữ liệu
+ */
+export const VALIDATION_LENGTH = {
+  LOGIN_ID_MAX: 50,
+  NAME_MAX: 125,
+  NAME_KANA_MAX: 125,
+  EMAIL_MAX: 125,
+  TEL_MAX: 50,
+  PASSWORD_MIN: 8,
+  PASSWORD_MAX: 50,
+} as const;
+
+/**
  * Helper kiểm tra chuỗi ngày có phải ngày hợp lệ trên thực tế không (vd: 2026/02/29 hợp lệ không)
  */
 export function isValidDateString(val: string): boolean {
@@ -108,7 +121,10 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.ACCOUNT_NAME))
-        .max(50, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.ACCOUNT_NAME, 50))
+        .max(
+          VALIDATION_LENGTH.LOGIN_ID_MAX,
+          VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.ACCOUNT_NAME, VALIDATION_LENGTH.LOGIN_ID_MAX)
+        )
         .regex(
           LOGIN_ID_REGEX,
           VALIDATION_MESSAGES.ER019_HALF_ALPHANUMERIC(FIELD_LABELS.ACCOUNT_NAME)
@@ -126,14 +142,20 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.NAME))
-        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.NAME, 125)),
+        .max(
+          VALIDATION_LENGTH.NAME_MAX,
+          VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.NAME, VALIDATION_LENGTH.NAME_MAX)
+        ),
 
       // 4. employeeNameKana
       employeeNameKana: z
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.KATAKANA_NAME))
-        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, 125))
+        .max(
+          VALIDATION_LENGTH.NAME_KANA_MAX,
+          VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.KATAKANA_NAME, VALIDATION_LENGTH.NAME_KANA_MAX)
+        )
         .regex(
           HALFSIZE_KATAKANA_REGEX,
           VALIDATION_MESSAGES.ER009_KATAKANA(FIELD_LABELS.KATAKANA_NAME)
@@ -153,7 +175,10 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.EMAIL))
-        .max(125, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, 125))
+        .max(
+          VALIDATION_LENGTH.EMAIL_MAX,
+          VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.EMAIL, VALIDATION_LENGTH.EMAIL_MAX)
+        )
         .regex(
           HALFSIZE_ASCII_REGEX,
           VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.EMAIL)
@@ -164,7 +189,10 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
         .string()
         .trim()
         .min(1, VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.TEL))
-        .max(50, VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, 50))
+        .max(
+          VALIDATION_LENGTH.TEL_MAX,
+          VALIDATION_MESSAGES.ER006_MAX_LENGTH(FIELD_LABELS.TEL, VALIDATION_LENGTH.TEL_MAX)
+        )
         .regex(
           HALFSIZE_ASCII_REGEX,
           VALIDATION_MESSAGES.ER008_BYTE_HALFSIZE(FIELD_LABELS.TEL)
@@ -200,11 +228,15 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
             path: ['employeeLoginPassword'],
             message: VALIDATION_MESSAGES.ER001_REQUIRED_INPUT(FIELD_LABELS.PASSWORD),
           });
-        } else if (password.length < 8 || password.length > 50) {
+        } else if (password.length < VALIDATION_LENGTH.PASSWORD_MIN || password.length > VALIDATION_LENGTH.PASSWORD_MAX) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['employeeLoginPassword'],
-            message: VALIDATION_MESSAGES.ER007_LENGTH_RANGE(FIELD_LABELS.PASSWORD, 8, 50),
+            message: VALIDATION_MESSAGES.ER007_LENGTH_RANGE(
+              FIELD_LABELS.PASSWORD,
+              VALIDATION_LENGTH.PASSWORD_MIN,
+              VALIDATION_LENGTH.PASSWORD_MAX
+            ),
           });
         }
 
@@ -224,11 +256,15 @@ export function createEmployeeFormSchema(mode: EmployeeFormMode = 'ADD') {
       } else {
         // Mode EDIT: Password is optional
         if (password) {
-          if (password.length < 8 || password.length > 50) {
+          if (password.length < VALIDATION_LENGTH.PASSWORD_MIN || password.length > VALIDATION_LENGTH.PASSWORD_MAX) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ['employeeLoginPassword'],
-              message: VALIDATION_MESSAGES.ER007_LENGTH_RANGE(FIELD_LABELS.PASSWORD, 8, 50),
+              message: VALIDATION_MESSAGES.ER007_LENGTH_RANGE(
+                FIELD_LABELS.PASSWORD,
+                VALIDATION_LENGTH.PASSWORD_MIN,
+                VALIDATION_LENGTH.PASSWORD_MAX
+              ),
             });
           }
 

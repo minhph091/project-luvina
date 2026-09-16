@@ -327,7 +327,7 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
         String trimmed = loginId.trim();
-        if (trimmed.length() > 50) {
+        if (trimmed.length() > Constants.MAX_LENGTH_LOGIN_ID) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_ACCOUNT_NAME));
         }
         // Chỉ chứa ký tự a-z, A-Z, 0-9, _ và ký tự đầu tiên không phải là số
@@ -393,7 +393,7 @@ public class EmployeeValidator {
         if (name == null || name.trim().isEmpty()) {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_NAME));
         }
-        if (name.trim().length() > 125) {
+        if (name.trim().length() > Constants.MAX_LENGTH_NAME) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_NAME));
         }
         return null;
@@ -413,7 +413,7 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
         }
         String trimmed = nameKana.trim();
-        if (trimmed.length() > 125) {
+        if (trimmed.length() > Constants.MAX_LENGTH_NAME_KANA) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_KATAKANA_NAME));
         }
         if (!KANA_HALFSIZE_PATTERN.matcher(trimmed).matches()) {
@@ -480,7 +480,7 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_EMAIL));
         }
         String trimmed = email.trim();
-        if (trimmed.length() > 125) {
+        if (trimmed.length() > Constants.MAX_LENGTH_EMAIL) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_EMAIL));
         }
         if (!trimmed.chars().allMatch(c -> c >= 33 && c <= 126)) {
@@ -503,7 +503,7 @@ public class EmployeeValidator {
             return new MessageResponse(Constants.ERROR_CODE_ER001, Collections.singletonList(Constants.PARAM_TEL));
         }
         String trimmed = telephone.trim();
-        if (trimmed.length() > 50) {
+        if (trimmed.length() > Constants.MAX_LENGTH_TELEPHONE) {
             return new MessageResponse(Constants.ERROR_CODE_ER006, Collections.singletonList(Constants.PARAM_TEL));
         }
         if (!trimmed.chars().allMatch(c -> c >= 0 && c <= 127)) {
@@ -520,8 +520,11 @@ public class EmployeeValidator {
      * @return MessageResponse lỗi ER007 nếu không nằm trong khoảng 8-50 ký tự, hoặc null nếu hợp lệ.
      */
     public MessageResponse validatePasswordLength(String trimmedPassword) {
-        if (trimmedPassword.length() < 8 || trimmedPassword.length() > 50) {
-            return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(Constants.PARAM_PASSWORD, "8", "50"));
+        if (trimmedPassword.length() < Constants.MIN_LENGTH_PASSWORD || trimmedPassword.length() > Constants.MAX_LENGTH_PASSWORD) {
+            return new MessageResponse(Constants.ERROR_CODE_ER007, Arrays.asList(
+                    Constants.PARAM_PASSWORD,
+                    String.valueOf(Constants.MIN_LENGTH_PASSWORD),
+                    String.valueOf(Constants.MAX_LENGTH_PASSWORD)));
         }
         return null;
     }

@@ -105,4 +105,13 @@ public class Constants {
     // Default Pagination
     public static final int DEFAULT_LIMIT = 5;
     public static final int DEFAULT_OFFSET = 0;
+
+    // Validation Length Limits
+    public static final int MAX_LENGTH_LOGIN_ID = 50;
+    public static final int MAX_LENGTH_NAME = 125;
+    public static final int MAX_LENGTH_NAME_KANA = 125;
+    public static final int MAX_LENGTH_EMAIL = 125;
+    public static final int MAX_LENGTH_TELEPHONE = 50;
+    public static final int MIN_LENGTH_PASSWORD = 8;
+    public static final int MAX_LENGTH_PASSWORD = 50;
 }
