@@ -88,7 +88,6 @@ public class EmployeeNativeRepository {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(e.employee_id) FROM employees e ");
-        sql.append("INNER JOIN departments d ON e.department_id = d.department_id ");
         sql.append("WHERE 1=1 ");
 
         appendFilterConditions(sql, employeeName, departmentId);
@@ -126,12 +125,9 @@ public class EmployeeNativeRepository {
         sql.append("LEFT JOIN ( ");
         sql.append("  SELECT ");
         sql.append("    ec.employee_id, ");
-        sql.append("    ec.certification_id, ");
-        sql.append("    ec.start_date, ");
         sql.append("    ec.end_date, ");
         sql.append("    ec.score, ");
         sql.append("    c.certification_name, ");
-        sql.append("    c.certification_level, ");
         sql.append("    ROW_NUMBER() OVER ( ");
         sql.append("      PARTITION BY ec.employee_id ");
         sql.append("      ORDER BY c.certification_level ASC, ec.start_date DESC, ec.employee_certification_id DESC ");
@@ -158,7 +154,7 @@ public class EmployeeNativeRepository {
             String employeeName,
             Long departmentId) {
 
-        sql.append("AND e.employee_role != '").append(Constants.ROLE_ADMIN).append("' ");
+        sql.append("AND e.employee_role != :adminRole ");
 
         if (employeeName != null && !employeeName.trim().isEmpty()) {
             sql.append("AND e.employee_name LIKE :employeeName ");
@@ -208,12 +204,6 @@ public class EmployeeNativeRepository {
                 orderClauses.add(nameOrder);
             if (certOrder != null)
                 orderClauses.add(certOrder);
-        } else if (normalizedSortBy.contains("name") && nameOrder != null) {
-            orderClauses.add(nameOrder);
-            if (certOrder != null)
-                orderClauses.add(certOrder);
-            if (endOrder != null)
-                orderClauses.add(endOrder);
         } else {
             if (nameOrder != null)
                 orderClauses.add(nameOrder);
@@ -223,13 +213,8 @@ public class EmployeeNativeRepository {
                 orderClauses.add(endOrder);
         }
 
-        if (orderClauses.isEmpty()) {
-            sql.append("ORDER BY e.employee_id ASC ");
-        } else {
-            sql.append("ORDER BY ");
-            sql.append(String.join(", ", orderClauses));
-            sql.append(", e.employee_id ASC ");
-        }
+        orderClauses.add("e.employee_id ASC");
+        sql.append("ORDER BY ").append(String.join(", ", orderClauses)).append(" ");
     }
 
     /**
@@ -254,6 +239,7 @@ public class EmployeeNativeRepository {
      * @param departmentId ID phòng ban (nếu có).
      */
     private void setFilterParams(Query query, String employeeName, Long departmentId) {
+        query.setParameter("adminRole", Constants.ROLE_ADMIN);
         if (employeeName != null && !employeeName.trim().isEmpty()) {
             query.setParameter("employeeName", "%" + escapeLikePattern(employeeName.trim()) + "%");
         }
